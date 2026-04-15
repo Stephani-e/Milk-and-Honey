@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lora, Inter } from "next/font/google";
 import "./globals.css";
+import React from "react";
 
 // This is your "Times New Roman" style alternative
 const lora = Lora({
@@ -17,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Milk and Honey • RCCG Province 56",
+  title: "Milk and Honey • RCCG • Lagos Province 56",
   description: "Administrative Portal for Digital Ministry",
 };
 
