@@ -2,9 +2,9 @@ import Image from "next/image";
 
 export default function BrandWatermark() {
     return (
-        <div className="fixed inset-0 flex items-center justify-center -z-10 select-none pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 flex items-center justify-center z-[-1] opacity-[0.03] select-none pointer-events-none overflow-hidden">
 
-            <div className="relative w-[600px] h-[600px] opacity-[0.1] grayscale">
+            <div className="relative w-[300px] h-[300px] md:w-[600px] md:h-[600px] opacity-[0.03] grayscale">
                 <Image
                     src="/Church-Logo.png"
                     alt="MH Logo Watermark"
@@ -15,8 +15,9 @@ export default function BrandWatermark() {
                 />
             </div>
 
-            {/* Optional: Large Background Initials if you don't want to use an image */}
-            <h1 className="text-[30rem] font-serif font-bold text-brand-primary opacity-[0.03]"> M&H </h1>
+            <h1 className="absolute text-[20vw] font-serif font-bold text-brand-primary opacity-[0.02] whitespace-nowrap">
+                M&H
+            </h1>
         </div>
     );
 }

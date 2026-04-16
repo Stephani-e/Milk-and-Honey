@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AdminFilter from "@/components/AdminFilter";
+import AdminFilter from "@/components/Admin/AdminFilter";
+import {toast} from "sonner";
+import ConfirmModal from "@/components/Admin/ConfirmModal";
 
 export default function SermonsPage() {
     const router = useRouter();
@@ -12,6 +14,9 @@ export default function SermonsPage() {
 
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("latest");
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedSermonId, setSelectedSermonId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchSermons();
@@ -48,6 +53,44 @@ export default function SermonsPage() {
 
         if (error) alert("Update failed");
         else fetchSermons();
+    };
+
+    const triggerDelete = (id: string) => {
+        setSelectedSermonId(id);
+        setIsModalOpen(true);
+    };
+
+    const triggerArchive = async (id: string, currentStatus: boolean) => {
+        setSelectedSermonId(id);
+        setIsModalOpen(true);
+    }
+
+    const confirmDelete = async () => {
+        if (!selectedSermonId) return;
+
+        // Using toast here instead of alert!
+        const { error } = await supabase.from("sermons").delete().eq("id", selectedSermonId);
+
+        if (error) {
+            toast.error("Delete failed");
+        } else {
+            toast.success("Sermon removed");
+            fetchSermons();
+        }
+    };
+
+    const confirmArchive = async () => {
+        if (!selectedSermonId) return;
+
+        // Using toast here instead of alert!
+        const { error } = await supabase.from("sermons").delete().eq("id", selectedSermonId);
+
+        if (error) {
+            toast.error("Archive failed");
+        } else {
+            toast.success("Sermon Archived");
+            fetchSermons();
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -203,6 +246,28 @@ export default function SermonsPage() {
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={isModalOpen}
+                title="Delete Sermon?"
+                message="This action is permanent and cannot be undone. All associated media links will be removed from the library."
+                variant="danger"
+                confirmText="Delete Permanently"
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={confirmDelete}
+            />
+
+            <ConfirmModal
+                isOpen={isModalOpen}
+                title="Archive Sermon?"
+                message="This action is temporary and can be undone. The Sermon will be hidden from the public library, but still accessible in the here. Just click Restore to bring it back."
+                variant="danger"
+                confirmText="Archive"
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={confirmArchive}
+            />
         </div>
+
+
     );
 }

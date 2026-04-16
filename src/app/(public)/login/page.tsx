@@ -3,16 +3,19 @@ import React, { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const router = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log("Attempting login with:", email); // Debug log
+        setIsLoggingIn(true);
 
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
@@ -21,35 +24,39 @@ export default function LoginPage() {
             });
 
             if (error) {
-                console.error("Supabase Error:", error.message);
-                alert(`Login Failed: ${error.message}`);
-                return;
-            }
+                // console.error("Supabase Error:", error.message);
+                toast.error(`Login Failed: ${error.message}`);
+                setIsLoggingIn(false)
+            } else if (data?.user){
+                toast.success("Login Successful!");
 
-            if (data?.user) {
-                console.log("Login successful, synchronizing session...");
-
-                // This ensures the browser has finished writing the cookie
-                // before the middleware tries to read it on the next page
                 router.refresh();
-
                 setTimeout(() => {
-                    window.location.href = "/admin";
-                }, 100);
+                    router.refresh();
+                    router.push("/admin");
+                }, 800);
             }
         } catch (err) {
-            console.error("Unexpected Error:", err);
+            // console.error("Unexpected Error:", err);
+            toast.error("An unexpected error occurred. Please try again.");
+            setIsLoggingIn(false)
         }
     };
 
     const handleGoogleLogin = async () => {
+        toast.info("Redirecting to Google Login...");
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: `${window.location.origin}/auth/callback`,
             },
         });
-        if (error) console.error("Google Auth Error:", error.message);
+        if (error) {
+            // console.error("Google Auth Error:", error.message);
+            toast.error(`Google Login Failed: ${error.message}`);
+        } else {
+            toast.success("Google Login Successful!");
+        }
     };
 
     return (
@@ -63,7 +70,7 @@ export default function LoginPage() {
                         <div className="text-center lg:text-left">
                             <h1 className="text-3xl font-bold text-[#11222E]">Welcome Home 👋</h1>
                             <p className="text-[#374151] mt-4 mb-8">
-                                Access the Ministry Portal to manage sermons, media, and departmental updates for Lagos Province 56.
+                                Access the M&H Admin Portal to manage sermons, media, and departmental updates for Milk and Honey Parish/Province.
                             </p>
                         </div>
 
@@ -83,7 +90,7 @@ export default function LoginPage() {
                                 <label className="block text-sm font-semibold mb-2 text-[#11222E]">Security Key</label>
                                 <div className="relative">
                                     <input
-                                        type={showPassword ? "text" : "password"} // Dynamic type
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
                                         className="w-full p-3 pr-12 border border-[#E5E7EB] text-[#11222E] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#11222E]"
                                         onChange={(e) => setPassword(e.target.value)}
@@ -92,7 +99,7 @@ export default function LoginPage() {
 
                                     {/* Toggle Button */}
                                     <button
-                                        type="button" // Important: prevents form submission
+                                        type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-green-950 hover:text-[#11222E] transition-colors p-1"
                                     >
@@ -114,7 +121,7 @@ export default function LoginPage() {
                             </div>
 
                             <button className="w-full bg-[#11222E] text-white p-4 rounded-lg font-bold hover:bg-slate-800 transition-all active:scale-[0.98]">
-                                Sign In to Portal
+                                {isLoggingIn ? "Verifying Session..." : "Sign In To Portal"}
                             </button>
                         </form>
 
