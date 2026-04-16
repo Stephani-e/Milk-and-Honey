@@ -3,11 +3,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AdminFilter from "@/components/AdminFilter";
 
 export default function SermonsPage() {
     const router = useRouter();
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [search, setSearch] = useState("");
+    const [sortBy, setSortBy] = useState("latest");
 
     useEffect(() => {
         fetchSermons();
@@ -22,6 +26,18 @@ export default function SermonsPage() {
         if (!error) setSermons(data || []);
         setLoading(false);
     }
+
+    const filteredSermons = sermons
+        .filter((s) => {
+            const searchStr = `${s.title} ${s.preacher} ${s.special_service_name}`.toLowerCase();
+            return searchStr.includes(search.toLowerCase());
+        })
+        .sort((a, b) => {
+            if (sortBy === "latest") return new Date(b.service_date).getTime() - new Date(a.service_date).getTime();
+            if (sortBy === "oldest") return new Date(a.service_date).getTime() - new Date(b.service_date).getTime();
+            if (sortBy === "alphabetical") return a.title.localeCompare(b.title);
+            return 0;
+        });
 
     // Toggle Archive Status
     const toggleArchive = async (id: string, currentStatus: boolean) => {
@@ -61,6 +77,18 @@ export default function SermonsPage() {
                     </button>
                 </div>
 
+                <AdminFilter
+                    searchValue={search}
+                    onSearchChange={setSearch}
+                    sortValue={sortBy}
+                    onSortChange={setSortBy}
+                    sortOptions={[
+                        { label: "Latest First", value: "latest" },
+                        { label: "Oldest First", value: "oldest" },
+                        { label: "Title (A-Z)", value: "alphabetical" },
+                    ]}
+                />
+
                 <div className="bg-white rounded-3xl border border-brand-accent overflow-hidden shadow-sm">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 border-b border-brand-accent text-[10px] uppercase font-black text-brand-primary">
@@ -71,7 +99,7 @@ export default function SermonsPage() {
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                        {sermons.map((s) => (
+                        {filteredSermons.map((s) => (
                             <tr key={s.id} className={`transition-opacity ${s.is_archived ? "opacity-40 grayscale" : ""}`}>
                                 <td className="p-5">
                                     {/* Row 1: The Logic Badges */}
@@ -99,7 +127,14 @@ export default function SermonsPage() {
                                         {new Date(s.service_date).toLocaleDateString('en-GB')}
                                         {/* Logic: Only show Host if it exists and isn't "General" */}
                                         {s.host && s.host !== "General" && s.host !== "" && (
-                                            <span className="ml-1 text-purple-600">| {s.host} Host</span>
+                                            <span className="ml-1 text-purple-600">
+                                                | {s.host}
+                                                {s.co_host && (
+                                                    <span className="text-brand-secondary">
+                                                        {" "}x ({s.co_host})
+                                                    </span>
+                                                )}
+                                            </span>
                                         )}
                                     </div>
                                 </td>
@@ -163,6 +198,9 @@ export default function SermonsPage() {
                         ))}
                         </tbody>
                     </table>
+                    {filteredSermons.length === 0 && (
+                        <div className="p-20 text-center text-brand-primary font-bold italic">No sermons found matching your search.</div>
+                    )}
                 </div>
             </div>
         </div>

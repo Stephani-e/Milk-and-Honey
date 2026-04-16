@@ -64,6 +64,18 @@ export default function NewSermonPage() {
         }
     }, [formData, category, weeklyType, isThanksgiving, isMultiDay, initialFetchDone]);
 
+    const handleMediaDelete = (type: 'banner' | 'clip') => {
+        if (confirm("Are you sure you want to remove this file entirely?")) {
+            if (type === 'banner') {
+                setFormData({ ...formData, banner_url: "" });
+                setBannerUploaded(false);
+            } else {
+                setFormData({ ...formData, clip_url: "" });
+                setClipUploaded(false);
+            }
+        }
+    };
+
     //SUBMIT LOGIC (With Data Cleaning)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -90,6 +102,14 @@ export default function NewSermonPage() {
             submission.weekly_type = "";
             submission.host = "";
             submission.service_number = "";
+
+            if (!isMultiDay) {
+                submission.day_identifier = "";
+            }
+
+            if (!formData.co_host) {
+                submission.co_host = "";
+            }
         }
 
         const { error } = await supabase.from("sermons").insert([submission]);
@@ -311,7 +331,10 @@ export default function NewSermonPage() {
                                                     /* This is your "Actual Banner" success state */
                                                     <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in">
                                                         <span className="text-xs font-bold font-sans">✓ Image Uploaded Successfully</span>
-                                                        <button onClick={() => setBannerUploaded(false)} className="text-[10px] underline">Change</button>
+                                                        <div className='flex gap-4'>
+                                                            <button type="button" onClick={() => setBannerUploaded(false)} className="text-[10px] underline">Change</button>
+                                                            <button type="button" onClick={() => handleMediaDelete('banner')} className="text-[10px] font-bold underline text-red-600">Remove</button>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <UploadButton
@@ -332,7 +355,7 @@ export default function NewSermonPage() {
                                                         }}
                                                         onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
                                                     />
-                                                 )
+                                                )
                                                 }
                                             </div>
 
