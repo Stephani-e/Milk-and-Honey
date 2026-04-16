@@ -1,163 +1,395 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { UploadButton } from "@/utils/uploadthing";
 
 export default function NewSermonPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [showNewServiceInput, setShowNewServiceInput] = useState(false);
-    const [newServiceValue, setNewServiceValue] = useState("");
+    const [initialFetchDone, setInitialFetchDone] = useState(false);
 
-    // Initial Dropdown Options
-    const [serviceTypes, setServiceTypes] = useState(["Sunday Service", "Digging Deep", "Faith Clinic", "Vigil", "Wind of Change"]);
-    const [hostGroups, setHostGroups] = useState(["Thanksgiving", "Men's Fellowship", "Women's Ministry", "Youth Church", "General - Milk and Honey Parish", "General - Milk and Honey Province", "General - RCCG", "Anointing Service/Church"]);
+    // LOGIC STATES
+    const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
+    const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
+    const [isThanksgiving, setIsThanksgiving] = useState(false);
+    const [isMultiDay, setIsMultiDay] = useState(false);
+
+    // SUGGESTIONS STATE (Populated from DB)
+    const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
+    const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
+
+    const [bannerUploaded, setBannerUploaded] = useState(false);
+    const [clipUploaded, setClipUploaded] = useState(false);
 
     const [formData, setFormData] = useState({
         title: "",
         preacher: "",
         bible_text: "",
         content: "",
-        service_type: "Sunday Service",
-        host_group: "General",
-        youtube_url: "", // Now Optional
-        service_date: new Date().toISOString().split('T')[0]
+        service_date: new Date().toISOString().split('T')[0],
+        host: "",
+        co_host: "",
+        service_number: "",
+        special_service_name: "",
+        day_identifier: "",
+        youtube_url: "",
+        banner_url: "",
+        clip_url: "",
     });
 
-    const handleAddNewService = () => {
-        if (newServiceValue.trim() !== "") {
-            setServiceTypes([...serviceTypes, newServiceValue]);
-            setFormData({...formData, service_type: newServiceValue});
-            setNewServiceValue("");
-            setShowNewServiceInput(false);
+    //RELOAD PROTECTION: Load Draft on mount
+    useEffect(() => {
+        const savedDraft = localStorage.getItem("sermon_draft");
+        if (savedDraft) {
+            const draft = JSON.parse(savedDraft);
+            setFormData(draft.formData);
+            setCategory(draft.category);
+            setWeeklyType(draft.weeklyType);
+            setIsThanksgiving(draft.isThanksgiving || false);
+            setIsMultiDay(draft.isMultiDay || false);
+            // Check if media URLs exist in the draft to show "Uploaded" state
+            if (draft.formData.banner_url) setBannerUploaded(true);
+            if (draft.formData.clip_url) setClipUploaded(true);
         }
-    };
+        setInitialFetchDone(true);
+    }, []);
 
+    // AUTO-SAVE DRAFT (Only for New Sermons)
+    useEffect(() => {
+        if (initialFetchDone) {
+            const draft = { formData, category, weeklyType, isThanksgiving, isMultiDay };
+            localStorage.setItem("sermon_draft", JSON.stringify(draft));
+        }
+    }, [formData, category, weeklyType, isThanksgiving, isMultiDay, initialFetchDone]);
+
+    //SUBMIT LOGIC (With Data Cleaning)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        // We only insert if the title is there; youtube_url can be empty
-        const { error } = await supabase.from("sermons").insert([formData]);
+        // CREATE CLEAN SUBMISSION OBJECT
+        const submission: any = {
+            ...formData,
+            service_category: category,
+            weekly_type: category === "Weekly" ? weeklyType : "",
+            is_thanksgiving: category === "Weekly" && weeklyType === "Sunday" ? isThanksgiving : false,
+            is_multi_day: category === "Special" ? isMultiDay : false,
+        };
+
+        // CLEANUP: Remove fields that don't apply to the chosen category
+        if (category === "Weekly") {
+            submission.special_service_name = "";
+            submission.day_identifier = "";
+            if (weeklyType !== "Sunday") {
+                submission.host = "";
+                submission.service_number = "";
+            }
+        } else {
+            submission.weekly_type = "";
+            submission.host = "";
+            submission.service_number = "";
+        }
+
+        const { error } = await supabase.from("sermons").insert([submission]);
 
         if (error) {
             alert(error.message);
             setLoading(false);
         } else {
+            localStorage.removeItem("sermon_draft"); // Clear cache on success
             router.push("/sermons");
             router.refresh();
         }
     };
 
+    // FETCH SAVED DATA FOR SUGGESTIONS
+    useEffect(() => {
+        async function getSuggestions() {
+            const { data } = await supabase.from("sermons").select("co_host, special_service_name");
+            if (data) {
+                // Use Set to get unique values only (no duplicates)
+                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
+                const names = Array.from(new Set(data.map(i => i.special_service_name).filter(Boolean)));
+                setSavedCoHosts(hosts);
+                setSavedSpecialNames(names);
+            }
+        }
+        getSuggestions();
+    }, []);
+
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
-            <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-brand-accent shadow-sm">
-                <h1 className="text-3xl font-serif font-bold text-brand-primary mb-6">Register New Sermon</h1>
+            <div className="max-w-4xl mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <Link href="/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to Sermon List</Link>
+                    <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">Draft Auto-Saved</span>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* SERVICE TYPE & HOST ROW */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Service Type</label>
-                            <div className="flex gap-2">
-                                {!showNewServiceInput ? (
-                                    <>
-                                        <select
-                                            className="flex-1 p-3 border rounded-lg outline-none"
-                                            value={formData.service_type}
-                                            onChange={(e) => setFormData({...formData, service_type: e.target.value})}
-                                        >
-                                            {serviceTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                                        </select>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowNewServiceInput(true)}
-                                            className="px-3 bg-gray-100 rounded-lg hover:bg-brand-secondary hover:text-white transition-colors"
-                                        >
-                                            +
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="flex gap-2 w-full">
-                                        <input
-                                            type="text"
-                                            placeholder="New Type..."
-                                            className="flex-1 p-3 border rounded-lg outline-none border-brand-secondary"
-                                            value={newServiceValue}
-                                            onChange={(e) => setNewServiceValue(e.target.value)}
-                                        />
-                                        <button type="button" onClick={handleAddNewService} className="text-green-600 font-bold">Add</button>
-                                        <button type="button" onClick={() => setShowNewServiceInput(false)} className="text-gray-400">x</button>
-                                    </div>
-                                )}
+                <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-accent">
+                    <h1 className="text-3xl font-serif font-bold text-brand-primary mb-8">
+                        New Sermon Entry
+                    </h1>
+
+                    <form onSubmit={handleSubmit} className="space-y-10">
+
+                        {/* SECTION A: Category Selection */}
+                        <div className="space-y-4">
+                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1: Service Category</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                {["Weekly", "Special"].map((item) => (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => setCategory(item as any)}
+                                        className={`p-6 rounded-2xl border-2 font-bold transition-all ${category === item ? "border-brand-primary bg-brand-primary/5 text-green-950" : "border-gray-100 text-brand-primary"}`}
+                                    >
+                                        {item === "Weekly" ? "Weekly / Fixed" : "Special Service"}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Host / Department</label>
-                            <select
-                                className="w-full p-3 border rounded-lg outline-none"
-                                onChange={(e) => setFormData({...formData, host_group: e.target.value})}
-                            >
-                                {hostGroups.map(h => <option key={h} value={h}>{h}</option>)}
-                            </select>
-                        </div>
-                    </div>
+                        {/* SECTION B: WEEKLY BRANCH */}
+                        {category === "Weekly" && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                                <div className="grid grid-cols-3 gap-4">
+                                    {["Sunday", "Tuesday", "Thursday"].map((day) => (
+                                        <button
+                                            key={day}
+                                            type="button"
+                                            onClick={() => setWeeklyType(day as any)}
+                                            className={`p-3 rounded-xl border ${weeklyType === day ? "bg-brand-primary text-white" : "bg-gray-50 text-gray-600"}`}
+                                        >
+                                            {day}
+                                        </button>
+                                    ))}
+                                </div>
 
-                    {/* BASIC INFO */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input
-                            placeholder="Sermon Title"
-                            className="p-3 border rounded-lg outline-none"
-                            onChange={(e) => setFormData({...formData, title: e.target.value})}
-                            required
-                        />
-                        <input
-                            placeholder="Preacher Name"
-                            className="p-3 border rounded-lg outline-none"
-                            onChange={(e) => setFormData({...formData, preacher: e.target.value})}
-                            required
-                        />
-                    </div>
+                                {weeklyType === "Sunday" && (
+                                    <div className="bg-slate-50 p-6 rounded-2xl space-y-6">
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 accent-brand-primary"
+                                                checked={isThanksgiving}
+                                                onChange={(e) => setIsThanksgiving(e.target.checked)}
+                                            />
+                                            <span className="font-bold text-brand-primary">Thanksgiving Service (First Sunday)</span>
+                                        </label>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input
-                            placeholder="Bible Text"
-                            className="p-3 border rounded-lg outline-none"
-                            onChange={(e) => setFormData({...formData, bible_text: e.target.value})}
-                        />
-                        <input
-                            type="date"
-                            className="p-3 border rounded-lg outline-none"
-                            value={formData.service_date}
-                            onChange={(e) => setFormData({...formData, service_date: e.target.value})}
-                        />
-                    </div>
+                                        {!isThanksgiving && (
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-brand-primary">
+                                                <select
+                                                    className="p-3 rounded-lg border"
+                                                    value={formData.host}
+                                                    onChange={(e) => setFormData({...formData, host: e.target.value})}
+                                                >
+                                                    <option>General/Last Sunday</option>
+                                                    <option>Men</option>
+                                                    <option>Women</option>
+                                                    <option>Youth</option>
+                                                </select>
+                                                <select
+                                                    className="p-3 rounded-lg border"
+                                                    value={formData.service_number}
+                                                    onChange={(e) => setFormData({...formData, service_number: e.target.value})}
+                                                >
+                                                    <option>First Service</option>
+                                                    <option>Second Service</option>
+                                                </select>
+                                                <input
+                                                    list="cohosts"
+                                                    placeholder="Add Co-Host (Optional)"
+                                                    className="p-3 rounded-lg border text-brand-primary"
+                                                    value={formData.co_host}
+                                                    onChange={(e) => setFormData({...formData, co_host: e.target.value})}
+                                                />
+                                                <datalist id="cohosts">
+                                                    {savedCoHosts.map(h => <option key={h} value={h} />)}
+                                                </datalist>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                    {/* OPTIONAL YOUTUBE */}
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">YouTube Link (Optional)</label>
-                        <input
-                            placeholder="https://youtube.com/..."
-                            className="w-full p-3 border rounded-lg outline-none"
-                            onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
-                        />
-                    </div>
+                        {/* SECTION C: SPECIAL BRANCH */}
+                        {category === "Special" && (
+                            <div className="space-y-6 animate-in fade-in">
+                                <input
+                                    list="specialNames"
+                                    placeholder="Service Name (e.g. Wind of Change)"
+                                    className="w-full p-4 border rounded-xl text-lg font-serif text-brand-primary"
+                                    value={formData.special_service_name}
+                                    onChange={(e) => setFormData({...formData, special_service_name: e.target.value})}
+                                />
+                                <datalist id="specialNames">
+                                    {savedSpecialNames.map(n => <option key={n} value={n} />)}
+                                </datalist>
 
-                    <textarea
-                        placeholder="Sermon Notes/Content..."
-                        rows={6}
-                        className="w-full p-3 border rounded-lg outline-none"
-                        onChange={(e) => setFormData({...formData, content: e.target.value})}
-                    />
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsMultiDay(false)}
+                                        className={`flex-1 p-3 rounded-lg border ${!isMultiDay ? "bg-brand-primary text-white" : "text-brand-primary"}`}
+                                    >
+                                        One-Day
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsMultiDay(true)}
+                                        className={`flex-1 p-3 rounded-lg border ${isMultiDay ? "bg-brand-primary text-white" : "text-brand-primary"}`}
+                                    >
+                                        Multi-Day
+                                    </button>
+                                </div>
 
-                    <button
-                        disabled={loading}
-                        className="w-full bg-brand-primary text-white py-4 rounded-lg font-bold hover:bg-slate-800 transition-all"
-                    >
-                        {loading ? "Saving..." : "Save Sermon Entry"}
-                    </button>
-                </form>
+                                {isMultiDay && (
+                                    <input
+                                        placeholder="Day Identifier (e.g. Day 3)"
+                                        className="w-full p-3 border rounded-lg text-brand-primary"
+                                        value={formData.day_identifier}
+                                        onChange={(e) => setFormData({...formData, day_identifier: e.target.value})}
+                                    />
+                                )}
+                            </div>
+                        )}
+
+                        {/* SECTION D: UNIFIED FIELDS (Title, Preacher, Date, Media) */}
+                        {(weeklyType || category === "Special") && (
+                            <div className="pt-10 border-t border-gray-100 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <input
+                                        required
+                                        placeholder="Sermon Title"
+                                        className="p-3 border rounded-lg text-brand-primary"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                    />
+                                    <input
+                                        required
+                                        placeholder="Preacher Name"
+                                        className="p-3 border rounded-lg text-brand-primary"
+                                        value={formData.preacher}
+                                        onChange={(e) => setFormData({...formData, preacher: e.target.value})}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <input
+                                        placeholder="Bible Text"
+                                        className="p-3 border rounded-lg text-brand-primary"
+                                        value={formData.bible_text}
+                                        onChange={(e) => setFormData({...formData, bible_text: e.target.value})}
+                                    />
+                                    <input
+                                        type="date"
+                                        className="p-3 border rounded-lg text-brand-primary"
+                                        value={formData.service_date}
+                                        onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                    />
+                                </div>
+
+                                {(weeklyType === "Sunday" || category === "Special") && (
+                                    <div className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
+                                        <p className="text-[10px] font-bold text-brand-secondary uppercase">Media Attachments (Recommended)</p>
+                                        <input
+                                            placeholder="YouTube URL (Optional)"
+                                            className="w-full p-3 border rounded-lg bg-white text-brand-primary"
+                                            value={formData.youtube_url}
+                                            onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
+                                        />
+
+                                        <div className="flex flex-col gap-8">
+                                            {/* Banner Upload */}
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-bold uppercase text-blue-950">Sermon Banner</label>
+                                                {bannerUploaded ? (
+                                                    /* This is your "Actual Banner" success state */
+                                                    <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in">
+                                                        <span className="text-xs font-bold font-sans">✓ Image Uploaded Successfully</span>
+                                                        <button onClick={() => setBannerUploaded(false)} className="text-[10px] underline">Change</button>
+                                                    </div>
+                                                ) : (
+                                                    <UploadButton
+                                                        endpoint="imageUploader"
+                                                        appearance={{
+                                                            button: "bg-brand-primary text-white p-4 rounded-xl after:bg-brand-secondary",
+                                                            allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
+                                                        }}
+                                                        content={{
+                                                            button({ ready }) {
+                                                                if (ready) return "Select Banner Image";
+                                                                return "Loading...";
+                                                            },
+                                                        }}
+                                                        onClientUploadComplete={(res) => {
+                                                            setFormData({ ...formData, banner_url: res[0].url });
+                                                            setBannerUploaded(true);
+                                                        }}
+                                                        onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
+                                                    />
+                                                 )
+                                                }
+                                            </div>
+
+                                            {/* Video Clip Upload */}
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-bold uppercase text-blue-950">Video Clip</label>
+
+                                                {clipUploaded ? (
+                                                    <div
+                                                        className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in"
+                                                    >
+                                                        <span className="text-xs font-bold font-sans">✓ Video Ready for Publishing</span>
+                                                        <button
+                                                            onClick={() => setClipUploaded(false)}
+                                                            className="text-[10px] underline"
+                                                        >
+                                                            Change
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <UploadButton
+                                                        endpoint="videoUploader"
+                                                        appearance={{
+                                                            button: "bg-brand-primary text-white p-4 rounded-xl after:bg-brand-secondary",
+                                                            allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
+                                                        }}
+                                                        onClientUploadComplete={(res) => {
+                                                            setFormData({ ...formData, clip_url: res[0].url });
+                                                            setClipUploaded(true);
+                                                        }}
+                                                        onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
+                                                    />
+                                                )
+                                                }
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                )}
+
+                                <textarea
+                                    placeholder="Sermon Notes..."
+                                    rows={6} className="w-full p-3 border rounded-lg text-brand-primary"
+                                    value={formData.content}
+                                    onChange={(e) => setFormData({...formData, content: e.target.value})}
+                                />
+
+                                <button
+                                    disabled={loading}
+                                    className="w-full bg-brand-primary text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all"
+                                >
+                                    {loading ? "Processing..." : "Publish Sermon"}
+                                </button>
+                            </div>
+                        )}
+                    </form>
+                </div>
             </div>
         </div>
     );
