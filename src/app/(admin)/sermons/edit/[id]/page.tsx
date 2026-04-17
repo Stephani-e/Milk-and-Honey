@@ -4,6 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
+import {toast} from "sonner";
+import ConfirmModal from "@/components/Admin/ConfirmModal";
 
 export default function EditSermonPage() {
     const router = useRouter();
@@ -11,6 +13,12 @@ export default function EditSermonPage() {
 
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [mediaAction, setMediaAction] = useState<{
+        type: 'banner' | 'clip' | 'youtube';
+        action: 'delete' | 'change';
+    } | null>(null);
 
     const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
     const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
@@ -59,24 +67,28 @@ export default function EditSermonPage() {
         loadSermon();
     }, [id]);
 
-    const handleMediaReset = (type: 'banner' | 'clip') => {
-        const confirmChange = confirm("Warning: If you change this, it will override the file you uploaded previously. Continue?");
-        if (confirmChange) {
-            if (type === 'banner') setBannerUploaded(false);
-            else setClipUploaded(false);
-        }
+    const triggerMediaAction = (type: 'banner' | 'clip' , action: 'delete' | 'change') => {
+        setMediaAction({ type, action });
+        setShowDeleteModal(true);
     };
 
-    const handleMediaDelete = (type: 'banner' | 'clip') => {
-        if (confirm("Are you sure you want to remove this file entirely?")) {
-            if (type === 'banner') {
-                setFormData({ ...formData, banner_url: "" });
-                setBannerUploaded(false);
-            } else {
-                setFormData({ ...formData, clip_url: "" });
-                setClipUploaded(false);
-            }
+    const handleConfirmMediaAction = () => {
+        if (!mediaAction) return;
+
+        const { type } = mediaAction;
+
+        if (type === 'banner') {
+            setFormData({ ...formData, banner_url: "" });
+            setBannerUploaded(false);
+            toast.success("Banner removed");
+        } else if (type === 'clip') {
+            setFormData({ ...formData, clip_url: "" });
+            setClipUploaded(false);
+            toast.success("Video clip removed");
         }
+
+        setShowDeleteModal(false);
+        setMediaAction(null);
     };
 
     useEffect(() => {
@@ -257,8 +269,8 @@ export default function EditSermonPage() {
                                                 <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in">
                                                     <span className="text-xs font-bold font-sans">✓ Image Uploaded</span>
                                                     <div className='flex gap-4'>
-                                                        <button type="button" onClick={() => handleMediaReset('banner')} className="text-[10px] underline">Change Image</button>
-                                                        <button type="button" onClick={() => handleMediaDelete('banner')} className="text-[10px] font-bold underline text-red-600">Remove</button>
+                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline">Change Image</button>
+                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] font-bold underline text-red-600">Remove</button>
                                                     </div>
                                                 </div>
                                             ) : (
@@ -278,7 +290,9 @@ export default function EditSermonPage() {
                                                         setFormData({ ...formData, banner_url: res[0].url });
                                                         setBannerUploaded(true);
                                                     }}
-                                                    onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
+                                                    onUploadError={(error) => {
+                                                        toast.error(`Upload Failed: ${error.message}`)
+                                                    }}
                                                 />
                                             )
                                             }
@@ -294,8 +308,15 @@ export default function EditSermonPage() {
                                                 >
                                                     <span className="text-xs font-bold font-sans">✓ Video Clip Attached</span>
                                                     <button type="button"
-                                                            onClick={() => handleMediaReset('clip')}
-                                                            className="text-[10px] underline">Change Video</button>
+                                                            onClick={() => triggerMediaAction('clip', 'change')}
+                                                            className="text-[10px] font-bold text-blue-600 hover:underline">Change Video
+                                                    </button>
+                                                    <button
+                                                        onClick={() => triggerMediaAction('clip', 'delete')}
+                                                        className="text-[10px] font-bold text-red-500 hover:underline"
+                                                    >
+                                                        Delete
+                                                    </button>
                                                 </div>
                                             ) : (
                                                 <UploadButton
@@ -308,7 +329,9 @@ export default function EditSermonPage() {
                                                         setFormData({ ...formData, clip_url: res[0].url });
                                                         setClipUploaded(true);
                                                     }}
-                                                    onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
+                                                    onUploadError={(error) => {
+                                                        toast.error(`Upload Failed: ${error.message}`)
+                                                    }}
                                                 />
                                             )
                                             }
@@ -333,6 +356,20 @@ export default function EditSermonPage() {
                     </form>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                title={mediaAction?.action === 'delete' ? "Remove Media?" : "Replace Media?"}
+                message={
+                    mediaAction?.action === 'delete'
+                        ? `Are you sure you want to permanently delete this ${mediaAction?.type}?`
+                        : `This will remove the current ${mediaAction?.type} so you can upload a new one. Do you want to proceed?`
+                }
+                variant={mediaAction?.action === 'delete' ? "danger" : "primary"}
+                confirmText={mediaAction?.action === 'delete' ? "Yes, Remove" : "Yes, Replace"}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleConfirmMediaAction}
+            />
         </div>
     );
 }

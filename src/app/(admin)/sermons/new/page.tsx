@@ -4,11 +4,19 @@ import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
+import { toast } from "sonner";
+import ConfirmModal from "@/components/Admin/ConfirmModal";
 
 export default function NewSermonPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [initialFetchDone, setInitialFetchDone] = useState(false);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [mediaAction, setMediaAction] = useState<{
+        type: 'banner' | 'clip' | 'youtube';
+        action: 'delete' | 'change';
+    } | null>(null);
 
     // LOGIC STATES
     const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
@@ -49,7 +57,6 @@ export default function NewSermonPage() {
             setWeeklyType(draft.weeklyType);
             setIsThanksgiving(draft.isThanksgiving || false);
             setIsMultiDay(draft.isMultiDay || false);
-            // Check if media URLs exist in the draft to show "Uploaded" state
             if (draft.formData.banner_url) setBannerUploaded(true);
             if (draft.formData.clip_url) setClipUploaded(true);
         }
@@ -64,16 +71,28 @@ export default function NewSermonPage() {
         }
     }, [formData, category, weeklyType, isThanksgiving, isMultiDay, initialFetchDone]);
 
-    const handleMediaDelete = (type: 'banner' | 'clip') => {
-        if (confirm("Are you sure you want to remove this file entirely?")) {
-            if (type === 'banner') {
-                setFormData({ ...formData, banner_url: "" });
-                setBannerUploaded(false);
-            } else {
-                setFormData({ ...formData, clip_url: "" });
-                setClipUploaded(false);
-            }
+    const triggerMediaAction = (type: 'banner' | 'clip' , action: 'delete' | 'change') => {
+        setMediaAction({ type, action });
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmMediaAction = () => {
+        if (!mediaAction) return;
+
+        const { type } = mediaAction;
+
+        if (type === 'banner') {
+            setFormData({ ...formData, banner_url: "" });
+            setBannerUploaded(false);
+            toast.success("Banner removed");
+        } else if (type === 'clip') {
+            setFormData({ ...formData, clip_url: "" });
+            setClipUploaded(false);
+            toast.success("Video clip removed");
         }
+
+        setShowDeleteModal(false);
+        setMediaAction(null);
     };
 
     //SUBMIT LOGIC (With Data Cleaning)
@@ -115,9 +134,10 @@ export default function NewSermonPage() {
         const { error } = await supabase.from("sermons").insert([submission]);
 
         if (error) {
-            alert(error.message);
+            toast.error(`Database Error: ${error.message}`);
             setLoading(false);
         } else {
+            toast.success("Sermon Published Successfully!");
             localStorage.removeItem("sermon_draft"); // Clear cache on success
             router.push("/sermons");
             router.refresh();
@@ -332,8 +352,8 @@ export default function NewSermonPage() {
                                                     <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in">
                                                         <span className="text-xs font-bold font-sans">✓ Image Uploaded Successfully</span>
                                                         <div className='flex gap-4'>
-                                                            <button type="button" onClick={() => setBannerUploaded(false)} className="text-[10px] underline">Change</button>
-                                                            <button type="button" onClick={() => handleMediaDelete('banner')} className="text-[10px] font-bold underline text-red-600">Remove</button>
+                                                            <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
+                                                            <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] font-bold underline text-red-600">Remove</button>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -352,8 +372,11 @@ export default function NewSermonPage() {
                                                         onClientUploadComplete={(res) => {
                                                             setFormData({ ...formData, banner_url: res[0].url });
                                                             setBannerUploaded(true);
+                                                            toast.success("Banner image uploaded successfully");
                                                         }}
-                                                        onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
+                                                        onUploadError={(error) => {
+                                                            toast.error(`Upload Failed: ${error.message}`)
+                                                        }}
                                                     />
                                                 )
                                                 }
@@ -369,10 +392,16 @@ export default function NewSermonPage() {
                                                     >
                                                         <span className="text-xs font-bold font-sans">✓ Video Ready for Publishing</span>
                                                         <button
-                                                            onClick={() => setClipUploaded(false)}
-                                                            className="text-[10px] underline"
+                                                            onClick={() => triggerMediaAction('clip', 'change')}
+                                                            className="text-[10px] hover:underline font-bold text-blue-600"
                                                         >
                                                             Change
+                                                        </button>
+                                                        <button
+                                                            onClick={() => triggerMediaAction('clip', 'delete')}
+                                                            className="text-[10px] font-bold text-red-500 hover:underline"
+                                                        >
+                                                            Delete
                                                         </button>
                                                     </div>
                                                 ) : (
@@ -385,8 +414,11 @@ export default function NewSermonPage() {
                                                         onClientUploadComplete={(res) => {
                                                             setFormData({ ...formData, clip_url: res[0].url });
                                                             setClipUploaded(true);
+                                                            toast.success("Video clip uploaded successfully");
                                                         }}
-                                                        onUploadError={(error: Error) => alert(`Upload Failed: ${error.message}`)}
+                                                        onUploadError={(error) => {
+                                                            toast.error(`Upload Failed: ${error.message}`)
+                                                        }}
                                                     />
                                                 )
                                                 }
@@ -414,6 +446,20 @@ export default function NewSermonPage() {
                     </form>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                title={mediaAction?.action === 'delete' ? "Remove Media?" : "Replace Media?"}
+                message={
+                    mediaAction?.action === 'delete'
+                        ? `Are you sure you want to permanently delete this ${mediaAction?.type}?`
+                        : `This will remove the current ${mediaAction?.type} so you can upload a new one. Do you want to proceed?`
+                }
+                variant={mediaAction?.action === 'delete' ? "danger" : "primary"}
+                confirmText={mediaAction?.action === 'delete' ? "Yes, Remove" : "Yes, Replace"}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleConfirmMediaAction}
+            />
         </div>
     );
 }
