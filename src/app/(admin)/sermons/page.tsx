@@ -7,12 +7,18 @@ import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 
+const PAGE_SIZE = 10;
+
 export default function SermonsPage() {
     const router = useRouter();
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+
     const [search, setSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState("latest");
 
     const [modalType, setModalType] = useState<"delete" | "archive" | null>(null);
@@ -20,29 +26,69 @@ export default function SermonsPage() {
 
     useEffect(() => {
         fetchSermons();
-    }, []);
+    }, [currentPage]);
+
+    useEffect(() => {
+        if (currentPage !== 1) {
+            setCurrentPage(1); // This triggers the page useEffect above
+        } else {
+            fetchSermons();
+        }
+    }, [search, sortBy]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            setSearch(searchTerm); // This triggers the database fetch
+        }, 500); // Wait 500ms after user stops typing
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
 
     async function fetchSermons() {
-        const { data, error } = await supabase
+        setLoading(true);
+
+        // 1. Build the base query for Count
+        let countQuery = supabase
+            .from("sermons")
+            .select("*", { count: 'exact', head: true });
+
+        // Apply search filter to count if it exists
+        if (search) {
+            // This searches across title OR preacher
+            countQuery = countQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
+        }
+
+        const { count } = await countQuery;
+        setTotalCount(count || 0);
+
+        // 2. Build the data query
+        const from = (currentPage - 1) * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
+
+        let dataQuery = supabase
             .from("sermons")
             .select("*")
-            .order("service_date", { ascending: false });
+            .range(from, to);
 
-        if (!error) setSermons(data || []);
+        // Apply Search
+        if (search) {
+            dataQuery = dataQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
+        }
+
+        // Apply Sorting
+        if (sortBy === "latest") dataQuery = dataQuery.order("service_date", { ascending: false });
+        else if (sortBy === "oldest") dataQuery = dataQuery.order("service_date", { ascending: true });
+        else if (sortBy === "alphabetical") dataQuery = dataQuery.order("title", { ascending: true });
+
+        const { data, error } = await dataQuery;
+
+        if (error) {
+            toast.error("Error fetching sermons: " + error.message);
+        } else {
+            setSermons(data || []);
+        }
         setLoading(false);
     }
-
-    const filteredSermons = sermons
-        .filter((s) => {
-            const searchStr = `${s.title} ${s.preacher} ${s.special_service_name}`.toLowerCase();
-            return searchStr.includes(search.toLowerCase());
-        })
-        .sort((a, b) => {
-            if (sortBy === "latest") return new Date(b.service_date).getTime() - new Date(a.service_date).getTime();
-            if (sortBy === "oldest") return new Date(a.service_date).getTime() - new Date(b.service_date).getTime();
-            if (sortBy === "alphabetical") return a.title.localeCompare(b.title);
-            return 0;
-        });
 
     const triggerDelete = (sermon: any) => {
         setSelectedSermon(sermon);
@@ -104,8 +150,8 @@ export default function SermonsPage() {
                 </div>
 
                 <AdminFilter
-                    searchValue={search}
-                    onSearchChange={setSearch}
+                    searchValue={searchTerm}
+                    onSearchChange={(val) => setSearchTerm(val)}
                     sortValue={sortBy}
                     onSortChange={setSortBy}
                     sortOptions={[
@@ -128,7 +174,7 @@ export default function SermonsPage() {
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                        {filteredSermons.map((s) => (
+                        {sermons.map((s) => (
                             <tr key={s.id} className={`transition-opacity ${s.is_archived ? "opacity-40 grayscale" : ""}`}>
                                 <td className="p-5">
                                     {/* Row 1: The Logic Badges */}
@@ -230,21 +276,20 @@ export default function SermonsPage() {
                         ))}
                         </tbody>
                     </table>
-                    {filteredSermons.length === 0 && (
+                    {sermons.length === 0 && (
                         <div className="p-20 text-center text-brand-primary font-bold italic">No sermons found matching your search.</div>
                     )}
                 </div>
 
                 {/* --- MOBILE CARD VIEW --- */}
-                {/* --- MOBILE CARD VIEW --- */}
                 <div className="md:hidden space-y-4">
-                    {filteredSermons.map((s) => (
+                    {sermons.map((s) => (
                         <div key={s.id} className={`bg-white p-5 rounded-2xl border border-brand-accent shadow-sm ${s.is_archived ? "opacity-60 grayscale" : ""}`}>
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex flex-wrap gap-2">
-                    <span className={`text-[8px] px-2 py-1 rounded-md font-bold uppercase ${s.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"}`}>
-                        {s.service_category === "Weekly" ? s.weekly_type : s.special_service_name}
-                    </span>
+                                    <span className={`text-[8px] px-2 py-1 rounded-md font-bold uppercase ${s.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"}`}>
+                                        {s.service_category === "Weekly" ? s.weekly_type : s.special_service_name}
+                                    </span>
                                     {/* Important sub-labels added back for mobile */}
                                     {s.is_multi_day && <span className="text-[8px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">({s.day_identifier})</span>}
                                 </div>
@@ -271,10 +316,45 @@ export default function SermonsPage() {
                         </div>
                     ))}
                 </div>
-                {filteredSermons.length === 0 && !loading && (
+                {sermons.length === 0 && !loading && (
                    <div className="p-20 text-center text-brand-primary font-bold italic">No sermons found matching your search.</div>
                 )}
 
+                {/* --- PAGINATION CONTROLS --- */}
+                <div className="mt-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-brand-accent pt-8">
+                    <div className="text-xs font-bold text-brand-secondary uppercase tracking-widest">
+                        Showing <span className="text-brand-primary">{sermons.length}</span> of {totalCount} Sermons
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            disabled={currentPage === 1 || loading}
+                            onClick={() => setCurrentPage(prev => prev - 1)}
+                            className="p-3 rounded-xl border border-brand-accent bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                            {/* Simple Page Indicator */}
+                            <span className="bg-brand-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md shadow-brand-primary/20">
+                                {currentPage}
+                            </span>
+                            <span className="text-gray-400 px-2 font-bold text-sm">/</span>
+                            <span className="text-brand-primary font-bold text-sm">
+                                {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}
+                            </span>
+                        </div>
+
+                        <button
+                            disabled={currentPage >= Math.ceil(totalCount / PAGE_SIZE) || loading}
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            className="p-3 rounded-xl border border-brand-accent bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <ConfirmModal
@@ -291,7 +371,7 @@ export default function SermonsPage() {
                 confirmText={
                     modalType === "delete"
                         ? "Delete Permanently"
-                        : (selectedSermon?.is_archived ? "Restore Now" : "Archive Sermon")
+                        : (selectedSermon?.is_archived ? "Restore Sermon" : "Archive Sermon")
                 }
                 onClose={() => setModalType(null)}
                 onConfirm={handleConfirmAction}
