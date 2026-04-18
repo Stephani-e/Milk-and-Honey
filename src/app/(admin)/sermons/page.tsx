@@ -13,7 +13,7 @@ const PAGE_SIZE = 10;
 
 export default function SermonsPage() {
     const router = useRouter();
-    const [view, setView] = useState<"active" | "trash" | "archive">("active");
+    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">("active");
 
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -76,8 +76,10 @@ export default function SermonsPage() {
             countQuery = countQuery.not("deleted_at", "is", null);
         } else if (view === "archive") {
             countQuery = countQuery.is("deleted_at", null).eq("is_archived", true);
+        } else if (view === "draft") {
+            countQuery = countQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "draft");
         } else {
-            countQuery = countQuery.is("deleted_at", null).eq("is_archived", false);
+            countQuery = countQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "published");
         }
 
         if (search) countQuery = countQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
@@ -97,8 +99,10 @@ export default function SermonsPage() {
             dataQuery = dataQuery.not("deleted_at", "is", null);
         } else if (view === "archive") {
             dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", true);
+        } else if (view === "draft") {
+            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "draft");
         } else {
-            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", false);
+            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "published");
         }
 
         // Apply Search
@@ -175,14 +179,33 @@ export default function SermonsPage() {
         setModalType("archive");
     }
 
+    const handleQuickPublish = async (sermon: any) => {
+        const { error } = await supabase
+            .from("sermons")
+            .update({ status: 'published' })
+            .eq("id", sermon.id);
+
+        if (error) {
+            toast.error("Failed to publish: " + error.message);
+        } else {
+            toast.success("Sermon is now live!");
+            fetchSermons();
+        }
+    };
+
     const handleRestoreFromArchive = async (destination: 'active' | 'draft') => {
         const payload = destination === 'active'
             ? { is_archived: false, status: 'published', deleted_at: null }
             : { is_archived: false, status: 'draft', deleted_at: null };
 
-        const { error } = await supabase.from("sermons").update(payload).eq("id", selectedSermon.id);
+        const { error } = await supabase
+            .from("sermons")
+            .update(payload)
+            .eq("id", selectedSermon.id);
 
-        if (!error) {
+        if (error) {
+            toast.error("Restore failed: " + error.message);
+        }else {
             toast.success(`Moved to ${destination === 'active' ? 'Library' : 'Drafts'}`);
             fetchSermons();
         }
@@ -256,8 +279,15 @@ export default function SermonsPage() {
                             </button>
                             <button
                                 onClick={() => setView("archive")}
-                                className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500"}`}>
+                                className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}
+                            >
                                 Archive
+                            </button>
+                            <button
+                                onClick={() => setView("draft")}
+                                className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "draft" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-blue-700"}`}
+                            >
+                                Drafts
                             </button>
                             <button
                                 onClick={() => setView("trash")}
@@ -272,6 +302,7 @@ export default function SermonsPage() {
                         {view === "active" && "Manage your public sermon records."}
                         {view === "archive" && "Archived sermons are hidden from the public site."}
                         {view === "trash" && "Permanently deleted after 30 days."}
+                        {view === 'draft' && "Unfinished Sermons are saved here."}
                     </p>
                </div>
 
@@ -395,6 +426,7 @@ export default function SermonsPage() {
                                         onArchive={triggerArchive}
                                         onDelete={triggerDelete}
                                         onRestore={triggerRestore}
+                                        onQuickPublish={handleQuickPublish}
                                         view={view}
                                     />
                                 </td>
@@ -444,7 +476,9 @@ export default function SermonsPage() {
                                     onArchive={triggerArchive}
                                     onDelete={triggerDelete}
                                     onRestore={triggerRestore}
-                                    view={view} />
+                                    onQuickPublish={handleQuickPublish}
+                                    view={view}
+                                />
                             </div>
                         </div>
                     ))}
@@ -589,7 +623,23 @@ function MediaIcon({ type }: { type: 'youtube' | 'banner' | 'video' }) {
     return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>;
 }
 
-function ActionButtons({ sermon, onArchive, onDelete, onRestore, view }: { sermon: any, onArchive: any, onDelete: any, onRestore: any, view: 'active' | 'trash' | 'archive' }) {
+function ActionButtons({
+                           sermon,
+                           onArchive,
+                           onDelete,
+                           onRestore,
+                           onQuickPublish,
+                           view
+}: {
+    sermon: any,
+    onArchive: any,
+    onDelete: any,
+    onRestore: any,
+    onQuickPublish: (sermon: any) => void ,
+    view: 'active' | 'trash' | 'archive' | 'draft'
+}) {
+
+    //Trash Item
     if (view === "trash") {
         return (
             <div className="flex items-center gap-6 justify-end">
@@ -605,11 +655,35 @@ function ActionButtons({ sermon, onArchive, onDelete, onRestore, view }: { sermo
         );
     }
 
+    //Archive Item
     if (view === "archive") {
         return (
             <div className="flex items-center gap-4 justify-end">
                 <button onClick={() => onRestore(sermon)} className="text-emerald-600 flex flex-col items-center gap-1"><RotateCcw size={18}/><span className="text-[8px] font-bold uppercase">Restore</span></button>
                 <button onClick={() => onDelete(sermon)} className="text-red-400 flex flex-col items-center gap-1"><Trash2 size={18}/><span className="text-[8px] font-bold uppercase">Trash</span></button>
+            </div>
+        );
+    }
+
+    //Draft Item
+    if (view === "draft") {
+        return (
+            <div className="flex items-center gap-6 justify-end">
+                <button
+                    onClick={() => onQuickPublish(sermon)}
+                    className="flex flex-col items-center gap-1 group bg-brand-primary/5 p-2 rounded-xl border border-brand-primary/10 hover:bg-brand-primary/10 transition-colors"
+                >
+                    <Inbox size={18} className="text-brand-primary" />
+                    <span className="text-[8px] font-bold uppercase text-brand-primary">Publish</span>
+                </button>
+                <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
+                    <FileText size={18} className="text-slate-400 group-hover:text-brand-primary" />
+                    <span className="text-[8px] font-bold uppercase text-slate-400">Edit</span>
+                </Link>
+                <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1">
+                    <Trash2 size={18} className="text-red-200 hover:text-red-600" />
+                    <span className="text-[8px] font-bold uppercase text-red-300">Trash</span>
+                </button>
             </div>
         );
     }
