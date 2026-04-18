@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
+import LoadingState from "@/components/Admin/LoadingPage";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -11,6 +12,9 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const router = useRouter();
+
+    const SUPPORT_EMAIL = "support@mhcprovince56.org";
+    const SUPPORT_WHATSAPP = "2348000000000";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,7 +64,10 @@ export default function LoginPage() {
     };
 
     return (
-        <div className='flex flex-col'>
+        <div className='flex flex-col relative'>
+
+            {isLoggingIn && <LoadingState variant="full" message="Verifying Identity..." />}
+
             {/* BODY */}
             <div className="flex flex-col lg:flex-row min-h-screen bg-white">
                 {/* LEFT: Form Section */}
@@ -146,7 +153,7 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                {/* RIGHT: Image Section with performance fix */}
+                {/* RIGHT: Image Section */}
                 <div className="w-full lg:w-1/2 h-[350px] lg:h-screen relative order-1 lg:order-2 p-4 lg:p-6 bg-[#F9FAFB]">
                     <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl">
                         <Image
@@ -167,9 +174,24 @@ export default function LoginPage() {
 
                     {/* Secondary Navigation for Admins */}
                     <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm font-medium text-gray-500">
-                        <a href="mailto:support@mhcprovince56.org" className="hover:text-[#11222E] transition-colors">Technical Support</a>
-                        <a href="https://rccg.org" target="_blank" className="hover:text-[#11222E] transition-colors">RCCG International</a>
-                        <a href="#" className="hover:text-[#11222E] transition-colors">Privacy Policy</a>
+                        {/* WHATSAPP SUPPORT */}
+                        <a
+                            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=Hi Support, I'm having trouble logging into the M%26H Admin Portal.`}
+                            target="_blank"
+                            className="flex items-center gap-2 hover:text-green-600 transition-colors"
+                        >
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                            WhatsApp Support
+                        </a>
+
+                        {/* EMAIL SUPPORT */}
+                        <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#11222E] transition-colors">
+                            Technical Support
+                        </a>
+
+                        <a href="/privacy" className="hover:text-[#11222E] transition-colors">
+                            Privacy Policy
+                        </a>
                     </div>
 
                     {/* Official Church Badge/Text */}

@@ -5,6 +5,9 @@
   --foreground: #171717;
 }
 
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 @theme {
   --color-brand-primary: #11222E;
   --color-brand-secondary: #C5A059;
@@ -12,7 +15,7 @@
   --color-brand-surface: #F9FAFB;
   --color-brand-text: #374151;
 
-  /* Setting the default fonts */
+  /* Default Fonts */
   --font-serif: var(--font-lora), "Times New Roman", Times, serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui;
 }
@@ -29,7 +32,6 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
-
 
 @layer components {
   /* The standard "MHC" Button */

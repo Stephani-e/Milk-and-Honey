@@ -6,13 +6,18 @@ import { useRouter } from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
+import LoadingState from "@/components/Admin/LoadingPage";
+import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox} from "lucide-react";
 
 const PAGE_SIZE = 10;
 
 export default function SermonsPage() {
     const router = useRouter();
+    const [view, setView] = useState<"active" | "trash" | "archive">("active");
+
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -21,7 +26,8 @@ export default function SermonsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState("latest");
 
-    const [modalType, setModalType] = useState<"delete" | "archive" | null>(null);
+    const [modalType, setModalType] = useState<"delete" | "archive" | "restore" | null>(null);
+    const [showBackToTop, setShowBackToTop] = useState(false);
     const [selectedSermon, setSelectedSermon] = useState<any | null>(null);
 
     useEffect(() => {
@@ -30,11 +36,11 @@ export default function SermonsPage() {
 
     useEffect(() => {
         if (currentPage !== 1) {
-            setCurrentPage(1); // This triggers the page useEffect above
+            setCurrentPage(1);
         } else {
             fetchSermons();
         }
-    }, [search, sortBy]);
+    }, [search, sortBy, view]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -44,24 +50,41 @@ export default function SermonsPage() {
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
 
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 50) {
+                setShowBackToTop(true);
+            } else {
+                setShowBackToTop(false);
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     async function fetchSermons() {
         setLoading(true);
 
-        // 1. Build the base query for Count
+        // Build the base query for Count
         let countQuery = supabase
             .from("sermons")
             .select("*", { count: 'exact', head: true });
 
-        // Apply search filter to count if it exists
-        if (search) {
-            // This searches across title OR preacher
-            countQuery = countQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
+        //Filter by view
+        if (view === "trash") {
+            countQuery = countQuery.not("deleted_at", "is", null);
+        } else if (view === "archive") {
+            countQuery = countQuery.is("deleted_at", null).eq("is_archived", true);
+        } else {
+            countQuery = countQuery.is("deleted_at", null).eq("is_archived", false);
         }
 
+        if (search) countQuery = countQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
         const { count } = await countQuery;
         setTotalCount(count || 0);
 
-        // 2. Build the data query
+        // Build the data query
         const from = (currentPage - 1) * PAGE_SIZE;
         const to = from + PAGE_SIZE - 1;
 
@@ -69,6 +92,14 @@ export default function SermonsPage() {
             .from("sermons")
             .select("*")
             .range(from, to);
+
+        if (view === "trash") {
+            dataQuery = dataQuery.not("deleted_at", "is", null);
+        } else if (view === "archive") {
+            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", true);
+        } else {
+            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", false);
+        }
 
         // Apply Search
         if (search) {
@@ -87,31 +118,98 @@ export default function SermonsPage() {
         } else {
             setSermons(data || []);
         }
+
         setLoading(false);
+        setIsInitialLoad(false);
     }
 
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    //Calculate Days Remaining
+    const getDaysLeft = (deletedAt: string) => {
+        const deleteDate = new Date(deletedAt);
+        const expiryDate = new Date(deleteDate);
+        expiryDate.setDate(deleteDate.getDate() + 30);
+
+        const today = new Date();
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays > 0 ? diffDays : 0;
+    };
+
+    //Restore Action
+    const handleRestore = async (id: string) => {
+        const { error } = await supabase
+            .from("sermons")
+            .update({ deleted_at: null })
+            .eq("id", id);
+
+        if (error) toast.error("Restore failed");
+        else {
+            toast.success("Sermon restored to library");
+            fetchSermons();
+        }
+    };
+
+    //Trigger Delete
     const triggerDelete = (sermon: any) => {
         setSelectedSermon(sermon);
         setModalType("delete");
     };
 
+    //Trigger Restore
+    const triggerRestore = (sermon: any) => {
+        setSelectedSermon(sermon);
+        setModalType("restore");
+    };
+
+    //Trigger Archive
     const triggerArchive = (sermon: any) => {
         setSelectedSermon(sermon);
         setModalType("archive");
     }
 
+    const handleRestoreFromArchive = async (destination: 'active' | 'draft') => {
+        const payload = destination === 'active'
+            ? { is_archived: false, status: 'published', deleted_at: null }
+            : { is_archived: false, status: 'draft', deleted_at: null };
+
+        const { error } = await supabase.from("sermons").update(payload).eq("id", selectedSermon.id);
+
+        if (!error) {
+            toast.success(`Moved to ${destination === 'active' ? 'Library' : 'Drafts'}`);
+            fetchSermons();
+        }
+        setModalType(null);
+    };
+
+    //Confirm Action
     const handleConfirmAction = async () => {
         if (!selectedSermon) return;
 
         if (modalType === "delete") {
-            const { error } = await supabase.from("sermons").delete().eq("id", selectedSermon.id);
-            if (error) toast.error("Delete failed: " + error.message);
-            else {
-                toast.success("Sermon removed from library");
-                fetchSermons();
-            }
-        }
+            if (view === 'trash') {
+                const { error } = await supabase
+                    .from("sermons")
+                    .delete()
+                    .eq("id", selectedSermon.id);
 
+                if (!error) toast.error("Sermon Permanently Deleted.");
+            } else {
+                const { error } = await supabase
+                    .from('sermons')
+                    .update({ deleted_at: new Date() })
+                    .eq("id", selectedSermon.id);
+                if (!error) toast.success("Sermon moved to Trash. It will be kept for 30 days.");
+            }
+            fetchSermons();
+        }
         else if (modalType === "archive") {
             const { error } = await supabase
                 .from("sermons")
@@ -121,11 +219,19 @@ export default function SermonsPage() {
             if (error) toast.error("Update failed");
             else {
                 toast.success(selectedSermon.is_archived ? "Sermon Restored" : "Sermon Archived");
-                fetchSermons();
             }
         }
 
+        fetchSermons();
         setModalType(null);
+    };
+
+    // Dynamic Empty State Helper
+    const getEmptyStateMessage = () => {
+        if (search) return "No sermons found matching your search.";
+        if (view === "trash") return "Trash is currently empty.";
+        if (view === "archive") return "Your archive is currently empty.";
+        return "No active sermons found. Click '+ New Entry' to create one.";
     };
 
     return (
@@ -138,15 +244,49 @@ export default function SermonsPage() {
                         <span className="text-lg leading-none">←</span> Back to Dashboard
                     </Link>
                 </div>
+
+                <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8'>
+                    <div className="w-full md:w-auto overflow-x-auto no-scrollbar">
+                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-max md:w-fit min-w-full md:min-w-0">
+                            <button
+                                onClick={() => setView("active")}
+                                className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "active" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}
+                            >
+                                All Sermons
+                            </button>
+                            <button
+                                onClick={() => setView("archive")}
+                                className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500"}`}>
+                                Archive
+                            </button>
+                            <button
+                                onClick={() => setView("trash")}
+                                className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}
+                            >
+                                Trash <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[8px]">30 Days</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p className="text-[11px] md:text-sm text-gray-500 italic md:text-right leading-relaxed max-w-[250px] md:max-w-none">
+                        {view === "active" && "Manage your public sermon records."}
+                        {view === "archive" && "Archived sermons are hidden from the public site."}
+                        {view === "trash" && "Permanently deleted after 30 days."}
+                    </p>
+               </div>
+
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 md:mb-10 gap-4">
                     <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">
                         Sermon Library
                     </h1>
-                    <button
-                        onClick={() => router.push("/sermons/new")}
-                        className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
-                        + New Entry
-                    </button>
+
+                    {view === 'active' && (
+                        <button
+                            onClick={() => router.push("/sermons/new")}
+                            className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
+                            + New Entry
+                        </button>
+                    )}
                 </div>
 
                 <AdminFilter
@@ -170,12 +310,13 @@ export default function SermonsPage() {
                         <tr className="justify-around items-center">
                             <th className="p-5">Service Info</th>
                             <th className="p-5">Preacher & Media</th>
-                            <th className="p-5 text-right">Actions</th>
+                            {view === "trash" && <th className="p-5 w-[15%]">Time Left</th>}
+                            <th className={`p-5 text-right ${view === 'trash' ? 'w-[15%]' : 'w-[30%]'}`}>Actions</th>
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                         {sermons.map((s) => (
-                            <tr key={s.id} className={`transition-opacity ${s.is_archived ? "opacity-40 grayscale" : ""}`}>
+                            <tr key={s.id} className={`transition-opacity ${s.is_archived && view !=="trash" ? "opacity-40 grayscale" : ""}`}>
                                 <td className="p-5">
                                     {/* Row 1: The Logic Badges */}
                                     <div className="flex gap-2 mb-2">
@@ -239,52 +380,39 @@ export default function SermonsPage() {
                                     </div>
                                 </td>
 
+                                {view === "trash" && (
+                                    <td className="p-5">
+                                        <div className="flex items-center gap-2 text-amber-600 font-bold">
+                                            <Clock size={14} />
+                                            <span className="text-xs">{getDaysLeft(s.deleted_at)} days</span>
+                                        </div>
+                                    </td>
+                                )}
+
                                 <td className=" p-5 text-right">
-                                    <div className="flex justify-end items-center gap-4">
-                                        <button
-                                            onClick={() => triggerArchive(s)}
-                                            className="flex flex-col items-center gap-1 group"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${s.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}`}>
-                                                <path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4" />
-                                            </svg>
-                                            <span className={`text-[9px] font-bold uppercase ${s.is_archived ? "text-green-600" : "text-gray-400"}`}>
-                                                {s.is_archived ? "Restore" : "Archive"}
-                                            </span>
-                                        </button>
-
-                                        <Link href={`/sermons/edit/${s.id}`} className="flex flex-col items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-primary group-hover:text-brand-secondary">
-                                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                            </svg>
-                                            <span className="text-[9px] font-bold uppercase text-brand-primary">Edit</span>
-                                        </Link>
-
-                                        <button
-                                            onClick={() => triggerDelete(s)}
-                                            className="flex flex-col items-center gap-1"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-200 group-hover:text-red-600">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                            </svg>
-                                            <span className="text-[9px] font-bold uppercase text-red-300">Del</span>
-                                        </button>
-                                    </div>
+                                    <ActionButtons
+                                        sermon={s}
+                                        onArchive={triggerArchive}
+                                        onDelete={triggerDelete}
+                                        onRestore={triggerRestore}
+                                        view={view}
+                                    />
                                 </td>
                             </tr>
                         ))}
                         </tbody>
                     </table>
-                    {sermons.length === 0 && (
-                        <div className="p-20 text-center text-brand-primary font-bold italic">No sermons found matching your search.</div>
+                    {sermons.length === 0 && !loading && (
+                        <div className="p-20 text-center text-brand-primary font-bold italic">
+                            {getEmptyStateMessage()}
+                        </div>
                     )}
                 </div>
 
                 {/* --- MOBILE CARD VIEW --- */}
                 <div className="md:hidden space-y-4">
                     {sermons.map((s) => (
-                        <div key={s.id} className={`bg-white p-5 rounded-2xl border border-brand-accent shadow-sm ${s.is_archived ? "opacity-60 grayscale" : ""}`}>
+                        <div key={s.id} className={`bg-white p-5 rounded-2xl border border-brand-accent shadow-sm ${s.is_archived && view !=="trash" ? "opacity-60 grayscale" : ""}`}>
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex flex-wrap gap-2">
                                     <span className={`text-[8px] px-2 py-1 rounded-md font-bold uppercase ${s.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"}`}>
@@ -311,13 +439,20 @@ export default function SermonsPage() {
                                     {s.clip_url && <a href={s.clip_url} target="_blank" className="text-blue-600"><MediaIcon type="video" /></a>}
                                 </div>
                                 {/* The action buttons component handled the link, let's make sure it's crisp */}
-                                <ActionButtons sermon={s} onArchive={triggerArchive} onDelete={triggerDelete} />
+                                <ActionButtons
+                                    sermon={s}
+                                    onArchive={triggerArchive}
+                                    onDelete={triggerDelete}
+                                    onRestore={triggerRestore}
+                                    view={view} />
                             </div>
                         </div>
                     ))}
                 </div>
                 {sermons.length === 0 && !loading && (
-                   <div className="p-20 text-center text-brand-primary font-bold italic">No sermons found matching your search.</div>
+                    <div className="p-20 text-center text-brand-primary font-bold italic">
+                        {getEmptyStateMessage()}
+                    </div>
                 )}
 
                 {/* --- PAGINATION CONTROLS --- */}
@@ -358,11 +493,17 @@ export default function SermonsPage() {
             </div>
 
             <ConfirmModal
-                isOpen={modalType !== null}
-                title={modalType === "delete" ? "Delete Sermon?" : (selectedSermon?.is_archived ? "Restore Sermon?" : "Archive Sermon?")}
+                isOpen={modalType === "delete" || modalType === "archive"}
+                title={
+                   modalType === "delete"
+                       ? (view === "trash" ? "Permanently Delete?" : "Move to Trash?" )
+                       : (selectedSermon?.is_archived ? "Restore Sermon?" : "Archive Sermon?")
+                }
                 message={
                     modalType === "delete"
-                        ? "This action is permanent and cannot be undone. All associated media links will be removed."
+                        ? (view === "trash"
+                            ? "This action is truly permanent. This sermon and its data will be gone forever."
+                            : "This will move the sermon to the trash. You can still restore it for the next 30 days.")
                         : (selectedSermon?.is_archived
                             ? "This will make the sermon visible to the public again."
                             : "This will hide the sermon from the public library, but you can restore it anytime.")
@@ -370,19 +511,81 @@ export default function SermonsPage() {
                 variant={modalType === "delete" ? "danger" : "primary"}
                 confirmText={
                     modalType === "delete"
-                        ? "Delete Permanently"
-                        : (selectedSermon?.is_archived ? "Restore Sermon" : "Archive Sermon")
+                        ? (view === "trash" ? "Delete Forever" : "Move to Trash")
+                        : (selectedSermon?.is_archived ? "Restore to Library" : "Confirm Archive")
                 }
                 onClose={() => setModalType(null)}
                 onConfirm={handleConfirmAction}
             />
+
+            {modalType === "restore" && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-brand-accent">
+                        <h2 className="text-2xl font-serif font-bold text-brand-primary mb-2">Restore Sermon</h2>
+                        <p className="text-gray-500 text-sm mb-8">Where would you like to restore <span className="font-bold text-brand-primary">"{selectedSermon?.title}"</span>?</p>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <button
+                                onClick={() => handleRestoreFromArchive('active')}
+                                className="flex items-center justify-between p-4 rounded-2xl border-2 border-brand-accent hover:border-brand-primary hover:bg-brand-surface transition-all group"
+                            >
+                                <div className="text-left">
+                                    <div className="font-bold text-brand-primary">All Sermons</div>
+                                    <div className="text-[10px] text-gray-400 uppercase font-bold">Make public immediately</div>
+                                </div>
+                                <Inbox className="text-brand-primary group-hover:scale-110 transition-transform" />
+                            </button>
+
+                            <button
+                                onClick={() => handleRestoreFromArchive('draft')}
+                                className="flex items-center justify-between p-4 rounded-2xl border-2 border-brand-accent hover:border-brand-primary hover:bg-brand-surface transition-all group"
+                            >
+                                <div className="text-left">
+                                    <div className="font-bold text-brand-primary">Drafts</div>
+                                    <div className="text-[10px] text-gray-400 uppercase font-bold">Keep hidden for editing</div>
+                                </div>
+                                <FileText className="text-brand-primary group-hover:scale-110 transition-transform" />
+                            </button>
+                        </div>
+
+                        <button onClick={() => setModalType(null)} className="w-full mt-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-primary transition-colors">Cancel</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Back To Top Button */}
+            <div
+                className={`fixed bottom-6 right-6 flex flex-col items-center gap-1.5 z-50 transition-all duration-300 ${
+                    showBackToTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+                }`}
+            >
+                <button
+                    onClick={scrollToTop}
+                    className="p-3 bg-brand-primary text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform"
+                    aria-label="Back to top"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16" height="16"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path d="m18 15-6-6-6 6"/>
+                    </svg>
+                </button>
+                <span className="text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm border border-brand-accent">
+                        Back to Top
+                </span>
+            </div>
+
         </div>
-
-
     );
 }
 
-// --- SUB-COMPONENTS FOR CLEANER CODE ---
 
 // Sub-components to keep the main return clean
 function MediaIcon({ type }: { type: 'youtube' | 'banner' | 'video' }) {
@@ -391,19 +594,43 @@ function MediaIcon({ type }: { type: 'youtube' | 'banner' | 'video' }) {
     return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>;
 }
 
-function ActionButtons({ sermon, onArchive, onDelete }: { sermon: any, onArchive: any, onDelete: any }) {
+function ActionButtons({ sermon, onArchive, onDelete, onRestore, view }: { sermon: any, onArchive: any, onDelete: any, onRestore: any, view: 'active' | 'trash' | 'archive' }) {
+    if (view === "trash") {
+        return (
+            <div className="flex items-center gap-6 justify-end">
+                <button onClick={() => onRestore(sermon)} className="flex flex-col items-center gap-1 group">
+                    <RotateCcw size={18} className="text-emerald-600 transition-transform group-hover:rotate-[-45deg]" />
+                    <span className="text-[8px] font-bold uppercase text-emerald-600">Restore</span>
+                </button>
+                <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1 group">
+                    <Trash2 size={18} className="text-red-400 group-hover:text-red-600" />
+                    <span className="text-[8px] font-bold uppercase text-red-400">Purge</span>
+                </button>
+            </div>
+        );
+    }
+
+    if (view === "archive") {
+        return (
+            <div className="flex items-center gap-4 justify-end">
+                <button onClick={() => onRestore(sermon)} className="text-emerald-600 flex flex-col items-center gap-1"><RotateCcw size={18}/><span className="text-[8px] font-bold uppercase">Restore</span></button>
+                <button onClick={() => onDelete(sermon)} className="text-red-400 flex flex-col items-center gap-1"><Trash2 size={18}/><span className="text-[8px] font-bold uppercase">Trash</span></button>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 justify-end">
             <button onClick={() => onArchive(sermon)} className="flex flex-col items-center gap-1 group">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4" /></svg>
+                <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:slate-600"}`} />
                 <span className={`text-[8px] font-bold uppercase ${sermon.is_archived ? "text-green-600" : "text-gray-400"}`}>{sermon.is_archived ? "Restore" : "Arch"}</span>
             </button>
             <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-primary"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
+                <FileText size={18} className="text-brand-primary" />
                 <span className="text-[8px] font-bold uppercase text-brand-primary">Edit</span>
             </Link>
             <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-200 group-hover:text-red-600"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                <Trash2 size={18} className="text-red-200 group-hover:text-red-600" />
                 <span className="text-[8px] font-bold uppercase text-red-300">Del</span>
             </button>
         </div>

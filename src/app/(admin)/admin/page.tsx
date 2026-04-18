@@ -1,15 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import BrandWatermark from "@/components/BrandWatermark";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import {toast} from "sonner";
+import LoadingState from "@/components/Admin/LoadingPage";
 
 export default function AdminDashboard() {
     const router = useRouter();
+    const [initialLoading, setInitialLoading] = useState(true);
     const [isLogoutOpen, setIsLogoutOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    useEffect(() => {
+        // Simulate a brief check for the user session or just a smooth entry
+        const timer = setTimeout(() => setInitialLoading(false), 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleSignOut = async () => {
         setIsLoggingOut(true)
@@ -21,10 +29,8 @@ export default function AdminDashboard() {
                 setIsLoggingOut(false);
             } else {
                 toast.success("Signed out successfully");
-                setTimeout(() => {
-                    router.push("/login");
-                    router.refresh();
-                }, 800);
+                router.push("/login");
+                router.refresh();
             }
         } catch (err) {
             toast.error("An unexpected error occurred");
@@ -36,6 +42,15 @@ export default function AdminDashboard() {
     const goToMedia = () => router.push("/sermons")
     const goToEvents = () => router.push("/sermons")
 
+    // First Time Entering the Dashboard
+    if (initialLoading) {
+        return <LoadingState variant="full" message="Opening Control Center..." />;
+    }
+
+    // Currently signing out
+    if (isLoggingOut) {
+        return <LoadingState variant="full" message="Securing Session..." />;
+    }
 
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12">
@@ -140,10 +155,7 @@ export default function AdminDashboard() {
                 title="End Admin Session?"
                 message="Are you sure you want to sign out? You will need to re-authenticate to manage ministry content."
                 confirmText={isLoggingOut ? "Signing out..." : "Sign Out"}
-                onClose={() => {
-                    setIsLogoutOpen(false)
-                    setIsLoggingOut(false)
-                }}
+                onClose={() => {setIsLogoutOpen(false)}}
                 onConfirm={handleSignOut}
             />
         </div>
