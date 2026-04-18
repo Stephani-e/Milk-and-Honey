@@ -449,11 +449,6 @@ export default function SermonsPage() {
                         </div>
                     ))}
                 </div>
-                {sermons.length === 0 && !loading && (
-                    <div className="p-20 text-center text-brand-primary font-bold italic">
-                        {getEmptyStateMessage()}
-                    </div>
-                )}
 
                 {/* --- PAGINATION CONTROLS --- */}
                 <div className="mt-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-brand-accent pt-8">
