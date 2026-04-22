@@ -1,163 +1,172 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import BrandWatermark from "@/components/BrandWatermark";
-import ConfirmModal from "@/components/Admin/ConfirmModal";
-import {toast} from "sonner";
 import LoadingState from "@/components/Admin/LoadingPage";
 
 export default function AdminDashboard() {
     const router = useRouter();
     const [initialLoading, setInitialLoading] = useState(true);
-    const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     useEffect(() => {
-        // Simulate a brief check for the user session or just a smooth entry
-        const timer = setTimeout(() => setInitialLoading(false), 1000);
+        const timer = setTimeout(() => setInitialLoading(false), 800);
         return () => clearTimeout(timer);
     }, []);
 
-    const handleSignOut = async () => {
-        setIsLoggingOut(true)
-        try {
-            const { error } = await supabase.auth.signOut();
+    const goToSermon = () => router.push("/sermons");
+    const goToMedia = () => router.push("/media");
+    const goToEvents = () => router.push("/events");
+    const goToDepartments = () => router.push("/departments")
+    const goToLifeStages = () => router.push("/life-stages")
+    const goToLeadership = () => router.push("/leadership")
+    const goToParishes = () => router.push("/parishes")
 
-            if (error) {
-                toast.error("Logout failed: " + error.message);
-                setIsLoggingOut(false);
-            } else {
-                toast.success("Signed out successfully");
-                router.push("/login");
-                router.refresh();
-            }
-        } catch (err) {
-            toast.error("An unexpected error occurred");
-            setIsLoggingOut(false);
-        }
-    };
-
-    const goToSermon = () => router.push("/sermons")
-    const goToMedia = () => router.push("/sermons")
-    const goToEvents = () => router.push("/sermons")
-
-    // First Time Entering the Dashboard
     if (initialLoading) {
         return <LoadingState variant="full" message="Opening Control Center..." />;
     }
 
-    // Currently signing out
-    if (isLoggingOut) {
-        return <LoadingState variant="full" message="Securing Session..." />;
-    }
-
     return (
-        <div className="min-h-screen bg-brand-surface p-4 md:p-12">
-
+        <div className="min-h-[calc(100vh-80px)] bg-brand-surface p-6 md:p-12">
             <BrandWatermark />
 
-            <div className="relative z-10">
-                {/* Header Area */}
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 md:mb-12 gap-6">
-                    <div className="text-center md:text-left">
-                        <h1 className="text-3xl md:text-4xl font-serif font-bold text-brand-primary ">Ministry Control Center</h1>
-                        <p className="text-brand-text mt-2 font-sans uppercase tracking-[0.15em] text-[10px] md:text-xs font-semibold">
-                            Lagos Province 56 • Milk and Honey Center
-                        </p>
-                    </div>
-
-                    <button
-                        onClick={() => setIsLogoutOpen(true)}
-                        className="w-full md:w-auto px-8 py-2.5 border border-red-200 text-red-600 rounded-full text-sm font-bold hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                        Logout
-                    </button>
+            <div className="relative z-10 max-w-6xl mx-auto">
+                <div className="mb-10 text-center md:text-left">
+                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-brand-primary tracking-tight">
+                        Ministry Control Center
+                    </h1>
+                    <p className="text-gray-500 mt-2 font-medium text-sm md:text-base">
+                        Select a module below to manage church content.
+                    </p>
                 </div>
 
-                {/* Grid of Actions */}
-                <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
 
-                    {/* ACTION 1: SERMONS */}
-                    {/*<div className="church-card group cursor-pointer hover:border-brand-secondary transition-all">*/}
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent group hover:shadow-xl hover:shadow-brand-primary/5 transition-all">
-                        <div className="h-12 w-12 bg-brand-primary text-white rounded-xl flex items-center justify-center mb-6">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl hover:shadow-brand-primary/5 transition-all flex flex-col justify-between">
+                        <div>
+                            <div className="h-12 w-12 bg-brand-primary text-white rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-primary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Sermons & Notes</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Upload weekly sermon clips, outlines, and rotation details.</p>
                         </div>
-                        <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Sermons & Notes</h3>
-                        <p className="text-sm text-gray-500 mb-6 leading-relaxed">Upload weekly sermon clips, outlines, and Sunday rotation host details.</p>
                         <button
                             onClick={goToSermon}
-                            className="w-full bg-brand-primary text-white font-bold py-3 rounded-xl text-sm transition-transform active:scale-95 cursor-pointer"
+                            className="w-full bg-brand-primary text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                         >
                             Open Manager
                         </button>
                     </div>
 
-                    {/* ACTION 2: MEDIA GALLERY */}
-                    {/*<div className="church-card group cursor-pointer hover:border-brand-secondary transition-all">*/}
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent group hover:shadow-xl transition-all">
-                        <div className="h-12 w-12 bg-brand-secondary text-white rounded-xl flex items-center justify-center mb-6">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div className="h-12 w-12 bg-brand-secondary text-white rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Media Gallery</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Update the church photo gallery with images from latest events.</p>
                         </div>
-                        <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Media Gallery</h3>
-                        <p className="text-sm text-gray-500 mb-6 leading-relaxed">Update the church photo gallery with images from the latest services and events.</p>
                         <button
                             onClick={goToMedia}
-                            className="w-full bg-[#C5A059] text-white font-bold px-6 py-2 rounded-xl text-sm ransition-transform active:scale-95 cursor-pointer"
+                            className="w-full bg-[#C5A059] text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                         >
                             Manage Photos
                         </button>
                     </div>
 
-                    {/* ACTION 3: EVENTS */}
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent group hover:shadow-xl transition-all sm:col-span-2 lg:col-span-1">
-                        <div className="h-12 w-12 bg-slate-200 text-brand-primary rounded-xl flex items-center justify-center mb-6">
-                            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+                        <div>
+                            <div className="h-12 w-12 bg-slate-100 text-brand-primary rounded-xl flex items-center justify-center mb-6">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Events Calendar</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Set dates for Provincial meetings and Parish celebrations.</p>
                         </div>
-                        <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Events Calendar</h3>
-                        <p className="text-sm text-gray-500 mb-6 leading-relaxed">Set dates for Provincial meetings, Youth events, and Parish celebrations.</p>
                         <button
                             onClick={goToEvents}
-                            className="w-full bg-gray-100 text-brand-primary font-bold px-6 py-2 rounded-xl text-sm ransition-transform active:scale-95 cursor-pointer"
+                            className="w-full bg-slate-800 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-black active:scale-95 transition-all cursor-pointer"
                         >
                             Update Calendar
                         </button>
                     </div>
 
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div className="h-12 w-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m12-10a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Workforce Units</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Organize church departments, duty rosters, and head of departments.</p>
+                        </div>
+                        <button onClick={goToDepartments} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-emerald-700 transition-all cursor-pointer">
+                            Manage Units
+                        </button>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div className="h-12 w-12 bg-brand-secondary text-white rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Life Stages</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Dedicated portals for Youth, Teens, Women (Good Women), and Men (Excellent Men).</p>
+                        </div>
+                        <button onClick={goToLifeStages} className="w-full bg-brand-secondary text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 transition-all cursor-pointer">
+                            Open Fellowships
+                        </button>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div className="h-12 w-12 bg-slate-900 text-white rounded-xl flex items-center justify-center mb-6">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m0 0A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10c0 2.478-.897 4.747-2.387 6.5m-3.226 3.123c-1.047.23-2.134.377-3.253.377a10.003 10.003 0 01-4.387-.999"/></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Leadership Registry</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Directory of Pastors, Secretaries, and Board Members across the Province.</p>
+                        </div>
+                        <button onClick={goToLeadership} className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-black transition-all cursor-pointer">
+                            View Registry
+                        </button>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between lg:col-span-3">
+                        <div className="flex flex-col md:flex-row md:items-center gap-8">
+                            <div className="h-16 w-16 bg-brand-surface text-brand-primary border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
+                                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-serif font-bold text-brand-primary mb-2">Parish & Hierarchy Network</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">
+                                    Map out the organizational flow of the church. Manage data for **Zonal**, **Area**, and **Parish** levels, including their unique locations and ranking within Lagos Province 56.
+                                </p>
+                            </div>
+                            <button onClick={goToParishes} className="md:ml-auto w-full md:w-auto px-10 bg-white border-2 border-brand-primary text-brand-primary font-bold py-3.5 rounded-xl text-sm hover:bg-brand-primary hover:text-white transition-all cursor-pointer">
+                                Explore Network
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                {/* QUICK STATUS */}
-                <div className="max-w-6xl mx-auto mt-8 md:mt-12 p-5 bg-white border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                <div className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
                     <div className="flex items-center gap-3">
                         <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
                         <p className="text-[10px] font-sans font-black text-gray-400 uppercase tracking-widest">
-                            Database Connection: Active • All Systems Operational
+                            System Status: Operational
                         </p>
                     </div>
                     <div className="hidden md:block w-px h-4 bg-gray-200"></div>
                     <p className="text-[10px] font-sans font-bold text-gray-400 uppercase tracking-widest">
-                        Milk and Honey Admin Portal v2.0
+                        Milk and Honey Admin Portal v2.1
                     </p>
                 </div>
             </div>
 
             {/* Vertical Signature */}
-            <div className="fixed hidden xl:flex right-8 top-1/2 -translate-y-1/2 flex-col items-center gap-4 origin-center">
-                <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gray-600 [writing-mode:vertical-lr] rotate-180">
+            <div className="fixed hidden xl:flex right-8 bottom-12 flex-col items-center gap-4 z-0">
+                <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gray-400 [writing-mode:vertical-lr] rotate-180">
                     Design & Maintenance by <span className="text-brand-secondary font-bold">The Media Team</span>
                 </p>
                 <div className="w-[1px] h-12 bg-gray-200"></div>
             </div>
-
-            <ConfirmModal
-                isOpen={isLogoutOpen}
-                title="End Admin Session?"
-                message="Are you sure you want to sign out? You will need to re-authenticate to manage ministry content."
-                confirmText={isLoggingOut ? "Signing out..." : "Sign Out"}
-                onClose={() => {setIsLogoutOpen(false)}}
-                onConfirm={handleSignOut}
-            />
         </div>
     );
 }

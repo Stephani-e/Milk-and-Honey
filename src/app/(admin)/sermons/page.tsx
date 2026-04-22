@@ -7,7 +7,7 @@ import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import LoadingState from "@/components/Admin/LoadingPage";
-import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox} from "lucide-react";
+import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox,} from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -662,6 +662,13 @@ function ActionButtons({
     view: 'active' | 'trash' | 'archive' | 'draft'
 }) {
 
+    // Function to handle the "View Live" click
+    const handleViewLive = (id: string) => {
+        // We will attach the actual URL logic later
+        // Example: window.open(`/sermons/${id}`, '_blank');
+        toast.info("Opening public preview...");
+    };
+
     //Trash Item
     if (view === "trash") {
         return (
@@ -693,6 +700,19 @@ function ActionButtons({
         return (
             <div className="flex items-center gap-6 justify-end">
                 <button
+                    onClick={() => handleViewLive(sermon.id)}
+                    className="flex flex-col items-center gap-1 group"
+                    title="View on Website"
+                >
+                    <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-brand-primary/10 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-secondary group-hover:text-brand-primary transition-colors">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </div>
+                    <span className="text-[8px] font-bold uppercase text-brand-secondary group-hover:text-brand-primary">Pre-View</span>
+                </button>
+                <button
                     onClick={() => onQuickPublish(sermon)}
                     className="flex flex-col items-center gap-1 group bg-brand-primary/5 p-2 rounded-xl border border-brand-primary/10 hover:bg-brand-primary/10 transition-colors"
                 >
@@ -713,8 +733,21 @@ function ActionButtons({
 
     return (
         <div className="flex items-center gap-4 justify-end">
+            <button
+                onClick={() => handleViewLive(sermon.id)}
+                className="flex flex-col items-center gap-1 group"
+                title="View on Website"
+            >
+                <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-brand-primary/10 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-secondary group-hover:text-brand-primary transition-colors">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                </div>
+                <span className="text-[8px] font-bold uppercase text-brand-secondary group-hover:text-brand-primary">View</span>
+            </button>
             <button onClick={() => onArchive(sermon)} className="flex flex-col items-center gap-1 group">
-                <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:slate-600"}`} />
+                <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}`} />
                 <span className={`text-[8px] font-bold uppercase ${sermon.is_archived ? "text-green-600" : "text-gray-400"}`}>{sermon.is_archived ? "Restore" : "Arch"}</span>
             </button>
             <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
