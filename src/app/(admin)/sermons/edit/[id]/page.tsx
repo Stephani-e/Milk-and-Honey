@@ -25,7 +25,6 @@ export default function EditSermonPage() {
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
 
-    // Tracks if we are showing the "Uploaded" badge or the "Upload" button
     const [bannerUploaded, setBannerUploaded] = useState(false);
     const [clipUploaded, setClipUploaded] = useState(false);
 
@@ -95,7 +94,6 @@ export default function EditSermonPage() {
         async function getSuggestions() {
             const { data } = await supabase.from("sermons").select("co_host, special_service_name");
             if (data) {
-                // Use Set to get unique values only (no duplicates)
                 const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
                 const names = Array.from(new Set(data.map(i => i.special_service_name).filter(Boolean)));
                 setSavedCoHosts(hosts);
@@ -105,12 +103,14 @@ export default function EditSermonPage() {
         getSuggestions();
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (targetStatus: "draft" | "published") => {
         setLoading(true);
+
+        const { id: _, created_at, ...cleanFormData } = formData as any;
 
         const submission = {
             ...formData,
+            status: targetStatus,
             service_category: category,
             weekly_type: category === "Weekly" ? weeklyType : "",
             is_thanksgiving: category === "Weekly" && weeklyType === "Sunday" ? isThanksgiving : false,
@@ -123,7 +123,14 @@ export default function EditSermonPage() {
             alert(error.message);
             setLoading(false);
         } else {
-            router.push("/sermons");
+            toast.success(
+                targetStatus === 'published'
+                    ? "Sermon is now live!"
+                    : "Unpublished: Sermon moved to Drafts"
+            );
+
+            const targetPath = targetStatus === 'published' ? "/sermons" : "/sermons?tab=draft";
+            router.push(targetPath);
             router.refresh();
         }
     };
@@ -136,7 +143,7 @@ export default function EditSermonPage() {
                 <Link href="/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to List</Link>
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-accent">
                     <h1 className="text-3xl font-serif font-bold text-brand-primary mb-8">Edit Sermon</h1>
-                    <form onSubmit={handleSubmit} className="space-y-10">
+                    <form className="space-y-10">
 
                         {/* MEDIA & REMAINING FIELDS */}
                         {(weeklyType || category === "Special") && (
@@ -348,9 +355,25 @@ export default function EditSermonPage() {
                                     onChange={(e) => setFormData({...formData, content: e.target.value})}
                                 />
 
-                                <button disabled={loading} className="w-full bg-brand-primary text-white py-5 rounded-2xl font-bold transition-all">
-                                    {loading ? "Updating..." : "Save Changes"}
-                                </button>
+                                <div className="flex flex-col md:flex-row gap-4 pt-6">
+                                    <button
+                                        type="button"
+                                        disabled={loading}
+                                        onClick={() => handleSubmit('draft')}
+                                        className="flex-1 bg-white border-2 border-brand-primary text-brand-primary py-5 rounded-2xl font-bold hover:bg-brand-primary/5 transition-all"
+                                    >
+                                        {loading ? "Saving..." : "Save as Draft"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={loading}
+                                        onClick={() => handleSubmit('published')}
+                                        className="flex-[2] bg-brand-primary text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all"
+                                    >
+                                        {loading ? "Updating..." : "Save Changes"}
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </form>

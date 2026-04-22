@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
@@ -13,7 +13,9 @@ const PAGE_SIZE = 10;
 
 export default function SermonsPage() {
     const router = useRouter();
-    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">("active");
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get("tab");
+    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(initialTab === "active" ? "active" : "draft");
 
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,6 +64,13 @@ export default function SermonsPage() {
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    useEffect(() => {
+        // Updates the URL browser history without a full page reload
+        const params = new URLSearchParams(window.location.search);
+        params.set("tab", view);
+        router.replace(`${window.location.pathname}?${params.toString()}`);
+    }, [view]);
 
     async function fetchSermons() {
         setLoading(true);
@@ -207,6 +216,7 @@ export default function SermonsPage() {
             toast.error("Restore failed: " + error.message);
         }else {
             toast.success(`Moved to ${destination === 'active' ? 'Library' : 'Drafts'}`);
+            setView(destination);
             fetchSermons();
         }
         setModalType(null);
@@ -229,19 +239,24 @@ export default function SermonsPage() {
                     .from('sermons')
                     .update({ deleted_at: new Date() })
                     .eq("id", selectedSermon.id);
-                if (!error) toast.success("Sermon moved to Trash. It will be kept for 30 days.");
+                if (!error) {
+                    toast.success("Sermon moved to Trash. It will be kept for 30 days.");
+                    setView("trash");
+                }
             }
             fetchSermons();
         }
         else if (modalType === "archive") {
+            const newArchiveStatus = !selectedSermon.is_archived;
             const { error } = await supabase
                 .from("sermons")
-                .update({ is_archived: !selectedSermon.is_archived })
+                .update({ is_archived: newArchiveStatus})
                 .eq("id", selectedSermon.id);
 
             if (error) toast.error("Update failed");
             else {
-                toast.success(selectedSermon.is_archived ? "Sermon Restored" : "Sermon Archived");
+                toast.success(newArchiveStatus ? "Sermon Archived" : "Sermon Restored");
+                setView(newArchiveStatus ? "archive" : "active")
             }
         }
 
@@ -318,6 +333,14 @@ export default function SermonsPage() {
                             + New Entry
                         </button>
                     )}
+
+                    {view === 'draft' && (
+                        <button
+                            onClick={() => router.push("/sermons/new")}
+                            className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
+                            + New Entry
+                        </button>
+                    )}
                 </div>
 
                 <AdminFilter
@@ -347,7 +370,7 @@ export default function SermonsPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                         {sermons.map((s) => (
-                            <tr key={s.id} className={`transition-opacity ${s.is_archived && view !=="trash" ? "opacity-40 grayscale" : ""}`}>
+                            <tr key={s.id} className={`transition-opacity ${s.is_archived && view !=="trash" ? "opacity-100 grayscale" : ""}`}>
                                 <td className="p-5">
                                     {/* Row 1: The Logic Badges */}
                                     <div className="flex gap-2 mb-2">

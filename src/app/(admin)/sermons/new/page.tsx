@@ -18,13 +18,11 @@ export default function NewSermonPage() {
         action: 'delete' | 'change';
     } | null>(null);
 
-    // LOGIC STATES
     const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
     const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
 
-    // SUGGESTIONS STATE (Populated from DB)
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
 
@@ -47,7 +45,6 @@ export default function NewSermonPage() {
         clip_url: "",
     });
 
-    //RELOAD PROTECTION: Load Draft on mount
     useEffect(() => {
         const savedDraft = localStorage.getItem("sermon_draft");
         if (savedDraft) {
@@ -63,7 +60,6 @@ export default function NewSermonPage() {
         setInitialFetchDone(true);
     }, []);
 
-    // AUTO-SAVE DRAFT (Only for New Sermons)
     useEffect(() => {
         if (initialFetchDone) {
             const draft = { formData, category, weeklyType, isThanksgiving, isMultiDay };
@@ -95,11 +91,9 @@ export default function NewSermonPage() {
         setMediaAction(null);
     };
 
-    //SUBMIT LOGIC (With Data Cleaning)
     const handleSubmit = async (targetStatus: 'draft' | 'published') => {
         setLoading(true);
 
-        // CREATE CLEAN SUBMISSION OBJECT
         const submission: any = {
             ...formData,
             status: targetStatus,
@@ -109,7 +103,6 @@ export default function NewSermonPage() {
             is_multi_day: category === "Special" ? isMultiDay : false,
         };
 
-        // CLEANUP: Remove fields that don't apply to the chosen category
         if (category === "Weekly") {
             submission.special_service_name = "";
             submission.day_identifier = "";
@@ -137,14 +130,19 @@ export default function NewSermonPage() {
             toast.error(`Database Error: ${error.message}`);
             setLoading(false);
         } else {
-            toast.success(targetStatus === 'published' ? "Sermon Published Successfully!" : 'Drafts Saved to Drafts Page');
+            toast.success(
+                targetStatus === 'published'
+                    ? "Sermon Published Successfully!"
+                    : 'Drafts Saved to Drafts Page'
+            );
             localStorage.removeItem("sermon_draft"); // Clear cache on success
-            router.push("/sermons");
+
+            const targetPath = targetStatus === 'published' ? "/sermons" : "/sermons?tab=draft";
+            router.push(targetPath);
             router.refresh();
         }
     };
 
-    // FETCH SAVED DATA FOR SUGGESTIONS
     useEffect(() => {
         async function getSuggestions() {
             const { data } = await supabase.from("sermons").select("co_host, special_service_name");
@@ -174,7 +172,7 @@ export default function NewSermonPage() {
 
                     <form className="space-y-10">
 
-                        {/* SECTION A: Category Selection */}
+                        {/* Category Selection */}
                         <div className="space-y-4">
                             <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1: Service Category</label>
                             <div className="grid grid-cols-2 gap-4">
@@ -191,7 +189,7 @@ export default function NewSermonPage() {
                             </div>
                         </div>
 
-                        {/* SECTION B: WEEKLY BRANCH */}
+                        {/* WEEKLY BRANCH */}
                         {category === "Weekly" && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
                                 <div className="grid grid-cols-3 gap-4">
@@ -256,7 +254,7 @@ export default function NewSermonPage() {
                             </div>
                         )}
 
-                        {/* SECTION C: SPECIAL BRANCH */}
+                        {/* SPECIAL BRANCH */}
                         {category === "Special" && (
                             <div className="space-y-6 animate-in fade-in">
                                 <input
@@ -298,7 +296,7 @@ export default function NewSermonPage() {
                             </div>
                         )}
 
-                        {/* SECTION D: UNIFIED FIELDS (Title, Preacher, Date, Media) */}
+                        {/* UNIFIED FIELDS (Title, Preacher, Date, Media) */}
                         {(weeklyType || category === "Special") && (
                             <div className="pt-10 border-t border-gray-100 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -437,7 +435,7 @@ export default function NewSermonPage() {
 
                                 <div className="flex flex-col md:flex-row gap-4 pt-6">
                                     <button
-                                        type="button" // Important: use type="button" so it doesn't trigger standard form submit
+                                        type="button"
                                         disabled={loading}
                                         onClick={() => handleSubmit('draft')}
                                         className="flex-1 bg-white border-2 border-brand-primary text-brand-primary py-5 rounded-2xl font-bold hover:bg-brand-primary/5 transition-all"
