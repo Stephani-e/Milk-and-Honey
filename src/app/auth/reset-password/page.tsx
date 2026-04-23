@@ -74,7 +74,7 @@ export default function ResetPasswordPage() {
                         <input
                             type="email"
                             placeholder="Your Email"
-                            className="w-full p-3 border rounded-lg"
+                            className="w-full p-3 text-[#11222E] border rounded-lg"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
                             type="text"
                             placeholder="6-Digit Code from Email"
                             maxLength={6}
-                            className="w-full p-3 border rounded-lg font-mono text-center text-xl tracking-widest"
+                            className="w-full p-3 border rounded-lg font-mono text-[#11222E] text-center text-xl tracking-widest"
                             value={token}
                             onChange={(e) => setToken(e.target.value)}
                             required
@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
                         <input
                             type="password"
                             placeholder="New Security Key"
-                            className="w-full p-3 border rounded-lg"
+                            className="w-full p-3 text-[#11222E] border rounded-lg"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
                         <input
                             type="password"
                             placeholder="Confirm New Key"
-                            className="w-full p-3 border rounded-lg"
+                            className="w-full p-3 border text-[#11222E] rounded-lg"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
