@@ -1,58 +1,44 @@
 "use client";
-import React, { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import LoadingState from "@/components/Admin/LoadingPage";
 
 export default function ResetPasswordPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
     const [email, setEmail] = useState("");
     const [token, setToken] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+
+    // Auto-fill email if passed in URL
+    useEffect(() => {
+        const emailParam = searchParams.get("email");
+        if (emailParam) setEmail(emailParam);
+    }, [searchParams]);
 
     const handlePasswordReset = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (password !== confirmPassword) {
-            return toast.error("Passwords do not match");
-        }
+        if (password !== confirmPassword) return toast.error("Keys do not match");
+        if (password.length < 6) return toast.error("Key must be at least 6 characters");
 
         setIsUpdating(true);
 
         try {
-            // 1. Verify the 6-digit token manually
-            const { error: verifyError } = await supabase.auth.verifyOtp({
-                email,
-                token,
-                type: 'recovery',
-            });
-
-            if (verifyError) throw verifyError;
-
-            // 2. Now that the session is active, get the user ID
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Verification failed.");
-
-            // 3. Call your secure API to update the password & profile
-            const response = await fetch('/api/update', {
-                method: 'PATCH',
+            const response = await fetch('/api/auth/reset-password', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: user.id,
-                    email: user.email,
-                    password: password,
-                    full_name: user.user_metadata?.full_name || ""
-                }),
+                body: JSON.stringify({ email, token, newPassword: password }),
             });
 
-            if (!response.ok) throw new Error("Update failed");
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Update failed");
 
-            toast.success("Security key updated! Logging out...");
-            await supabase.auth.signOut();
+            toast.success("Security key updated successfully!");
             setTimeout(() => router.push("/login"), 2000);
 
         } catch (err: any) {
@@ -67,65 +53,46 @@ export default function ResetPasswordPage() {
             {isUpdating && <LoadingState variant="full" message="Securing Account..." />}
 
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-                <h1 className="text-2xl font-bold text-[#11222E] text-center mb-6">Reset Security Key</h1>
+                <h1 className="text-2xl font-bold text-[#11222E] text-center mb-2">Reset Security Key</h1>
+                <p className="text-sm text-gray-500 text-center mb-6">Enter the 6-digit code sent to your email.</p>
 
-                <form onSubmit={handlePasswordReset} className="space-y-6">
-                    <div>
-                        <input
-                            type="email"
-                            placeholder="Your Email"
-                            className="w-full p-3 text-[#11222E] border rounded-lg"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <input
-                            type="text"
-                            placeholder="6-Digit Code from Email"
-                            maxLength={6}
-                            className="w-full p-3 border rounded-lg font-mono text-[#11222E] text-center text-xl tracking-widest"
-                            value={token}
-                            onChange={(e) => setToken(e.target.value)}
-                            required
-                        />
-                    </div>
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                    <input
+                        type="email"
+                        placeholder="Your Email"
+                        className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#11222E]"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="text"
+                        placeholder="6-Digit Code"
+                        maxLength={6}
+                        className="w-full p-3 border border-gray-300 rounded-lg font-mono text-center text-xl tracking-widest outline-none focus:ring-2 focus:ring-[#11222E]"
+                        value={token}
+                        onChange={(e) => setToken(e.target.value)}
+                        required
+                    />
                     <hr className="my-4" />
-                    <div>
-                        <input
-                            type="password"
-                            placeholder="New Security Key"
-                            className="w-full p-3 text-[#11222E] border rounded-lg"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <input
-                            type="password"
-                            placeholder="Confirm New Key"
-                            className="w-full p-3 border text-[#11222E] rounded-lg"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="show"
-                            className="rounded border-gray-300"
-                            onChange={() => setShowPassword(!showPassword)}
-                        />
-                        <label htmlFor="show" className="text-xs text-gray-600 cursor-pointer">Show Passwords</label>
-                    </div>
-
-                    <button type="submit" className="w-full bg-[#11222E] text-white p-4 rounded-lg font-bold">
-                        Update & Verify
+                    <input
+                        type="password"
+                        placeholder="New Security Key"
+                        className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#11222E]"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="Confirm New Key"
+                        className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#11222E]"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                    />
+                    <button type="submit" className="w-full bg-[#11222E] text-white p-4 rounded-lg font-bold hover:bg-slate-800 transition-all active:scale-[0.98]">
+                        Update & Sign In
                     </button>
                 </form>
             </div>
