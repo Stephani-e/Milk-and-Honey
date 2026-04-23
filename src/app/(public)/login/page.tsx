@@ -82,20 +82,32 @@ export default function LoginPage() {
         }
     };
 
-    const handleForgotPassword = async () => {
-        if (!email) return toast.error("Please enter your email first.");
+    const handleForgotPassword = async (emailToReset: string) => {
+        if (!emailToReset) return toast.error("Please enter your email first.");
 
-        setIsResetting(true);
-        const {error} = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/auth/reset-password`,
-        });
+        setIsResetting(true); // Start the spinner/loading text
 
-        if (error) {
-            toast.error(error.message);
-        } else {
-            toast.success("Password reset link sent to your email!");
+        try {
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailToReset }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success("Security code sent to your email!");
+                // Redirect with the email pre-filled in the URL
+                router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
+            } else {
+                toast.error(result.error || "Failed to send reset code.");
+            }
+        } catch (err) {
+            toast.error("Connection error. Please try again.");
+        } finally {
+            setIsResetting(false); // Reset the button state
         }
-        setIsResetting(false);
     };
 
     return (
@@ -174,7 +186,7 @@ export default function LoginPage() {
                                         isSuperAdmin ? (
                                             <button
                                                 type="button"
-                                                onClick={handleForgotPassword}
+                                                onClick={() => handleForgotPassword(email)}
                                                 className="text-[11px] font-bold text-brand-primary hover:underline"
                                             >
                                                 {isResetting ? "Sending..." : "Forgot Password? Reset Now"}
