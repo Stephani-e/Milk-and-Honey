@@ -27,27 +27,26 @@ export default function ResetPasswordPage() {
 
         try {
             // 1. Get the current user from the session Supabase created via the email link
-            // const { data: { user } } = await supabase.auth.getUser();
-            //
-            // if (!user) throw new Error("Session expired. Please request a new link.");
+            const { data: { user } } = await supabase.auth.getUser();
 
-            console.log('Mocking Reset')
+            if (!user) throw new Error("Session expired. Please request a new link.");
 
-            // 2. Call your update.ts API route
-            // const response = await fetch('/api/update', {
-            //     method: 'PATCH',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         id: user.id,
-            //         email: user.email,
-            //         password: password, // The new password
-            //         full_name: user.user_metadata?.full_name || ""
-            //     }),
-            // });
-            //
-            // const result = await response.json();
-            //
-            // if (!response.ok) throw new Error(result.error || "Update failed");
+
+           // 2. Call your update.ts API route
+            const response = await fetch('/api/update', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: user.id,
+                    email: user.email,
+                    password: password, // The new password
+                    full_name: user.user_metadata?.full_name || ""
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) throw new Error(result.error || "Update failed");
 
             toast.success("Security key updated successfully!");
 
