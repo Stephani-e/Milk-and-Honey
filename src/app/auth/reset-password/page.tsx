@@ -27,25 +27,27 @@ export default function ResetPasswordPage() {
 
         try {
             // 1. Get the current user from the session Supabase created via the email link
-            const { data: { user } } = await supabase.auth.getUser();
+            // const { data: { user } } = await supabase.auth.getUser();
+            //
+            // if (!user) throw new Error("Session expired. Please request a new link.");
 
-            if (!user) throw new Error("Session expired. Please request a new link.");
+            console.log('Mocking Reset')
 
             // 2. Call your update.ts API route
-            const response = await fetch('/api/update', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: user.id,
-                    email: user.email,
-                    password: password, // The new password
-                    full_name: user.user_metadata?.full_name || ""
-                }),
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) throw new Error(result.error || "Update failed");
+            // const response = await fetch('/api/update', {
+            //     method: 'PATCH',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({
+            //         id: user.id,
+            //         email: user.email,
+            //         password: password, // The new password
+            //         full_name: user.user_metadata?.full_name || ""
+            //     }),
+            // });
+            //
+            // const result = await response.json();
+            //
+            // if (!response.ok) throw new Error(result.error || "Update failed");
 
             toast.success("Security key updated successfully!");
 
@@ -67,7 +69,7 @@ export default function ResetPasswordPage() {
 
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-[#11222E]">Create New Security Key</h1>
+                    <h1 className="text-2xl font-bold text-[#11222E]">Create New Password</h1>
                     <p className="text-sm text-gray-500 mt-2">
                         Enter your new password below to regain access to the M&H Admin Portal.
                     </p>
@@ -75,11 +77,11 @@ export default function ResetPasswordPage() {
 
                 <form onSubmit={handlePasswordReset} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold mb-2 text-[#11222E]">New Security Key</label>
+                        <label className="block text-sm font-semibold mb-2 text-[#11222E]">New Password</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                className="w-full p-3 border border-[#E5E7EB] rounded-lg focus:ring-2 focus:ring-[#11222E] outline-none"
+                                className="w-full p-3 border border-[#E5E7EB] text-[#11222E] rounded-lg focus:ring-2 focus:ring-[#11222E] outline-none"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -89,10 +91,10 @@ export default function ResetPasswordPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold mb-2 text-[#11222E]">Confirm Security Key</label>
+                        <label className="block text-sm font-semibold mb-2 text-[#11222E]">Confirm Password</label>
                         <input
                             type={showPassword ? "text" : "password"}
-                            className="w-full p-3 border border-[#E5E7EB] rounded-lg focus:ring-2 focus:ring-[#11222E] outline-none"
+                            className="w-full p-3 border border-[#E5E7EB] text-[#11222E] rounded-lg focus:ring-2 focus:ring-[#11222E] outline-none"
                             placeholder="••••••••"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
