@@ -16,8 +16,6 @@ export default function AdminLayout({
     const [isLogoutOpen, setIsLogoutOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-
-// Replace your existing useEffect with this one:
     useEffect(() => {
         let isMounted = true;
 
@@ -61,11 +59,14 @@ export default function AdminLayout({
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        toast.error("Logout failed");
+        toast.error("Logout Failed");
         setIsLoggingOut(false);
       } else {
-        router.push("/login");
-        router.refresh();
+          toast.success('Logout Successful! Redirecting to Login Page...');
+          setTimeout(() => {
+              router.push("/login");
+              router.refresh();
+          }, 2500);
       }
     } catch (err) {
       setIsLoggingOut(false);
@@ -80,12 +81,10 @@ export default function AdminLayout({
             onLogout={() => setIsLogoutOpen(true)}
         />
 
-        {/* PAGE CONTENT */}
         <main>
           {children}
         </main>
 
-        {/* GLOBAL LOGOUT MODAL */}
         <ConfirmModal
             isOpen={isLogoutOpen}
             title="End Admin Session?"
