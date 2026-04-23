@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { LogOut, Home, ShieldCheck } from "lucide-react";
+import { LogOut, Home, ShieldCheck, Users } from "lucide-react";
 
 interface NavbarProps {
     profile: {
@@ -12,7 +12,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ profile, onLogout }: NavbarProps) {
-    // Fallback to "A" if the name isn't loaded yet
+
     const userInitial = profile?.full_name
         ? profile.full_name.charAt(0).toUpperCase()
         : (profile?.email?.charAt(0).toUpperCase() || "A");
@@ -33,13 +33,22 @@ export default function Navbar({ profile, onLogout }: NavbarProps) {
 
                 <div className="flex items-center gap-2 md:gap-4">
 
+                    {profile?.role === 'super-admin' && (
+                        <Link
+                            href="/admin/profiles"
+                            className="flex items-center gap-2 px-3 py-2 bg-brand-primary/5 text-brand-primary rounded-full hover:bg-brand-primary hover:text-white transition-all group border border-brand-primary/10 shadow-sm"
+                        >
+                            <Users size={16} className="shrink-0" />
+                            <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest">Manage Access</span>
+                        </Link>
+                    )}
+
                     {/* USER PROFILE CHIP */}
                     <div className="flex items-center gap-2 md:gap-3 bg-brand-surface border border-brand-accent p-1 md:pl-2 md:pr-4 md:py-1.5 rounded-full min-w-max">
                         <div className="h-7 w-7 md:h-8 bg-brand-secondary text-white rounded-full flex items-center justify-center font-bold text-xs md:text-sm shadow-inner shrink-0">
                             {userInitial}
                         </div>
 
-                        {/* Dynamic Width Container */}
                         <div className="hidden md:flex flex-col pr-1">
                             <div className="flex items-center gap-1">
                                 <span className="text-[10px] font-black text-brand-primary leading-none uppercase tracking-tighter whitespace-nowrap">

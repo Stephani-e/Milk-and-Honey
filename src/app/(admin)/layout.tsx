@@ -11,30 +11,49 @@ export default function AdminLayout({
                                     }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
+    const router = useRouter();
     const [profile, setProfile] = useState<any>(null);
     const [isLogoutOpen, setIsLogoutOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
 
+// Replace your existing useEffect with this one:
     useEffect(() => {
+        let isMounted = true;
+
         const getProfile = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            try {
+                // 1. Get the current user session
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-            if (user) {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('full_name, role, email')
-                    .eq('id', user.id)
-                    .single();
+                if (authError) throw authError;
 
-                if (!error && data) {
-                    console.log("Profile Data Loaded:", data);
-                    setProfile(data);
+                if (user && isMounted) {
+                    // 2. Fetch the profile
+                    const { data, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('full_name, role, email')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profileError) {
+                        console.error("Supabase Profile Error:", profileError.message);
+                        return;
+                    }
+
+                    if (data && isMounted) {
+                        console.log("Success! Profile Data:", data);
+                        setProfile(data);
+                    }
                 }
+            } catch (err) {
+                console.error("AdminLayout Auth Error:", err);
             }
         };
+
         getProfile();
+
+        return () => { isMounted = false; };
     }, []);
 
   const handleSignOut = async () => {
