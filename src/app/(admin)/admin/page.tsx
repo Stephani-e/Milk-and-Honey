@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
                             <div className="h-12 w-12 bg-purple-100 text-purple-900 rounded-xl flex items-center justify-center mb-6">
                                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -128,35 +128,45 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between lg:col-span-3">
-                        <div className="flex flex-col md:flex-row md:items-center gap-8">
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-3">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                             <div className="h-16 w-16 bg-mauve-100 text-mauve-900 border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
                                 <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                             </div>
-                            <div>
+                            <div className='flex-1'>
                                 <h3 className="text-2xl font-serif font-bold text-mauve-900 mb-2">Parish & Hierarchy Network</h3>
                                 <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">
                                     Map out the organizational flow of the church. Manage data for **Zonal**, **Area**, and **Parish** levels, including their unique locations and ranking within Lagos Province 56.
                                 </p>
                             </div>
-                            <button onClick={goToParishes} className="md:ml-auto w-full md:w-auto px-10 bg-mauve-900 text-white font-bold py-3.5 rounded-xl text-sm hhover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            <button onClick={goToParishes} className="w-full md:w-auto px-10 bg-mauve-900 text-white font-bold py-3.5 rounded-xl text-sm hhover:brightness-110 active:scale-95 transition-all cursor-pointer">
                                 Explore Network
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                <div className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                    {/* Left Side: Status */}
                     <div className="flex items-center gap-3">
-                        <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="relative flex h-2 w-2">
+                            {/* Added a ping effect for a more "live" feel */}
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </div>
                         <p className="text-[10px] font-sans font-black text-gray-400 uppercase tracking-widest">
-                            System Status: Operational
+                            System Status: <span className="text-brand-primary">Operational</span>
                         </p>
                     </div>
-                    <div className="hidden md:block w-px h-4 bg-gray-200"></div>
-                    <p className="text-[10px] font-sans font-bold text-gray-400 uppercase tracking-widest">
-                        Milk and Honey Admin Portal v2.1
-                    </p>
+
+                    {/* Right Side: Version & Branding */}
+                    <div className="flex items-center gap-4">
+                        {/* The divider now only shows on desktop to separate the two pieces of info */}
+                        <div className="hidden md:block w-px h-3 bg-gray-200"></div>
+                        <p className="text-[10px] font-sans font-bold text-gray-300 uppercase tracking-widest">
+                            Milk and Honey <span className="text-gray-400">v2.1</span>
+                        </p>
+                    </div>
                 </div>
             </div>
 

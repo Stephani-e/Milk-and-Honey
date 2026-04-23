@@ -15,7 +15,6 @@ export default function SuperAdminPage() {
 
         const verifyClearance = async () => {
             // Add a 100ms delay to prevent the "Lock Stolen" race condition
-            // This allows the AdminLayout to finish its auth check first
             await new Promise(resolve => setTimeout(resolve, 100));
 
             try {
