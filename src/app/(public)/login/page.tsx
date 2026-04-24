@@ -82,34 +82,27 @@ export default function LoginPage() {
         }
     };
 
-    const handleForgotPassword = async (emailToReset: string) => {
+const handleForgotPassword = async (emailToReset: string) => {
         if (!emailToReset) return toast.error("Please enter your email first.");
 
         setIsResetting(true); // Start the spinner/loading text
 
         try {
-            const response = await fetch('/api/auth/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailToReset }),
-            });
+            // Directly call Supabase to generate the OTP and send the email
+            const { error } = await supabase.auth.resetPasswordForEmail(emailToReset);
 
-            const result = await response.json();
+            if (error) throw error;
 
-            if (response.ok) {
-                toast.success("Security code sent to your email!");
-                // Redirect with the email pre-filled in the URL
-                router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
-            } else {
-                toast.error(result.error || "Failed to send reset code.");
-            }
-        } catch (err) {
-            toast.error("Connection error. Please try again.");
+            toast.success("Security code sent to your email!");
+
+             router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
+            
+        } catch (err: any) {
+            toast.error(err.message || "Failed to send reset code. Please try again.");
         } finally {
             setIsResetting(false); // Reset the button state
         }
     };
-
     return (
         <div className='flex flex-col relative'>
 

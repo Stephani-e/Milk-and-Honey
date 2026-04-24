@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase"; // <-- Make sure this path is correct!
 import { toast } from "sonner";
 import LoadingState from "@/components/Admin/LoadingPage";
 
-// 1. We move the main logic into an inner component
 function ResetPasswordForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -30,15 +30,23 @@ function ResetPasswordForm() {
         setIsUpdating(true);
 
         try {
-            const response = await fetch('/api/auth/reset-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, token, newPassword: password }),
+            // 1. Send the 6-digit code to Supabase to verify
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'recovery',
             });
 
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || "Update failed");
+            if (verifyError) throw new Error("Invalid or expired 6-digit code.");
 
+            // 2. If the code is right, Supabase temporarily logs them in. Now update the password!
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: password
+            });
+
+            if (updateError) throw new Error("Failed to secure account. Try again.");
+
+            // 3. Success! Send them to login.
             toast.success("Security key updated successfully!");
             setTimeout(() => router.push("/login"), 2000);
 
@@ -68,8 +76,7 @@ function ResetPasswordForm() {
                     />
                     <input
                         type="text"
-                        placeholder="6-Digit Code"
-                        maxLength={6}
+                        placeholder="security Code"
                         className="w-full p-3 border border-gray-300 rounded-lg font-mono text-center text-xl tracking-widest outline-none focus:ring-2 focus:ring-[#11222E]"
                         value={token}
                         onChange={(e) => setToken(e.target.value)}
@@ -101,7 +108,6 @@ function ResetPasswordForm() {
     );
 }
 
-// 2. The main default export wraps the inner component in a Suspense boundary
 export default function ResetPasswordPage() {
     return (
         <Suspense fallback={<LoadingState variant="full" message="Loading..." />}>
