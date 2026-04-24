@@ -275,7 +275,7 @@ export default function EditSermonPage() {
                                                 <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
                                                     <span className="text-xs font-bold font-sans">✓ Image Uploaded</span>
                                                     <div className='flex gap-4 items-center'>
-                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline whitespace-nowrap">Change Image</button>
+                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600 whitespace-nowrap">Change Image</button>
                                                         <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] font-bold underline text-red-600 whitespace-nowrap">Remove</button>
                                                     </div>
                                                 </div>
