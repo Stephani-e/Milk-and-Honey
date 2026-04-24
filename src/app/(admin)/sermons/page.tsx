@@ -7,7 +7,7 @@ import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import LoadingState from "@/components/Admin/LoadingPage";
-import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox,} from "lucide-react";
+import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox, } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -15,7 +15,7 @@ export default function SermonsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const initialTab = searchParams.get("tab");
-    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(initialTab === "active" ? "active" : "draft");
+    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(initialTab === "draft" ? "draft" : "active");
 
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -101,8 +101,7 @@ export default function SermonsPage() {
 
         let dataQuery = supabase
             .from("sermons")
-            .select("*")
-            .range(from, to);
+            .select("*");
 
         if (view === "trash") {
             dataQuery = dataQuery.not("deleted_at", "is", null);
@@ -120,9 +119,15 @@ export default function SermonsPage() {
         }
 
         // Apply Sorting
-        if (sortBy === "latest") dataQuery = dataQuery.order("service_date", { ascending: false });
-        else if (sortBy === "oldest") dataQuery = dataQuery.order("service_date", { ascending: true });
-        else if (sortBy === "alphabetical") dataQuery = dataQuery.order("title", { ascending: true });
+        if (sortBy === "latest") {
+            dataQuery = dataQuery.order("service_date", {ascending: false})
+        } else if (sortBy === "oldest") {
+            dataQuery = dataQuery.order("service_date", {ascending: true})
+        } else if (sortBy === "alphabetical") {
+            dataQuery = dataQuery.order("title", {ascending: true})
+        }
+
+        dataQuery = dataQuery.range(from, to);
 
         const { data, error } = await dataQuery;
 
@@ -487,7 +492,14 @@ export default function SermonsPage() {
                                 <p className="text-[10px] text-purple-600 font-bold uppercase tracking-wider mb-4">Host: {s.host}</p>
                             )}
 
-                            <div className="flex justify-between items-center pt-4 border-t border-gray-50">
+                            <div className="flex flex-wrap gap-4 justify-between items-center pt-4 border-t border-gray-50">
+                                {view === "trash" && (
+                                    <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-md font-bold text-[8px] border border-amber-100">
+                                        <Clock size={10} />
+                                        <span>{getDaysLeft(s.deleted_at)}D LEFT</span>
+                                    </div>
+                                )}
+
                                 <div className="flex gap-4">
                                     {s.youtube_url && <a href={s.youtube_url} target="_blank" className="text-red-600"><MediaIcon type="youtube" /></a>}
                                     {s.banner_url && <a href={s.banner_url} target="_blank" className="text-emerald-600"><MediaIcon type="banner" /></a>}
@@ -505,6 +517,12 @@ export default function SermonsPage() {
                             </div>
                         </div>
                     ))}
+
+                    {sermons.length === 0 && !loading && (
+                        <div className='p-12 text-center text-brand-primary font-bold italic bg-white rounded-2xl border border-brand-accent shadow-sm'>
+                            {getEmptyStateMessage()}
+                        </div>
+                    )}
                 </div>
 
                 {/* --- PAGINATION CONTROLS --- */}
@@ -607,18 +625,18 @@ export default function SermonsPage() {
 
             {/* Back To Top Button */}
             <div
-                className={`fixed bottom-6 right-6 flex flex-col items-center gap-1.5 z-50 transition-all duration-300 ${
+                className={`fixed bottom-6 right-6 md:bottom-8 md:right-8 flex flex-col items-center gap-2 z-50 transition-all duration-300 ${
                     showBackToTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
                 }`}
             >
                 <button
                     onClick={scrollToTop}
-                    className="p-3 bg-brand-primary text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform"
+                    className="p-3 md:p-4 bg-brand-primary text-white rounded-full shadow-xl shadow-brand-primary/30 hover:scale-110 active:scale-95 transition-all"
                     aria-label="Back to top"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="16" height="16"
+                        className="w-5 h-5 md:w-6 md:h-6"
                         viewBox="0 0 20 20"
                         fill="none"
                         stroke="currentColor"
@@ -626,11 +644,13 @@ export default function SermonsPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                     >
-                        <path d="m18 15-6-6-6 6"/>
+                        <path d="m18 15-6-6-6 6" />
                     </svg>
                 </button>
-                <span className="text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm border border-brand-accent">
-                        Back to Top
+
+                {/* Hidden on mobile to save space, visible on desktop */}
+                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">
+                    Back to Top
                 </span>
             </div>
 

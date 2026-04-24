@@ -267,24 +267,24 @@ export default function EditSermonPage() {
                                         onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
                                     />
 
-                                    <div className="flex flex-col gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                                         {/* Banner Upload */}
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-bold uppercase text-blue-950">Sermon Banner</label>
+                                            <label className="text-[10px] font-bold uppercase text-blue-950 block">Sermon Banner</label>
                                             {bannerUploaded ? (
-                                                /* This is your "Actual Banner" success state */
-                                                <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in">
+                                                <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
                                                     <span className="text-xs font-bold font-sans">✓ Image Uploaded</span>
-                                                    <div className='flex gap-4'>
-                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline">Change Image</button>
-                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] font-bold underline text-red-600">Remove</button>
+                                                    <div className='flex gap-4 items-center'>
+                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline whitespace-nowrap">Change Image</button>
+                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] font-bold underline text-red-600 whitespace-nowrap">Remove</button>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <UploadButton
                                                     endpoint="imageUploader"
                                                     appearance={{
-                                                        button: "bg-brand-primary text-white p-4 rounded-xl after:bg-brand-secondary",
+                                                        // Added w-full to ensure the button fills its responsive container
+                                                        button: "w-full bg-brand-primary text-white text-[5px] p-4 rounded-xl after:bg-brand-secondary",
                                                         allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                     }}
                                                     content={{
@@ -301,35 +301,34 @@ export default function EditSermonPage() {
                                                         toast.error(`Upload Failed: ${error.message}`)
                                                     }}
                                                 />
-                                            )
-                                            }
+                                            )}
                                         </div>
 
                                         {/* Video Clip Upload */}
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-bold uppercase text-blue-950">Video Clip</label>
+                                            <label className="text-[10px] font-bold uppercase text-blue-950 block">Video Clip</label>
 
                                             {clipUploaded ? (
-                                                <div
-                                                    className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-xl flex items-center justify-between animate-in fade-in"
-                                                >
+                                                <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
                                                     <span className="text-xs font-bold font-sans">✓ Video Clip Attached</span>
-                                                    <button type="button"
-                                                            onClick={() => triggerMediaAction('clip', 'change')}
-                                                            className="text-[10px] font-bold text-blue-600 hover:underline">Change Video
-                                                    </button>
-                                                    <button
-                                                        onClick={() => triggerMediaAction('clip', 'delete')}
-                                                        className="text-[10px] font-bold text-red-500 hover:underline"
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                    <div className="flex gap-4 items-center">
+                                                        <button type="button"
+                                                                onClick={() => triggerMediaAction('clip', 'change')}
+                                                                className="text-[10px] font-bold text-blue-600 hover:underline whitespace-nowrap">Change Video
+                                                        </button>
+                                                        <button
+                                                            onClick={() => triggerMediaAction('clip', 'delete')}
+                                                            className="text-[10px] font-bold text-red-500 hover:underline whitespace-nowrap"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <UploadButton
                                                     endpoint="videoUploader"
                                                     appearance={{
-                                                        button: "bg-brand-primary text-white p-4 rounded-xl after:bg-brand-secondary",
+                                                        button: "w-full bg-brand-primary text-white p-4 rounded-xl after:bg-brand-secondary",
                                                         allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                     }}
                                                     onClientUploadComplete={(res) => {
@@ -340,10 +339,8 @@ export default function EditSermonPage() {
                                                         toast.error(`Upload Failed: ${error.message}`)
                                                     }}
                                                 />
-                                            )
-                                            }
+                                            )}
                                         </div>
-
                                     </div>
                                 </div>
 
