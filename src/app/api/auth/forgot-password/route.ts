@@ -17,8 +17,6 @@ export async function POST(request: Request) {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 15 * 60000).toISOString();
 
-        console.log(otpCode)
-
         // 2. Save the code to the user's profile
         const { error: dbError } = await supabaseAdmin
             .from('profiles')
