@@ -99,7 +99,7 @@ export default function LoginPage() {
             if (response.ok) {
                 toast.success("Security code sent to your email!");
                 // Redirect with the email pre-filled in the URL
-                router.push(`/api/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
+                router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
             } else {
                 toast.error(result.error || "Failed to send reset code.");
             }
