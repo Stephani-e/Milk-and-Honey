@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import LoadingState from "@/components/Admin/LoadingPage";
 
-export default function ResetPasswordPage() {
+// 1. We move the main logic into an inner component
+function ResetPasswordForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -97,5 +98,14 @@ export default function ResetPasswordPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+// 2. The main default export wraps the inner component in a Suspense boundary
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<LoadingState variant="full" message="Loading..." />}>
+            <ResetPasswordForm />
+        </Suspense>
     );
 }
