@@ -6,6 +6,7 @@ import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
+import {Film} from "lucide-react";
 
 export default function NewSermonPage() {
     const router = useRouter();
@@ -345,13 +346,17 @@ export default function NewSermonPage() {
                                             {/* Banner Upload */}
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-bold uppercase text-blue-950">Sermon Banner</label>
-                                                {bannerUploaded ? (
-                                                    /* This is your "Actual Banner" success state */
-                                                    <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-                                                        <span className="text-xs font-bold font-sans">✓ Image Uploaded Successfully</span>
-                                                        <div className='flex gap-4'>
-                                                            <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600 whitespace-nowrap">Change</button>
-                                                            <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] font-bold underline text-red-600 whitespace-nowrap">Remove</button>
+                                                {bannerUploaded && formData.banner_url ? (
+                                                    <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
+                                                        <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative">
+                                                            <img src={formData.banner_url} alt="Sermon Banner" className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <div className='flex justify-between items-center px-1'>
+                                                            <span className="text-[9px] font-bold text-green-600 uppercase">Image Uploaded Successfully</span>
+                                                            <div className="flex gap-3">
+                                                                <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
+                                                                <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -359,7 +364,7 @@ export default function NewSermonPage() {
                                                         endpoint="imageUploader"
                                                         appearance={{
                                                             // Added w-full to ensure the button fills its responsive container
-                                                            button: "w-full bg-brand-primary text-white text-[7px] p-4 rounded-xl after:bg-brand-secondary",
+                                                            button: "w-full bg-brand-primary text-white text-[7px] md:text-[15px] p-4 rounded-xl after:bg-brand-secondary",
                                                             allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                         }}
                                                         content={{
@@ -385,27 +390,43 @@ export default function NewSermonPage() {
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-bold uppercase text-blue-950">Video Clip</label>
 
-                                                {clipUploaded ? (
-                                                    <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-                                                        <span className="text-xs font-bold font-sans">✓ Video Ready for Publishing</span>
-                                                        <button
-                                                            onClick={() => triggerMediaAction('clip', 'change')}
-                                                            className="text-[10px] hover:underline font-bold text-blue-600 whitespace-nowrap"
-                                                        >
-                                                            Change
-                                                        </button>
-                                                        <button
-                                                            onClick={() => triggerMediaAction('clip', 'delete')}
-                                                            className="text-[10px] font-bold text-red-500 hover:underline whitespace-nowrap"
-                                                        >
-                                                            Delete
-                                                        </button>
+                                                {clipUploaded && formData.clip_url ? (
+                                                    <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
+                                                        <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative group/video cursor-pointer">
+                                                            <video
+                                                                src={formData.clip_url}
+                                                                className="w-full h-full object-cover"
+                                                                muted
+                                                                playsInline
+                                                                preload="metadata"
+                                                                onMouseOver={(e) => {
+                                                                    const playPromise = e.currentTarget.play();
+                                                                    if (playPromise !== undefined) {
+                                                                        playPromise.catch(error => console.log("Auto-play prevented:", error));
+                                                                    }
+                                                                }}
+                                                                onMouseOut={(e) => {
+                                                                    e.currentTarget.pause();
+                                                                    e.currentTarget.currentTime = 0;
+                                                                }}
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
+                                                                <div className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm"><Film size={16} /></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className='flex justify-between items-center px-1'>
+                                                            <span className="text-[9px] font-bold text-green-600 uppercase">Video Uploaded Successfully</span>
+                                                            <div className="flex gap-3">
+                                                                <button type="button" onClick={() => triggerMediaAction('clip', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
+                                                                <button type="button" onClick={() => triggerMediaAction('clip', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <UploadButton
                                                         endpoint="videoUploader"
                                                         appearance={{
-                                                            button: "w-full bg-brand-primary text-white text-[7px] p-4 rounded-xl after:bg-brand-secondary",
+                                                            button: "w-full bg-brand-primary text-white text-[7px] md:text-[15px] p-4 rounded-xl after:bg-brand-secondary",
                                                             allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                         }}
                                                         onClientUploadComplete={(res) => {

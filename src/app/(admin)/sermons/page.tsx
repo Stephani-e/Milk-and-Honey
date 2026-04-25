@@ -721,20 +721,17 @@ function ActionButtons({
             <div className="flex items-center gap-6 justify-end">
                 <button
                     onClick={() => handleViewLive(sermon.id)}
-                    className="flex flex-col items-center gap-1 group"
+                    className="flex flex-col items-center gap-1 text-brand-secondary hover:text-brand-primary"
                     title="View on Website"
                 >
-                    <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-brand-primary/10 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-secondary group-hover:text-brand-primary transition-colors">
-                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                            <circle cx="12" cy="12" r="3" />
-                        </svg>
-                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
                     <span className="text-[8px] font-bold uppercase text-brand-secondary group-hover:text-brand-primary">Pre-View</span>
                 </button>
                 <button
                     onClick={() => onQuickPublish(sermon)}
-                    className="flex flex-col items-center gap-1 group bg-brand-primary/5 p-2 rounded-xl border border-brand-primary/10 hover:bg-brand-primary/10 transition-colors"
+                    className="flex flex-col items-center gap-1 group hover:bg-brand-primary/10 transition-colors"
                 >
                     <Inbox size={18} className="text-brand-primary" />
                     <span className="text-[8px] font-bold uppercase text-brand-primary">Publish</span>
@@ -755,15 +752,12 @@ function ActionButtons({
         <div className="flex items-center gap-4 justify-end">
             <button
                 onClick={() => handleViewLive(sermon.id)}
-                className="flex flex-col items-center gap-1 group"
-                title="View on Website"
+                className=" flex flex-col items-center gap-1 text-brand-secondary hover:text-brand-primary"
+                title="Pre-View on Website"
             >
-                <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-brand-primary/10 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-secondary group-hover:text-brand-primary transition-colors">
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                        <circle cx="12" cy="12" r="3" />
-                    </svg>
-                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
                 <span className="text-[8px] font-bold uppercase text-brand-secondary group-hover:text-brand-primary">View</span>
             </button>
             <button onClick={() => onArchive(sermon)} className="flex flex-col items-center gap-1 group">

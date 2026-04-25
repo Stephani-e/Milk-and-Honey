@@ -252,6 +252,12 @@ export default function NewGalleryPage() {
                                     appearance={{
                                         button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-[7px] md:text-[15px] font-bold after:bg-brand-secondary"
                                     }}
+                                    content={{
+                                        button({ ready }) {
+                                            if (ready) return "Select Media";
+                                            return "Loading...";
+                                        },
+                                    }}
                                     onClientUploadComplete={(res) => {
                                         const newItems: MediaItem[] = res.map(file => {
                                             // Look at the original file name to determine if it's a video
@@ -268,9 +274,12 @@ export default function NewGalleryPage() {
                                                 caption: ""
                                             };
                                         });
-
                                         setMediaItems(prev => [...prev, ...newItems]);
                                         toast.success("Files uploaded!");
+                                    }}
+                                    onUploadError={(error) => {
+                                        console.error("Upload error:", error);
+                                        toast.error("Upload failed. Please try again.");
                                     }}
                                 />
                             </div>
