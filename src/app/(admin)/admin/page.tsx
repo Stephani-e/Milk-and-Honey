@@ -14,7 +14,7 @@ export default function AdminDashboard() {
     }, []);
 
     const goToSermon = () => router.push("/sermons");
-    const goToMedia = () => router.push("/media");
+    const goToMedia = () => router.push("/gallery");
     const goToEvents = () => router.push("/events");
     const goToDepartments = () => router.push("/departments")
     const goToLifeStages = () => router.push("/life-stages")
@@ -63,13 +63,13 @@ export default function AdminDashboard() {
                                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-orange-900 mb-2">Media Gallery</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Update the church photo gallery with images from latest events.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Update the church media gallery with images & videos from latest events.</p>
                         </div>
                         <button
                             onClick={goToMedia}
                             className="w-full bg-orange-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                         >
-                            Manage Photos
+                            Manage Media
                         </button>
                     </div>
 

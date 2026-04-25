@@ -319,10 +319,10 @@ export default function SermonsPage() {
                     </div>
 
                     <p className="text-[11px] md:text-sm text-gray-500 italic md:text-right leading-relaxed max-w-[250px] md:max-w-none">
-                        {view === "active" && "Manage your public sermon records."}
-                        {view === "archive" && "Archived sermons are hidden from the public site."}
-                        {view === "trash" && "Permanently deleted after 30 days."}
-                        {view === 'draft' && "Unfinished Sermons are saved here."}
+                        {view === "active" && "Manage Your Public Sermon Records."}
+                        {view === "archive" && "Archived Sermons are Hidden From The Public Site."}
+                        {view === "trash" && "Permanently Deleted After 30 Days."}
+                        {view === 'draft' && "Unfinished Sermons are Saved Here."}
                     </p>
                </div>
 
