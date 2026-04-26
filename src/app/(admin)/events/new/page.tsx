@@ -189,7 +189,7 @@ export default function NewEventPage() {
                             </div>
                         </div>
 
-                        {/* 3. TIME & LOGIC */}
+                        {/* 3.TIME & LOGIC */}
                         <div className="space-y-6 p-6 md:p-8 bg-slate-50 border border-gray-100 rounded-3xl">
                             <h3 className="text-xs font-bold text-brand-primary uppercase tracking-widest flex items-center gap-2"><Calendar size={16}/> 3. Scheduling Rules</h3>
 
