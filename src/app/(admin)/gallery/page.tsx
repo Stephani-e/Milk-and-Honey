@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { useAuth } from "@/components/Admin/Admin Guard";
 import { useRouter, useSearchParams } from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
 import { toast } from "sonner";
@@ -12,6 +13,8 @@ const PAGE_SIZE = 10;
 
 export default function GalleryPage() {
     const router = useRouter();
+    const { role } = useAuth();
+
     const searchParams = useSearchParams();
     const initialTab = searchParams.get("tab");
 
@@ -167,9 +170,11 @@ export default function GalleryPage() {
                             <button onClick={() => setView("draft")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "draft" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-blue-700"}`}>
                                 Drafts
                             </button>
-                            <button onClick={() => setView("trash")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}>
-                                Trash <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[8px]">30 Days</span>
-                            </button>
+                            {role !== 'viewer' && (
+                                <button onClick={() => setView("trash")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}>
+                                    Trash <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[8px]">30 Days</span>
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -184,7 +189,7 @@ export default function GalleryPage() {
                 {/* H1 and New Button */}
                 <div className="flex flex-row justify-between items-center mb-8 md:mb-10 gap-4">
                     <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">Media Gallery</h1>
-                    {(view === 'active' || view === 'draft') && (
+                    {(view === 'active' || view === 'draft') && role !== 'viewer' && (
                         <button onClick={() => router.push("/gallery/new")} className="w-auto bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl md:rounded-lg text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap">
                             + New Gallery
                         </button>
@@ -280,123 +285,92 @@ export default function GalleryPage() {
                                     <div className="flex gap-3 items-center">
                                         {view === "trash" && (
                                             <>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("restore"); }}
-                                                    title="Restore"
-                                                    className="text-emerald-600 group flex flex-col items-center gap-1"
-                                                >
-                                                    <RotateCcw size={14} className="transition-transform group-hover:rotate-[-45deg]" />
-                                                    <span className="text-[7px] font-bold uppercase text-emerald-300">Restore</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("delete"); }}
-                                                    title="Purge"
-                                                    className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1"
-                                                >
-                                                    <Trash2 size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                </button>
+                                                {role !== 'viewer' && (
+                                                    <button onClick={() => { setSelectedEntry(entry); setModalType("restore"); }} title="Restore" className="text-emerald-600 group flex flex-col items-center gap-1">
+                                                        <RotateCcw size={14} className="transition-transform group-hover:rotate-[-45deg]" />
+                                                        <span className="text-[7px] font-bold uppercase text-emerald-300">Restore</span>
+                                                    </button>
+                                                )}
+
+                                                {/* RBAC: Only Super Admin can Purge */}
+                                                {role === 'super-admin' && (
+                                                    <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Purge" className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1">
+                                                        <Trash2 size={14} />
+                                                        <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
+                                                    </button>
+                                                )}
                                             </>
                                         )}
 
                                         {view === "archive" && (
                                             <>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("restore"); }}
-                                                    title="Restore"
-                                                    className="text-emerald-600 flex flex-col items-center gap-1"
-                                                >
-                                                    <RotateCcw size={14}/>
-                                                    <span className="text-[7px] font-bold uppercase text-emerald-300">Restore</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("delete"); }}
-                                                    title="Trash"
-                                                    className="text-red-400 flex flex-col items-center gap-1"
-                                                >
-                                                    <Trash2 size={14}/>
-                                                    <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                </button>
+                                                {/* RBAC: Editors and Super Admins only */}
+                                                {role !== 'viewer' && (
+                                                    <>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("restore"); }} title="Restore" className="text-emerald-600 flex flex-col items-center gap-1">
+                                                            <RotateCcw size={14}/>
+                                                            <span className="text-[7px] font-bold uppercase text-emerald-300">Restore</span>
+                                                        </button>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-400 flex flex-col items-center gap-1">
+                                                            <Trash2 size={14}/>
+                                                            <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
+                                                        </button>
+                                                    </>
+                                                )}
                                             </>
                                         )}
 
                                         {view === "draft" && (
                                             <>
-                                                <button
-                                                    onClick={() => handleViewLive(entry.id)}
-                                                    title="Preview"
-                                                    className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                                        <circle cx="12" cy="12" r="3" />
-                                                    </svg>
+                                                <button onClick={() => handleViewLive(entry.id)} title="Preview" className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                                                     <span className="text-[7px] font-bold uppercase text-brand-primary">Pre-View</span>
                                                 </button>
-                                                <button
-                                                    onClick={() => handleQuickPublish(entry)}
-                                                    title="Publish"
-                                                    className="text-brand-primary flex flex-col items-center gap-1"
-                                                >
-                                                    <Inbox size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-brand-primary">Publish</span>
-                                                </button>
-                                                <Link
-                                                    href={`/gallery/edit/${entry.id}`}
-                                                    title="Edit"
-                                                    className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1"
-                                                >
-                                                    <FileText size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-slate-400">Edit</span>
-                                                </Link>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("delete"); }}
-                                                    title="Trash"
-                                                    className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1"
-                                                >
-                                                    <Trash2 size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                </button>
+
+                                                {/* RBAC: Editors and Super Admins only */}
+                                                {role !== 'viewer' && (
+                                                    <>
+                                                        <button onClick={() => handleQuickPublish(entry)} title="Publish" className="text-brand-primary flex flex-col items-center gap-1">
+                                                            <Inbox size={14} />
+                                                            <span className="text-[7px] font-bold uppercase text-brand-primary">Publish</span>
+                                                        </button>
+                                                        <Link href={`/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1">
+                                                            <FileText size={14} />
+                                                            <span className="text-[7px] font-bold uppercase text-slate-400">Edit</span>
+                                                        </Link>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
+                                                            <Trash2 size={14} />
+                                                            <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
+                                                        </button>
+                                                    </>
+                                                )}
                                             </>
                                         )}
 
                                         {view === "active" && (
                                             <>
-                                                <button
-                                                    onClick={() => handleViewLive(entry.id)}
-                                                    title="View Live"
-                                                    className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                                        <circle cx="12" cy="12" r="3" />
-                                                    </svg>
+                                                <button onClick={() => handleViewLive(entry.id)} title="View Live" className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                                                     <span className="text-[7px] font-bold uppercase text-brand-primary">View</span>
                                                 </button>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("archive"); }}
-                                                    title="Archive"
-                                                    className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1"
-                                                >
-                                                    <Archive size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-brand-primary">Archive</span>
-                                                </button>
-                                                <Link
-                                                    href={`/gallery/edit/${entry.id}`}
-                                                    title="Edit"
-                                                    className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1"
-                                                >
-                                                    <FileText size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
-                                                </Link>
-                                                <button
-                                                    onClick={() => { setSelectedEntry(entry); setModalType("delete"); }}
-                                                    title="Trash"
-                                                    className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1"
-                                                >
-                                                    <Trash2 size={14} />
-                                                    <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                </button>
+
+                                                {/* RBAC: Editors and Super Admins only */}
+                                                {role !== 'viewer' && (
+                                                    <>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("archive"); }} title="Archive" className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1">
+                                                            <Archive size={14} />
+                                                            <span className="text-[7px] font-bold uppercase text-brand-primary">Archive</span>
+                                                        </button>
+                                                        <Link href={`/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1">
+                                                            <FileText size={14} />
+                                                            <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
+                                                        </Link>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
+                                                            <Trash2 size={14} />
+                                                            <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
+                                                        </button>
+                                                    </>
+                                                )}
                                             </>
                                         )}
                                     </div>

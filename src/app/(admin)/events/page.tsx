@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/Admin/Admin Guard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import { Calendar, Trash2, Edit3, Clock, Plus, RefreshCw, Star, Layers, AlertCir
 
 export default function EventsDashboardPage() {
     const router = useRouter();
+    const { role } = useAuth();
 
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -172,19 +174,25 @@ export default function EventsDashboardPage() {
                             {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
 
-                        <div className="flex items-center gap-3">
-                            {viewTrash ? (
-                                <>
-                                    <button onClick={() => { setSelectedEvent(event); setModalType("restore"); }} title="Restore" className="text-emerald-600 hover:scale-110 transition-transform"><RefreshCw size={14}/></button>
-                                    <button onClick={() => { setSelectedEvent(event); setModalType("delete"); }} title="Purge" className="text-red-400 hover:text-red-600 transition-colors"><Trash2 size={14}/></button>
-                                </>
-                            ) : (
-                                <>
-                                    <button onClick={() => router.push(`/events/edit/${event.id}`)} title="Edit" className="text-brand-secondary hover:text-brand-primary transition-colors"><Edit3 size={14}/></button>
-                                    <button onClick={() => { setSelectedEvent(event); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-500 transition-colors"><Trash2 size={14}/></button>
-                                </>
-                            )}
-                        </div>
+                        {role !== 'viewer' && (
+                            <div className="flex items-center gap-3">
+                                {viewTrash ? (
+                                    <>
+                                        <button onClick={() => { setSelectedEvent(event); setModalType("restore"); }} title="Restore" className="text-emerald-600 hover:scale-110 transition-transform"><RefreshCw size={14}/></button>
+
+                                        {/* RBAC: ONLY Super Admins can purge */}
+                                        {role === 'super-admin' && (
+                                            <button onClick={() => { setSelectedEvent(event); setModalType("delete"); }} title="Purge" className="text-red-400 hover:text-red-600 transition-colors"><Trash2 size={14}/></button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <button onClick={() => router.push(`/events/edit/${event.id}`)} title="Edit" className="text-brand-secondary hover:text-brand-primary transition-colors"><Edit3 size={14}/></button>
+                                        <button onClick={() => { setSelectedEvent(event); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-500 transition-colors"><Trash2 size={14}/></button>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -202,24 +210,28 @@ export default function EventsDashboardPage() {
                         <span className="text-lg leading-none">←</span> Back to Dashboard
                     </Link>
 
-                    <button
-                        onClick={() => setViewTrash(!viewTrash)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${viewTrash ? 'bg-brand-primary text-white' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
-                    >
-                        <Trash2 size={14} /> {viewTrash ? "Exit Trash" : "View Trash"}
-                    </button>
+                    {role !== 'viewer' && (
+                        <button
+                            onClick={() => setViewTrash(!viewTrash)}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${viewTrash ? 'bg-brand-primary text-white' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                        >
+                            <Trash2 size={14} /> {viewTrash ? "Exit Trash" : "View Trash"}
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex flex-row justify-between items-center mb-6 md:mb-8 gap-4">
                     <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">
                         {viewTrash ? "Deleted Events" : "Church Schedule"}
                     </h1>
-                    <button
-                        onClick={() => router.push("/events/new")}
-                        className="flex items-center gap-2 bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap"
-                    >
-                        <Plus size={16} /> New Event
-                    </button>
+                    {role !== 'viewer' && !viewTrash && (
+                        <button
+                            onClick={() => router.push("/events/new")}
+                            className="flex items-center gap-2 bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap"
+                        >
+                            <Plus size={16} /> New Event
+                        </button>
+                    )}
                 </div>
 
                 {!viewTrash && (
@@ -241,7 +253,8 @@ export default function EventsDashboardPage() {
                                 <input
                                     value={themeData.theme}
                                     onChange={(e) => setThemeData({...themeData, theme: e.target.value})}
-                                    className="w-full p-3 border rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                                    disabled={role === 'viewer'}
+                                    className={`w-full p-3 border rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none ${role === 'viewer' ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-brand-primary'}`}
                                 />
                             </div>
                             <div>
@@ -249,7 +262,8 @@ export default function EventsDashboardPage() {
                                 <input
                                     value={themeData.scripture}
                                     onChange={(e) => setThemeData({...themeData, scripture: e.target.value})}
-                                    className="w-full p-3 border rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none"
+                                    disabled={role === 'viewer'}
+                                    className={`w-full p-3 border rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none ${role === 'viewer' ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-brand-primary'}`}
                                 />
                             </div>
                         </div>

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/Admin/Admin Guard";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
@@ -13,6 +14,8 @@ const PAGE_SIZE = 10;
 
 export default function SermonsPage() {
     const router = useRouter();
+    const { role } = useAuth();
+
     const searchParams = useSearchParams();
     const initialTab = searchParams.get("tab");
     const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(initialTab === "draft" ? "draft" : "active");
@@ -331,7 +334,7 @@ export default function SermonsPage() {
                         Sermon Library
                     </h1>
 
-                    {view === 'active' && (
+                    {view === 'active' && role !== 'viewer' && (
                         <button
                             onClick={() => router.push("/sermons/new")}
                             className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
@@ -339,7 +342,7 @@ export default function SermonsPage() {
                         </button>
                     )}
 
-                    {view === 'draft' && (
+                    {view === 'draft' && role !== 'viewer' && (
                         <button
                             onClick={() => router.push("/sermons/new")}
                             className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
@@ -456,6 +459,7 @@ export default function SermonsPage() {
                                         onRestore={triggerRestore}
                                         onQuickPublish={handleQuickPublish}
                                         view={view}
+                                        role={role}
                                     />
                                 </td>
                             </tr>
@@ -513,6 +517,7 @@ export default function SermonsPage() {
                                     onRestore={triggerRestore}
                                     onQuickPublish={handleQuickPublish}
                                     view={view}
+                                    role={role}
                                 />
                             </div>
                         </div>
@@ -672,14 +677,16 @@ function ActionButtons({
                            onDelete,
                            onRestore,
                            onQuickPublish,
-                           view
+                           view,
+                           role
 }: {
     sermon: any,
     onArchive: any,
     onDelete: any,
     onRestore: any,
     onQuickPublish: (sermon: any) => void ,
-    view: 'active' | 'trash' | 'archive' | 'draft'
+    view: 'active' | 'trash' | 'archive' | 'draft',
+    role: string
 }) {
 
     // Function to handle the "View Live" click
@@ -693,14 +700,19 @@ function ActionButtons({
     if (view === "trash") {
         return (
             <div className="flex items-center gap-6 justify-end">
-                <button onClick={() => onRestore(sermon)} className="flex flex-col items-center gap-1 group">
-                    <RotateCcw size={18} className="text-emerald-600 transition-transform group-hover:rotate-[-45deg]" />
-                    <span className="text-[8px] font-bold uppercase text-emerald-600">Restore</span>
-                </button>
-                <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1 group">
-                    <Trash2 size={18} className="text-red-400 group-hover:text-red-600" />
-                    <span className="text-[8px] font-bold uppercase text-red-400">Purge</span>
-                </button>
+                {role !== 'viewer' && (
+                    <button onClick={() => onRestore(sermon)} className="flex flex-col items-center gap-1 group">
+                        <RotateCcw size={18} className="text-emerald-600 transition-transform group-hover:rotate-[-45deg]" />
+                        <span className="text-[8px] font-bold uppercase text-emerald-600">Restore</span>
+                    </button>
+                )}
+                {/* ONLY SUPER ADMINS CAN PURGE */}
+                {role === 'super-admin' && (
+                    <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1 group">
+                        <Trash2 size={18} className="text-red-400 group-hover:text-red-600" />
+                        <span className="text-[8px] font-bold uppercase text-red-400">Purge</span>
+                    </button>
+                )}
             </div>
         );
     }
@@ -709,8 +721,12 @@ function ActionButtons({
     if (view === "archive") {
         return (
             <div className="flex items-center gap-4 justify-end">
-                <button onClick={() => onRestore(sermon)} className="text-emerald-600 flex flex-col items-center gap-1"><RotateCcw size={18}/><span className="text-[8px] font-bold uppercase">Restore</span></button>
-                <button onClick={() => onDelete(sermon)} className="text-red-400 flex flex-col items-center gap-1"><Trash2 size={18}/><span className="text-[8px] font-bold uppercase">Trash</span></button>
+                {role !== 'viewer' && (
+                    <>
+                        <button onClick={() => onRestore(sermon)} className="text-emerald-600 flex flex-col items-center gap-1"><RotateCcw size={18}/><span className="text-[8px] font-bold uppercase">Restore</span></button>
+                        <button onClick={() => onDelete(sermon)} className="text-red-400 flex flex-col items-center gap-1"><Trash2 size={18}/><span className="text-[8px] font-bold uppercase">Trash</span></button>
+                    </>
+                )}
             </div>
         );
     }
@@ -729,21 +745,22 @@ function ActionButtons({
                     </svg>
                     <span className="text-[8px] font-bold uppercase text-brand-secondary group-hover:text-brand-primary">Pre-View</span>
                 </button>
-                <button
-                    onClick={() => onQuickPublish(sermon)}
-                    className="flex flex-col items-center gap-1 group hover:bg-brand-primary/10 transition-colors"
-                >
-                    <Inbox size={18} className="text-brand-primary" />
-                    <span className="text-[8px] font-bold uppercase text-brand-primary">Publish</span>
-                </button>
-                <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
-                    <FileText size={18} className="text-slate-400 group-hover:text-brand-primary" />
-                    <span className="text-[8px] font-bold uppercase text-slate-400">Edit</span>
-                </Link>
-                <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1">
-                    <Trash2 size={18} className="text-red-200 hover:text-red-600" />
-                    <span className="text-[8px] font-bold uppercase text-red-300">Trash</span>
-                </button>
+                {role !== 'viewer' && (
+                    <>
+                        <button onClick={() => onQuickPublish(sermon)} className="flex flex-col items-center gap-1 group hover:bg-brand-primary/10 transition-colors">
+                            <Inbox size={18} className="text-brand-primary" />
+                            <span className="text-[8px] font-bold uppercase text-brand-primary">Publish</span>
+                        </button>
+                        <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
+                            <FileText size={18} className="text-slate-400 group-hover:text-brand-primary" />
+                            <span className="text-[8px] font-bold uppercase text-slate-400">Edit</span>
+                        </Link>
+                        <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1">
+                            <Trash2 size={18} className="text-red-200 hover:text-red-600" />
+                            <span className="text-[8px] font-bold uppercase text-red-300">Trash</span>
+                        </button>
+                    </>
+                )}
             </div>
         );
     }
@@ -760,18 +777,22 @@ function ActionButtons({
                 </svg>
                 <span className="text-[8px] font-bold uppercase text-brand-secondary group-hover:text-brand-primary">View</span>
             </button>
-            <button onClick={() => onArchive(sermon)} className="flex flex-col items-center gap-1 group">
-                <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}`} />
-                <span className={`text-[8px] font-bold uppercase ${sermon.is_archived ? "text-green-600" : "text-gray-400"}`}>{sermon.is_archived ? "Restore" : "Arch"}</span>
-            </button>
-            <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
-                <FileText size={18} className="text-brand-primary" />
-                <span className="text-[8px] font-bold uppercase text-brand-primary">Edit</span>
-            </Link>
-            <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1">
-                <Trash2 size={18} className="text-red-200 group-hover:text-red-600" />
-                <span className="text-[8px] font-bold uppercase text-red-300">Del</span>
-            </button>
+            {role !== 'viewer' && (
+                <>
+                    <button onClick={() => onArchive(sermon)} className="flex flex-col items-center gap-1 group">
+                        <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}`} />
+                        <span className={`text-[8px] font-bold uppercase ${sermon.is_archived ? "text-green-600" : "text-gray-400"}`}>{sermon.is_archived ? "Restore" : "Arch"}</span>
+                    </button>
+                    <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
+                        <FileText size={18} className="text-brand-primary" />
+                        <span className="text-[8px] font-bold uppercase text-brand-primary">Edit</span>
+                    </Link>
+                    <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1">
+                        <Trash2 size={18} className="text-red-200 group-hover:text-red-600" />
+                        <span className="text-[8px] font-bold uppercase text-red-300">Del</span>
+                    </button>
+                </>
+            )}
         </div>
     );
 }
