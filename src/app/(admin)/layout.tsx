@@ -1,7 +1,7 @@
 import React from "react";
+import AdminGuard from "@/components/Admin/Admin Guard";
 import Navbar from "./NavBar";
 
-// This protects the entire admin folder from Vercel build crashes
 export const dynamic = 'force-dynamic';
 
 export default function AdminLayout({
@@ -10,11 +10,13 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-brand-surface">
-      <Navbar />
-      <main>
-        {children}
-      </main>
-    </div>
+      <AdminGuard>
+          <div className="min-h-screen bg-brand-surface">
+              <Navbar />
+              <main>
+                  {children}
+              </main>
+          </div>
+      </AdminGuard>
   );
 }

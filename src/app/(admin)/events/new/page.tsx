@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { ArrowLeft, RefreshCw, Star, Layers, Calendar, Clock, Plus, Trash2, ImageIcon } from "lucide-react";
+import {ArrowLeft, RefreshCw, Star, Layers, Calendar, Plus, Trash2, ImageIcon, MapPin} from "lucide-react";
 
 export default function NewEventPage() {
     const router = useRouter();
@@ -21,10 +21,13 @@ export default function NewEventPage() {
     const [location, setLocation] = useState("Main Auditorium");
     const [flyerUrl, setFlyerUrl] = useState("");
 
+    const [locationSelection, setLocationSelection] = useState("Main Auditorium");
+    const [customLocation, setCustomLocation] = useState("");
+
     // Optional Meta
     const [theme, setTheme] = useState("");
     const [topic, setTopic] = useState("");
-    const [guestSpeaker, setGuestSpeaker] = useState("");
+    const [globalGuestSpeaker, setGlobalGuestSpeaker] = useState(""); // Used only for single_day
 
     // Recurring Specific State
     const [recurringPattern, setRecurringPattern] = useState("weekly");
@@ -37,10 +40,10 @@ export default function NewEventPage() {
 
     // Multi-Day Specific State (Dynamic Array)
     const [multiDays, setMultiDays] = useState([
-        { date: "", start_time: "18:00", end_time: "21:00", label: "Day 1" }
+        { date: "", start_time: "18:00", end_time: "21:00", label: "Day 1", guest_speaker: "" }
     ]);
 
-    // --- NEW: DYNAMIC CATEGORY LOGIC ---
+    // DYNAMIC CATEGORY LOGIC
     useEffect(() => {
         if (eventType === "recurring") {
             setCategory("Weekly Service");
@@ -56,10 +59,9 @@ export default function NewEventPage() {
         if (eventType === "multi_day") return ["Multi-Day Conference", "Special Prayer Session", "Other Event"];
         return ["Other Event", "Special Prayer Session"]; // single_day
     };
-    // -----------------------------------
 
     const handleAddMultiDay = () => {
-        setMultiDays([...multiDays, { date: "", start_time: "18:00", end_time: "21:00", label: `Day ${multiDays.length + 1}` }]);
+        setMultiDays([...multiDays, { date: "", start_time: "18:00", end_time: "21:00", label: `Day ${multiDays.length + 1}`, guest_speaker: "" }]);
     };
 
     const handleRemoveMultiDay = (index: number) => {
@@ -70,17 +72,30 @@ export default function NewEventPage() {
         e.preventDefault();
         setLoading(true);
 
+        const finalLocation = locationSelection === "Custom" ? customLocation : locationSelection;
+
         const payload: any = {
-            title, event_type: eventType, category, description, location,
-            flyer_url: flyerUrl, theme, topic, guest_speaker: guestSpeaker
+            title,
+            event_type: eventType,
+            category,
+            description,
+            location: finalLocation,
+            flyer_url: flyerUrl
         };
 
+        // Inject logic based on the type
         if (eventType === "recurring") {
+            // Recurring events do not have global themes/speakers here
             payload.recurrence_rules = { pattern_type: recurringPattern, day: recurringDay, start_time: startTime, end_time: endTime };
         } else if (eventType === "single_day") {
+            payload.theme = theme;
+            payload.topic = topic;
+            payload.guest_speaker = globalGuestSpeaker;
             payload.start_datetime = new Date(`${singleDate}T${startTime}`).toISOString();
             payload.end_datetime = new Date(`${singleDate}T${endTime}`).toISOString();
         } else if (eventType === "multi_day") {
+            payload.theme = theme;
+            // The guest speakers are embedded directly inside the multi_day_schedule JSON array!
             payload.multi_day_schedule = multiDays;
         }
 
@@ -152,13 +167,45 @@ export default function NewEventPage() {
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Category *</label>
-                                    {/* --- NEW: DYNAMIC SELECT MAPPING --- */}
                                     <select required value={category} onChange={e => setCategory(e.target.value)} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none">
                                         {getAvailableCategories().map(cat => (
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+
+                            {/* SMART LOCATION PICKER */}
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-gray-100">
+                                <label className="text-[10px] font-bold text-brand-primary uppercase tracking-widest block mb-3 flex items-center gap-1">
+                                    <MapPin size={12}/> Event Location
+                                </label>
+                                <select
+                                    value={locationSelection}
+                                    onChange={e => setLocationSelection(e.target.value)}
+                                    className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none cursor-pointer"
+                                >
+                                    <option value="Main Auditorium">Main Auditorium (Default)</option>
+                                    {/* Future Parish Sync Options */}
+                                    <option disabled value="Parish A">Parish A (Syncing soon...)</option>
+                                    <option disabled value="Parish B">Parish B (Syncing soon...)</option>
+                                    <option value="Custom">Custom / External Venue</option>
+                                </select>
+
+                                {locationSelection === "Custom" && (
+                                    <input
+                                        required
+                                        placeholder="Enter specific address or venue name..."
+                                        value={customLocation}
+                                        onChange={e => setCustomLocation(e.target.value)}
+                                        className="w-full p-4 mt-3 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none animate-in fade-in slide-in-from-top-2"
+                                    />
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Description</label>
+                                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none" />
                             </div>
                         </div>
 
@@ -227,19 +274,24 @@ export default function NewEventPage() {
                                 </div>
                             )}
 
-                            {/* IF MULTI DAY */}
+                            {/* IF MULTI DAY (NOW INCLUDES GUEST SPEAKER PER DAY) */}
                             {eventType === 'multi_day' && (
                                 <div className="space-y-4 animate-in fade-in">
                                     {multiDays.map((day, index) => (
-                                        <div key={index} className="flex flex-col sm:flex-row gap-4 items-end bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative group">
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Label</label><input value={day.label} onChange={e => {const newDays = [...multiDays]; newDays[index].label = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Date</label><input type="date" required value={day.date} onChange={e => {const newDays = [...multiDays]; newDays[index].date = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Start</label><input type="time" required value={day.start_time} onChange={e => {const newDays = [...multiDays]; newDays[index].start_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">End</label><input type="time" required value={day.end_time} onChange={e => {const newDays = [...multiDays]; newDays[index].end_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
+                                        <div key={index} className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative group">
+                                            <div className="flex flex-col sm:flex-row gap-4 items-end w-full">
+                                                <div className="flex-[0.5] w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Label</label><input value={day.label} onChange={e => {const newDays = [...multiDays]; newDays[index].label = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Date</label><input type="date" required value={day.date} onChange={e => {const newDays = [...multiDays]; newDays[index].date = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Start</label><input type="time" required value={day.start_time} onChange={e => {const newDays = [...multiDays]; newDays[index].start_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">End</label><input type="time" required value={day.end_time} onChange={e => {const newDays = [...multiDays]; newDays[index].end_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg" /></div>
+                                            </div>
+                                            <div className="w-full flex gap-4">
+                                                <div className="flex-1"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Speaker for {day.label} (Optional)</label><input placeholder="e.g. Pastor John Doe" value={day.guest_speaker || ""} onChange={e => {const newDays = [...multiDays]; newDays[index].guest_speaker = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
 
-                                            {multiDays.length > 1 && (
-                                                <button type="button" onClick={() => handleRemoveMultiDay(index)} className="p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
-                                            )}
+                                                {multiDays.length > 1 && (
+                                                    <button type="button" onClick={() => handleRemoveMultiDay(index)} className="p-3 bg-red-50 text-red-500 rounded-lg self-end hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                     <button type="button" onClick={handleAddMultiDay} className="w-full py-4 border-2 border-dashed border-purple-200 text-purple-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
@@ -249,14 +301,17 @@ export default function NewEventPage() {
                             )}
                         </div>
 
-                        {/* 4. OPTIONAL OVERRIDES */}
-                        {(eventType === 'single_day' || eventType === 'multi_day') && (
+                        {/* 4. OPTIONAL OVERRIDES (Hidden for Recurring, Global Theme for Multi-Day, Global Speaker for Single Day) */}
+                        {eventType !== 'recurring' && (
                             <div className="space-y-6 animate-in fade-in">
                                 <h3 className="text-xs font-bold text-purple-600 uppercase tracking-widest">4. Special Overrides (Optional)</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Guest Speaker(s)</label><input value={guestSpeaker} onChange={e => setGuestSpeaker(e.target.value)} placeholder="e.g. Pastor E.A. Adeboye" className="w-full p-4 border rounded-xl" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Theme</label><input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. Let There Be Light" className="w-full p-4 border rounded-xl" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g. Faith to Move Mountains" className="w-full p-4 border rounded-xl" /></div>
+                                    {/* Global Guest Speaker is only for Single Day events */}
+                                    {eventType === 'single_day' && (
+                                        <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Guest Speaker(s)</label><input value={globalGuestSpeaker} onChange={e => setGlobalGuestSpeaker(e.target.value)} placeholder="e.g. Pastor E.A. Adeboye" className="w-full p-4 border rounded-xl" /></div>
+                                    )}
+                                    <div className={eventType === 'multi_day' ? 'md:col-span-2' : ''}><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Global Theme</label><input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. Let There Be Light" className="w-full p-4 border rounded-xl" /></div>
+                                    <div className={eventType === 'multi_day' ? 'md:col-span-1' : ''}><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g. Faith to Move Mountains" className="w-full p-4 border rounded-xl" /></div>
                                 </div>
                             </div>
                         )}
