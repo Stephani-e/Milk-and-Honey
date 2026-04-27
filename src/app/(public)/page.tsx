@@ -1,6 +1,17 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, Heart, Users, HandHeart, MapPin, Briefcase, Calendar, PlayCircle, Megaphone } from "lucide-react";
+import {
+    ArrowRight,
+    Heart,
+    Users,
+    HandHeart,
+    MapPin,
+    Briefcase,
+    Calendar,
+    PlayCircle,
+    Megaphone,
+    Camera
+} from "lucide-react";
 
 export default function HomePage() {
     return (
@@ -172,7 +183,62 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* 5. JOIN THE WORKFORCE (Departments Funnel) */}
+            {/* 5. COMMUNITY GALLERY & MEMBER UPLOADS */}
+            <section className="py-20 md:py-28 bg-white overflow-hidden">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+                        {/* Left Side: Upload CTA */}
+                        <div className="lg:w-1/3 text-center lg:text-left">
+                            <span className="text-amber-600 font-bold tracking-widest uppercase text-[10px] mb-2 block">Our Moments</span>
+                            <h2 className="text-3xl md:text-4xl font-serif font-black text-brand-primary mb-6">Experience Milk & Honey</h2>
+                            <p className="text-gray-500 text-sm leading-relaxed mb-8">
+                                Relive the powerful moments from our recent services, conferences, and community outreaches.
+                                <br/><br/>
+                                <strong className="text-brand-primary">Were you at a recent event?</strong> Share your own photos and videos to be featured in our community gallery!
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                <Link href="/gallery" className="px-8 py-3.5 bg-brand-primary text-white font-bold rounded-full hover:bg-slate-800 transition-colors shadow-lg">
+                                    View Gallery
+                                </Link>
+                                <Link href="/share" className="px-8 py-3.5 bg-amber-100 text-amber-900 font-bold rounded-full hover:bg-amber-200 transition-colors flex items-center justify-center gap-2">
+                                    <Camera size={18} /> Share Photos
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Right Side: Slideshow / Grid Placeholder */}
+                        <div className="lg:w-2/3 relative w-full mt-8 lg:mt-0">
+                            {/* Decorative blurred background */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full lg:w-[120%] h-full lg:h-[120%] bg-amber-50 rounded-full blur-3xl -z-10" />
+
+                            {/* Staggered Masonry-style Layout Placeholder */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {/* Column 1 */}
+                                <div className="flex flex-col gap-4 translate-y-8">
+                                    <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm"></div>
+                                    <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm"></div>
+                                </div>
+                                {/* Column 2 */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm flex items-center justify-center text-gray-400 font-bold text-[10px] tracking-widest uppercase text-center p-4">
+                                        [Gallery<br/>Slideshow]
+                                    </div>
+                                    <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm"></div>
+                                </div>
+                                {/* Column 3 (Hidden on mobile for a cleaner fit) */}
+                                <div className="hidden md:flex flex-col gap-4 translate-y-12">
+                                    <div className="bg-slate-200 rounded-3xl h-40 w-full shadow-sm"></div>
+                                    <div className="bg-slate-200 rounded-3xl h-72 w-full shadow-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            {/* 6. JOIN THE WORKFORCE (Departments Funnel) */}
             <section className="py-24 bg-brand-primary text-white relative overflow-hidden">
                 <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4">
                     <Briefcase size={400} />
