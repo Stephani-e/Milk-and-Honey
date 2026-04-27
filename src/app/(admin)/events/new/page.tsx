@@ -7,6 +7,8 @@ import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import {ArrowLeft, RefreshCw, Star, Layers, Calendar, Plus, Trash2, ImageIcon, MapPin} from "lucide-react";
 
+const DRAFT_EVENT_STORAGE_KEY = "milk_and_honey_event_draft";
+
 export default function NewEventPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -43,6 +45,34 @@ export default function NewEventPage() {
         { date: "", start_time: "18:00", end_time: "21:00", label: "Day 1", guest_speaker: "" }
     ]);
 
+    useEffect(() => {
+        const savedDraft = localStorage.getItem(DRAFT_EVENT_STORAGE_KEY);
+        if (savedDraft) {
+            try {
+                const parsed = JSON.parse(savedDraft);
+                if (parsed.eventType) setEventType(parsed.eventType);
+                if (parsed.title) setTitle(parsed.title);
+                if (parsed.category) setCategory(parsed.category);
+                if (parsed.description) setDescription(parsed.description);
+                if (parsed.locationSelection) setLocationSelection(parsed.locationSelection);
+                if (parsed.customLocation) setCustomLocation(parsed.customLocation);
+                if (parsed.flyerUrl) setFlyerUrl(parsed.flyerUrl);
+                if (parsed.theme) setTheme(parsed.theme);
+                if (parsed.topic) setTopic(parsed.topic);
+                if (parsed.globalGuestSpeaker) setGlobalGuestSpeaker(parsed.globalGuestSpeaker);
+                if (parsed.recurringPattern) setRecurringPattern(parsed.recurringPattern);
+                if (parsed.recurringDay) setRecurringDay(parsed.recurringDay);
+                if (parsed.startTime) setStartTime(parsed.startTime);
+                if (parsed.endTime) setEndTime(parsed.endTime);
+                if (parsed.singleDate) setSingleDate(parsed.singleDate);
+                if (parsed.multiDays) setMultiDays(parsed.multiDays);
+                toast.info("Draft restored. Pick up where you left off!");
+            } catch (e) {
+                console.error("Failed to parse draft", e);
+            }
+        }
+    }, []);
+
     // DYNAMIC CATEGORY LOGIC
     useEffect(() => {
         if (eventType === "recurring") {
@@ -53,6 +83,18 @@ export default function NewEventPage() {
             setCategory("Other Event");
         }
     }, [eventType]);
+
+    useEffect(() => {
+        const draft = {
+            eventType, title, category, description, locationSelection, customLocation,
+            flyerUrl, theme, topic, globalGuestSpeaker, recurringPattern, recurringDay,
+            startTime, endTime, singleDate, multiDays
+        };
+        // Only save if they have actually started filling out real information
+        if (title.trim().length > 0 || description.trim().length > 0 || flyerUrl) {
+            localStorage.setItem(DRAFT_EVENT_STORAGE_KEY, JSON.stringify(draft));
+        }
+    }, [eventType, title, category, description, locationSelection, customLocation, flyerUrl, theme, topic, globalGuestSpeaker, recurringPattern, recurringDay, startTime, endTime, singleDate, multiDays]);
 
     const getAvailableCategories = () => {
         if (eventType === "recurring") return ["Weekly Service", "Monthly Service", "Special Prayer Session"];
@@ -95,7 +137,6 @@ export default function NewEventPage() {
             payload.end_datetime = new Date(`${singleDate}T${endTime}`).toISOString();
         } else if (eventType === "multi_day") {
             payload.theme = theme;
-            // The guest speakers are embedded directly inside the multi_day_schedule JSON array!
             payload.multi_day_schedule = multiDays;
         }
 
@@ -105,6 +146,7 @@ export default function NewEventPage() {
             toast.error("Error creating event: " + error.message);
             setLoading(false);
         } else {
+            localStorage.removeItem(DRAFT_EVENT_STORAGE_KEY);
             toast.success("Event created successfully!");
             router.push("/events");
             router.refresh();
@@ -116,8 +158,16 @@ export default function NewEventPage() {
             <div className="min-h-screen bg-brand-surface p-6 md:p-12 font-sans flex flex-col items-center justify-center">
                 <div className="max-w-4xl w-full">
                     <Link href="/events" className="text-sm font-bold text-brand-secondary mb-8 block hover:underline">← Back to Dashboard</Link>
-                    <h1 className="text-3xl md:text-4xl font-serif font-bold text-brand-primary text-center mb-4">What kind of event are you creating?</h1>
-                    <p className="text-center text-gray-500 mb-12">Select the scheduling logic for this program.</p>
+                    <div className="flex flex-col items-center">
+                        <h1 className="text-3xl md:text-4xl font-serif font-bold text-brand-primary text-center mb-4">What kind of event are you creating?</h1>
+                        {(title || flyerUrl) && (
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border border-gray-100 mb-4">
+                                Draft Saved In Memory
+                            </span>
+                        )}
+                        <p className="text-center text-gray-500 mb-12">Select the scheduling logic for this program.</p>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <button onClick={() => setEventType("recurring")} className="bg-white p-8 rounded-3xl border-2 border-transparent hover:border-blue-500 shadow-sm hover:shadow-xl transition-all group text-left flex flex-col items-start">
                             <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"><RefreshCw size={28} /></div>
@@ -148,11 +198,18 @@ export default function NewEventPage() {
                 </button>
 
                 <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-brand-accent">
-                    <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100">
-                        {eventType === 'recurring' && <RefreshCw className="text-blue-600" size={24} />}
-                        {eventType === 'single_day' && <Star className="text-amber-600" size={24} />}
-                        {eventType === 'multi_day' && <Layers className="text-purple-600" size={24} />}
-                        <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">Create {eventType === 'recurring' ? 'Recurring' : eventType === 'single_day' ? 'Special' : 'Multi-Day'} Event</h1>
+                    <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+                        <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100">
+                            {eventType === 'recurring' && <RefreshCw className="text-blue-600" size={24} />}
+                            {eventType === 'single_day' && <Star className="text-amber-600" size={24} />}
+                            {eventType === 'multi_day' && <Layers className="text-purple-600" size={24} />}
+                            <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">Create {eventType === 'recurring' ? 'Recurring' : eventType === 'single_day' ? 'Special' : 'Multi-Day'} Event</h1>
+                        </div>
+                        {(title || flyerUrl) && (
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                                Draft Saved
+                            </span>
+                        )}
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-10">

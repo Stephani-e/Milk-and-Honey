@@ -20,6 +20,7 @@ export default function AdminDashboard() {
     const goToLifeStages = () => router.push("/life-stages")
     const goToLeadership = () => router.push("/leadership")
     const goToParishes = () => router.push("/parishes")
+    const goToAds = () => router.push("/ads")
 
     if (initialLoading) {
         return <LoadingState variant="full" message="Opening Control Center..." />;
@@ -128,21 +129,36 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-3">
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-2">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 h-full">
                             <div className="h-16 w-16 bg-mauve-100 text-mauve-900 border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
                                 <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                             </div>
-                            <div className='flex-1'>
-                                <h3 className="text-2xl font-serif font-bold text-mauve-900 mb-2">Parish & Hierarchy Network</h3>
-                                <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">
-                                    Map out the organizational flow of the church. Manage data for **Zonal**, **Area**, and **Parish** levels, including their unique locations and ranking within Lagos Province 56.
+                            <div className='flex-1 flex flex-col justify-center'>
+                                <h3 className="text-xl md:text-2xl font-serif font-bold text-mauve-900 mb-2">Parish & Hierarchy Network</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed">
+                                    Map out the organizational flow of the church. Manage data for Zonal, Area, and Parish levels across the Province.
                                 </p>
                             </div>
-                            <button onClick={goToParishes} className="w-full md:w-auto px-10 bg-mauve-900 text-white font-bold py-3.5 rounded-xl text-sm hhover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            <button onClick={goToParishes} className="w-full md:w-auto px-8 bg-mauve-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer whitespace-nowrap self-end md:self-center">
                                 Explore Network
                             </button>
                         </div>
+                    </div>
+
+                    {/* 2. THE NEW ADVERTISEMENT ENGINE CARD (Takes the 3rd column) */}
+                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div className="h-12 w-12 bg-pink-100 text-pink-900 rounded-xl flex items-center justify-center mb-6">
+                                {/* Megaphone Icon */}
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-pink-900 mb-2">Ad Engine</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Publish banners and videos for internal events or external businesses.</p>
+                        </div>
+                        <button onClick={goToAds} className="w-full bg-pink-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            Manage Ads
+                        </button>
                     </div>
                 </div>
 
