@@ -392,7 +392,7 @@ export default function SermonsPage() {
                                                 </span>
                                         )}
 
-                                        {/* Sub-labels (Day 3, 2nd Service, etc) */}
+                                        {/* Sub-labels (Day 3, 2nd Service, etc.) */}
                                         {s.is_multi_day && <span className="text-[9px] font-bold text-gray-400">({s.day_identifier})</span>}
                                         {s.service_category === "Weekly" && s.weekly_type === "Sunday" && s.service_number && (
                                             <span className="text-[9px] font-bold text-gray-400">• {s.service_number}</span>
@@ -664,7 +664,7 @@ export default function SermonsPage() {
 }
 
 
-// Sub-components to keep the main return clean
+// Subcomponents to keep the main return clean
 function MediaIcon({ type }: { type: 'youtube' | 'banner' | 'video' }) {
     if (type === 'youtube') return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>;
     if (type === 'banner') return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;

@@ -224,7 +224,7 @@ function ResetPasswordForm() {
                                     Verify Code
                                 </button>
 
-                                {/* NEW: Resend Code and Back to Login links grouped together */}
+                                {/* NEW: Resend Code and Back to Log in links grouped together */}
                                 <div className="flex flex-col items-center gap-3 mt-4 text-xs font-medium">
                                     <button
                                         type="button"
