@@ -159,12 +159,24 @@ export default function ProfilesManagement() {
         e.preventDefault();
         setIsUpdatingUser(true);
         try {
+            // 1. Get the current user's session token to prove they are an admin
+            const { data: { session } } = await supabase.auth.getSession();
+
             const response = await fetch('/api/update', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    // 2. Attach the token here so your API route can read it!
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify(editTarget),
             });
-            if (!response.ok) throw new Error("Update failed");
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Update failed");
+            }
+
             toast.success("Identity updated successfully");
             setEditTarget(null);
             await fetchProfiles();
