@@ -30,7 +30,9 @@ export default function AboutPage() {
 
             {/* 1. HERO SECTION */}
             <section className="relative py-20 md:py-32 bg-brand-primary overflow-hidden">
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-brand-primary/90 via-brand-primary/80 to-slate-900/90"></div>
+
                 <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
                     <h1 className="text-4xl md:text-6xl font-serif font-black text-white mb-6">
                         Our Story & Vision
@@ -91,6 +93,13 @@ export default function AboutPage() {
                                 As a vibrant parish under the <strong>Redeemed Christian Church of God (RCCG) Lagos Province 56</strong>, we have grown into a family of believers dedicated to the word of God, fervent prayer, and genuine communal love.
                             </p>
                         </div>
+
+                        <Link href='/history' className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-full hover:bg-amber-600 transition-colors"
+                        >
+                            <button>
+                                Our History
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -116,7 +125,7 @@ export default function AboutPage() {
                             { id: "3", title: "To have Member of RCCG in Every Family of All Nations", text: "We are an international family of God." },
                             { id: "4", title: "To Accomplish No. 1 above, Holiness Will Be Our Lifestyle", text: "Holiness will be our daily walk. We serve a holy God, and we reflect His nature in our character." },
                             { id: "5", title: "Church Planting", text: " To accomplish No. 2 and 3 above, we will plant churches within five minutes walking distance in every city and town of developing countries and within five minutes driving distance in every city and town of developed countries." },
-                            {id: "6", title: "To Make the World a Better Place", text: "We will pursue these objectives until every Nation in the world is reached for the Lord Jesus Christ"}
+                            {id: "6", title: "We will pursue these objectives until every Nation in the world is reached for the Lord Jesus Christ", text: ""}
                         ].map((item, idx) => (
                             <div key={idx} className="bg-white/5 border border-white/10 p-6 md:p-8 rounded-3xl hover:bg-white/10 transition-colors flex gap-5 items-start">
                                 {/* The Number Badge (Now on the left side) */}
@@ -140,38 +149,85 @@ export default function AboutPage() {
                     <h2 className="text-3xl md:text-4xl font-serif font-black text-brand-primary text-center mb-16">Explore Life at Milk & Honey</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Link to Life Stages (Youth focus) */}
-                        <Link href="/life-stages" className="group p-8 rounded-[2rem] border border-gray-100 bg-slate-50 hover:bg-white hover:shadow-xl transition-all duration-300">
-                            <div className="flex justify-between items-start mb-10">
-                                <Users className="text-brand-primary group-hover:scale-110 transition-transform" size={40} />
-                                <ArrowRight className="text-gray-300 group-hover:text-amber-600 transition-colors" />
+
+                        {/* 1. Link to Life Stages (Youth focus) */}
+                        <Link href="/life-stages" className="group relative p-8 rounded-[2rem] overflow-hidden hover:shadow-2xl transition-all duration-500 min-h-[400px] flex flex-col justify-between">
+                            {/* Background Image */}
+                            <div
+                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523580494112-071d16940a1e?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
+                            />
+                            {/* Dark Gradient Overlay for text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/90 z-0" />
+
+                            {/* Content (z-10 keeps it above the image and gradient) */}
+                            <div className="relative z-10 flex justify-between items-start">
+                                <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                    <Users className="text-white group-hover:scale-110 transition-transform" size={28} />
+                                </div>
+                                <ArrowRight className="text-white/50 group-hover:text-amber-400 group-hover:translate-x-2 transition-all" size={24} />
                             </div>
-                            <h4 className="text-xl font-bold text-brand-primary mb-3">Vibrant Fellowships</h4>
-                            <p className="text-sm text-gray-500 leading-relaxed mb-6">From our energetic <span className="text-amber-600 font-bold">Youth Church</span> to our focused Men and Women groups, there is a community for you.</p>
-                            <span className="text-xs font-black uppercase tracking-widest text-brand-primary group-hover:underline">Meet the family</span>
+
+                            <div className="relative z-10 mt-auto pt-10">
+                                <h4 className="text-2xl font-bold text-white mb-3">Vibrant Fellowships</h4>
+                                <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                                    From our energetic <span className="text-amber-400 font-bold">Youth Church</span> to our focused Men and Women groups, there is a community for you.
+                                </p>
+                                <span className="text-xs font-black uppercase tracking-widest text-amber-400 group-hover:underline flex items-center gap-2">
+                                    Meet the family
+                                </span>
+                            </div>
                         </Link>
 
-                        {/* Link to Media (Sermons/Gallery focus) */}
-                        <Link href="/sermons" className="group p-8 rounded-[2rem] border border-gray-100 bg-slate-50 hover:bg-white hover:shadow-xl transition-all duration-300">
-                            <div className="flex justify-between items-start mb-10">
-                                <PlayCircle className="text-brand-primary group-hover:scale-110 transition-transform" size={40} />
-                                <ArrowRight className="text-gray-300 group-hover:text-amber-600 transition-colors" />
+                        {/* 2. Link to Media (Sermons/Gallery focus) */}
+                        <Link href="/sermons" className="group relative p-8 rounded-[2rem] overflow-hidden hover:shadow-2xl transition-all duration-500 min-h-[400px] flex flex-col justify-between">
+                            <div
+                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/90 z-0" />
+
+                            <div className="relative z-10 flex justify-between items-start">
+                                <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                    <PlayCircle className="text-white group-hover:scale-110 transition-transform" size={28} />
+                                </div>
+                                <ArrowRight className="text-white/50 group-hover:text-amber-400 group-hover:translate-x-2 transition-all" size={24} />
                             </div>
-                            <h4 className="text-xl font-bold text-brand-primary mb-3">Sound Doctrine</h4>
-                            <p className="text-sm text-gray-500 leading-relaxed mb-6">Experience the transformation. Catch up on <span className="text-amber-600 font-bold">Sermons</span> and see God's glory in our recent moments.</p>
-                            <span className="text-xs font-black uppercase tracking-widest text-brand-primary group-hover:underline">Watch & Listen</span>
+
+                            <div className="relative z-10 mt-auto pt-10">
+                                <h4 className="text-2xl font-bold text-white mb-3">Sound Doctrine</h4>
+                                <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                                    Experience the transformation. Catch up on <span className="text-amber-400 font-bold">Sermons</span> and see God's glory in our recent moments.
+                                </p>
+                                <span className="text-xs font-black uppercase tracking-widest text-amber-400 group-hover:underline flex items-center gap-2">
+                                    Watch & Listen
+                                </span>
+                            </div>
                         </Link>
 
-                        {/* Link to Workforce */}
-                        <Link href="/departments" className="group p-8 rounded-[2rem] border border-gray-100 bg-slate-50 hover:bg-white hover:shadow-xl transition-all duration-300">
-                            <div className="flex justify-between items-start mb-10">
-                                <Camera className="text-brand-primary group-hover:scale-110 transition-transform" size={40} />
-                                <ArrowRight className="text-gray-300 group-hover:text-amber-600 transition-colors" />
+                        {/* 3. Link to Workforce */}
+                        <Link href="/departments" className="group relative p-8 rounded-[2rem] overflow-hidden hover:shadow-2xl transition-all duration-500 min-h-[400px] flex flex-col justify-between">
+                            <div
+                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1510563800743-aed236490d08?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/90 z-0" />
+
+                            <div className="relative z-10 flex justify-between items-start">
+                                <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                    <Camera className="text-white group-hover:scale-110 transition-transform" size={28} />
+                                </div>
+                                <ArrowRight className="text-white/50 group-hover:text-amber-400 group-hover:translate-x-2 transition-all" size={24} />
                             </div>
-                            <h4 className="text-xl font-bold text-brand-primary mb-3">Serve the Kingdom</h4>
-                            <p className="text-sm text-gray-500 leading-relaxed mb-6">Our workforce is the engine of our church. Discover the <span className="text-amber-600 font-bold">Units</span> and find where you fit in.</p>
-                            <span className="text-xs font-black uppercase tracking-widest text-brand-primary group-hover:underline">Join a Department</span>
+
+                            <div className="relative z-10 mt-auto pt-10">
+                                <h4 className="text-2xl font-bold text-white mb-3">Serve the Kingdom</h4>
+                                <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                                    Our workforce is the engine of our church. Discover the <span className="text-amber-400 font-bold">Units</span> and find where you fit in.
+                                </p>
+                                <span className="text-xs font-black uppercase tracking-widest text-amber-400 group-hover:underline flex items-center gap-2">
+                                    Join a Department
+                                </span>
+                            </div>
                         </Link>
+
                     </div>
                 </div>
             </section>
