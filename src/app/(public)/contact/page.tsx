@@ -1,23 +1,36 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
     MapPin, Phone, Mail, Clock,
-    Send, CheckCircle2, MessageSquare
+    Send, Calendar, Info
 } from "lucide-react";
-// If you're using sonner for toast notifications in the public app, import it.
-// Otherwise, we'll use a local success state. Let's use a local state for simplicity here.
+import { CHURCH_INFO } from "@/lib/constants";
+
+const FacebookIcon = ({ size = 20, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+    </svg>
+);
+
+const InstagramIcon = ({ size = 20, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+);
 
 export default function ContactPage() {
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         phone: "",
-        subject: "general", // Default option
+        subject: "general",
         message: ""
     });
 
@@ -29,34 +42,47 @@ export default function ContactPage() {
         e.preventDefault();
         setLoading(true);
 
-        // --- BACKEND LOGIC PLACEHOLDER ---
-        // Here is where we will eventually call Supabase:
-        // const { error } = await supabase.from('contact_messages').insert([{
-        //     name: formData.name,
-        //     email: formData.email,
-        //     phone: formData.phone,
-        //     subject: formData.subject,
-        //     message: formData.message,
-        //     status: 'unread'
-        // }]);
+        try {
+            // Send data to your Next.js backend API route
+            // You will need to create app/api/send-email/route.ts to handle this via Resend or Nodemailer
+            const response = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
 
-        // For now, we simulate a network request
-        setTimeout(() => {
-            setLoading(false);
-            setSuccess(true);
+            if (!response.ok) {
+                throw new Error('Failed to send message');
+            }
+
+            // Trigger Success Toast
+            toast.success("Message Sent Successfully!", {
+                description: "Our administrative team will get back to you shortly.",
+                duration: 5000,
+            });
+
+            // Clear the form
             setFormData({ name: "", email: "", phone: "", subject: "general", message: "" });
 
-            // Reset the success message after 5 seconds
-            setTimeout(() => setSuccess(false), 5000);
-        }, 1500);
+        } catch (error: any) {
+            console.error("Error sending message:", error);
+            toast.error("Failed to send message.", {
+                description: "Please check your connection and try again.",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="flex flex-col bg-slate-50 min-h-screen">
 
-            {/* 1. HERO SECTION */}
+            {/* HERO SECTION */}
             <section className="relative py-20 bg-brand-primary overflow-hidden">
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1577563908411-5077b6dc7624?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat opacity-20"></div>
+
                 <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
                     <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
                         Get In Touch
@@ -70,7 +96,7 @@ export default function ContactPage() {
                 </div>
             </section>
 
-            {/* 2. MAIN CONTENT AREA */}
+            {/* MAIN CONTENT AREA */}
             <section className="py-16 md:py-24 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start -mt-10 md:-mt-20 relative z-20">
 
                 {/* LEFT SIDE: Contact Information Cards */}
@@ -88,11 +114,11 @@ export default function ContactPage() {
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Our Sanctuary</h4>
                                     <p className="text-sm text-gray-500 leading-relaxed">
-                                        123 Milk and Honey Way, <br/>
-                                        Lagos Province 56 Headquarters, <br/>
-                                        Lagos, Nigeria.
+                                        {CHURCH_INFO.address.street}, <br/>
+                                        {CHURCH_INFO.parish}, <br/>
+                                        {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}.
                                     </p>
-                                    <a href="https://maps.google.com/?q=RCCG+Milk+and+Honey+Lagos" target="_blank" className="text-xs font-bold text-brand-primary uppercase tracking-widest mt-3 inline-block hover:text-amber-600 transition-colors">
+                                    <a href={CHURCH_INFO.address.googleMapsLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-brand-primary uppercase tracking-widest mt-3 inline-block hover:text-amber-600 transition-colors">
                                         Get Directions →
                                     </a>
                                 </div>
@@ -104,7 +130,9 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Phone</h4>
-                                    <p className="text-sm text-gray-500">+234 (0) 123 456 7890</p>
+                                    <a href={`tel:${CHURCH_INFO.contact.phoneLink}`} className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
+                                        {CHURCH_INFO.contact.phone}
+                                    </a>
                                 </div>
                             </div>
 
@@ -114,31 +142,57 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Email</h4>
-                                    <p className="text-sm text-gray-500">contact@milkandhoney.org</p>
+                                    <a href={`mailto:${CHURCH_INFO.contact.email}`} className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
+                                        {CHURCH_INFO.contact.email}
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Service Times Card */}
-                    <div className="bg-brand-primary text-white p-8 md:p-10 rounded-[2rem] shadow-xl relative overflow-hidden">
-                        <Clock size={120} className="absolute -bottom-10 -right-10 text-white/5 pointer-events-none" />
-                        <h3 className="text-xl font-serif font-bold mb-6">Service Times</h3>
+                    {/* Social Media Quick Connect */}
+                    <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-xl border border-gray-100">
+                        <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Quick Connect</h3>
+                        <p className="text-sm text-gray-500 mb-6">Send us a direct message on our social channels for quick inquiries.</p>
+                        <div className="flex gap-4">
+                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-pink-50 border border-gray-100 hover:border-pink-200 text-gray-600 hover:text-pink-600 py-4 rounded-xl font-bold transition-all">
+                                <InstagramIcon /> Instagram
+                            </a>
+                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 text-gray-600 hover:text-blue-600 py-4 rounded-xl font-bold transition-all">
+                                <FacebookIcon /> Facebook
+                            </a>
+                        </div>
+                    </div>
 
-                        <div className="space-y-4 relative z-10">
-                            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                                <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Sunday Service</span>
-                                <span className="text-sm font-medium">9:00 AM</span>
-                            </div>
-                            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                                <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Digging Deep (Tue)</span>
-                                <span className="text-sm font-medium">6:00 PM</span>
-                            </div>
-                            <div className="flex justify-between items-center pb-2">
-                                <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Faith Clinic (Thu)</span>
-                                <span className="text-sm font-medium">6:00 PM</span>
+                    {/* Service Times Card */}
+                    <div className="bg-brand-primary text-white p-8 md:p-10 rounded-[2rem] shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <Clock size={160} className="absolute -bottom-10 -right-10 text-white/5 pointer-events-none" />
+
+                        <div className="relative z-10">
+                            <h3 className="text-xl font-serif font-bold mb-6">Service Times</h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Sunday (1st Service)</span>
+                                    <span className="text-sm font-medium">7:30 AM</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Sunday (2nd Service)</span>
+                                    <span className="text-sm font-medium">9:30 AM</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Digging Deep (Tuesday)</span>
+                                    <span className="text-sm font-medium">6:00 PM</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2">
+                                    <span className="text-sm text-amber-200 font-bold uppercase tracking-widest">Faith Clinic (Thursday)</span>
+                                    <span className="text-sm font-medium">6:00 PM</span>
+                                </div>
                             </div>
                         </div>
+
+                        <Link href="/events" className="relative z-10 mt-8 w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all backdrop-blur-sm">
+                            <Calendar size={16} /> View Full Calendar
+                        </Link>
                     </div>
 
                 </div>
@@ -147,29 +201,15 @@ export default function ContactPage() {
                 <div className="lg:col-span-7 bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl shadow-brand-primary/5 border border-gray-100">
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-serif font-black text-brand-primary mb-3">Send a Message</h2>
+                        <h2 className="text-3xl font-serif font-black text-brand-primary mb-3">Send a Serious Inquiry</h2>
                         <p className="text-sm text-gray-500">
-                            Fill out the form below and our administrative team will get back to you as soon as possible.
+                            Fill out the form below. For accountability and prompt response, this message is routed directly to multiple departments.
                         </p>
                     </div>
-
-                    {/* Success Message Banner */}
-                    {success && (
-                        <div className="mb-8 bg-green-50 border border-green-200 rounded-2xl p-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4">
-                            <div className="text-green-600 mt-1"><CheckCircle2 size={24} /></div>
-                            <div>
-                                <h4 className="text-sm font-bold text-green-900 mb-1">Message Sent Successfully!</h4>
-                                <p className="text-xs text-green-700 leading-relaxed">
-                                    Thank you for reaching out to Milk & Honey. Our team has received your message and will respond shortly.
-                                </p>
-                            </div>
-                        </div>
-                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Name */}
                             <div>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Full Name *</label>
                                 <input
@@ -183,7 +223,6 @@ export default function ContactPage() {
                                 />
                             </div>
 
-                            {/* Phone */}
                             <div>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Phone Number</label>
                                 <input
@@ -198,7 +237,6 @@ export default function ContactPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Email */}
                             <div>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Email Address *</label>
                                 <input
@@ -212,7 +250,6 @@ export default function ContactPage() {
                                 />
                             </div>
 
-                            {/* Subject Category */}
                             <div>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">How can we help? *</label>
                                 <select
@@ -230,7 +267,6 @@ export default function ContactPage() {
                             </div>
                         </div>
 
-                        {/* Message Box */}
                         <div>
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Your Message *</label>
                             <textarea
@@ -244,23 +280,22 @@ export default function ContactPage() {
                             />
                         </div>
 
+                        {/* Distribution Warning Disclaimer */}
+                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-start gap-3">
+                            <Info size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                            <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                                <strong className="font-bold text-amber-900 block mb-1">Message Distribution Notice:</strong>
+                                To ensure your inquiry is not missed, submitting this form will simultaneously email our primary contact addresses (Admin, Media, and Pastoral team). You may also follow up by phone to confirm receipt.
+                            </p>
+                        </div>
+
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={loading || success}
-                            className={`w-full md:w-auto px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                                success
-                                    ? 'bg-green-600 text-white cursor-default'
-                                    : 'bg-brand-primary text-white hover:bg-slate-800 shadow-lg shadow-brand-primary/20 active:scale-95'
-                            } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            disabled={loading}
+                            className={`w-full md:w-auto px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all bg-brand-primary text-white hover:bg-slate-800 shadow-lg shadow-brand-primary/20 active:scale-95 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            {loading ? (
-                                "Sending..."
-                            ) : success ? (
-                                <>Sent <CheckCircle2 size={18}/></>
-                            ) : (
-                                <>Send Message <Send size={18}/></>
-                            )}
+                            {loading ? "Sending securely..." : <>Submit Inquiry <Send size={18}/></>}
                         </button>
 
                     </form>

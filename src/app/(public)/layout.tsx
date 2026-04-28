@@ -3,6 +3,28 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, ChevronDown, Camera } from "lucide-react";
 import FloatingDove from "@/components/Public/FloatingDove";
+import {CHURCH_INFO} from "@/lib/constants";
+
+const FacebookIcon = ({ size = 20, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+    </svg>
+);
+
+const InstagramIcon = ({ size = 20, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+);
+
+const YouTubeIcon = ({ size = 20, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path>
+        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+    </svg>
+);
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -80,8 +102,20 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                         <Link href="/contact" className="hover:text-brand-primary transition-colors">Contact</Link>
                     </nav>
 
-                    {/* CTA Button */}
-                    <div className="hidden md:block z-50">
+                    {/* Socials & CTA Button */}
+                    <div className="hidden md:flex items-center gap-6 z-50">
+                        {/* Desktop Navbar Social Icons */}
+                        <div className="flex items-center gap-4 text-gray-400">
+                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="hover:text-pink-600 transition-colors" aria-label="Instagram">
+                                <InstagramIcon size={18} />
+                            </a>
+                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="hover:text-blue-600 transition-colors" aria-label="Facebook">
+                                <FacebookIcon size={18} />
+                            </a>
+                            <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="hover:text-red-600 transition-colors" aria-label="YouTube">
+                                <YouTubeIcon size={18} />
+                            </a>
+                        </div>
                         <Link href="/events" className="bg-amber-100 text-amber-900 px-6 py-2.5 rounded-full font-bold text-sm hover:bg-amber-200 transition-colors">
                             Plan a Visit
                         </Link>
@@ -131,7 +165,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             <Link href="/events" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-gray-50">Events</Link>
                             <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="py-2">Contact</Link>
                         </div>
+                        {/* Mobile Socials & CTA */}
                         <div className="mt-8 pt-4">
+                            <div className="flex items-center justify-center gap-6 text-gray-400 mb-6">
+                                <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="hover:text-pink-600 transition-colors" aria-label="Instagram">
+                                    <InstagramIcon size={24} />
+                                </a>
+                                <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="hover:text-blue-600 transition-colors" aria-label="Facebook">
+                                    <FacebookIcon size={24} />
+                                </a>
+                                <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="hover:text-red-600 transition-colors" aria-label="YouTube">
+                                    <YouTubeIcon size={24} />
+                                </a>
+                            </div>
                             <Link href="/events" onClick={() => setMobileMenuOpen(false)} className="block w-full bg-brand-primary text-white text-center py-4 rounded-xl font-bold active:scale-95 transition-transform">
                                 Plan a Visit
                             </Link>
@@ -161,6 +207,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                         <p className="text-sm text-gray-500 leading-relaxed max-w-sm mb-6">
                             A parish of the Redeemed Christian Church of God. Raising a generation of leaders, walking in dominion, and spreading love across Lagos Province 56.
                         </p>
+
+                        <div className="flex items-center gap-4 text-gray-400">
+                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-100 hover:border-pink-200" aria-label="Instagram">
+                                <InstagramIcon size={20} />
+                            </a>
+                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors border border-gray-100 hover:border-blue-200" aria-label="Facebook">
+                                <FacebookIcon size={20} />
+                            </a>
+                            <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-100 hover:border-red-200" aria-label="YouTube">
+                                <YouTubeIcon size={20} />
+                            </a>
+                        </div>
+
                     </div>
 
                     {/* Quick Links Column 1: About & Connect */}
@@ -194,7 +253,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             <li>
                                 {/* SMART MAP LINK */}
                                 <a
-                                    href="https://maps.app.goo.gl/XQ7xsxjVwwuL4JQo8"
+                                    href={CHURCH_INFO.address.googleMapsLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-start gap-2 hover:text-amber-600 transition-colors group"
@@ -204,25 +263,28 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                     <span className="leading-tight">
-                                        29 Sunmola Street, Maryland, Lagos<br/>
-                                        Lagos Province 56, Nigeria
+                                        <p className="text-sm text-gray-500 group-hover:text-amber-600 leading-relaxed">
+                                            {CHURCH_INFO.address.street}, <br/>
+                                            {CHURCH_INFO.parish}, <br/>
+                                            {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}.
+                                        </p>
                                     </span>
                                 </a>
                             </li>
                             <li>
-                                <a href="mailto:contact@milkandhoney.org" className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
+                                <a href={`mailto:${CHURCH_INFO.contact.email}`} className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
                                     <svg className="w-4 h-4 text-brand-primary group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
-                                    contact@milkandhoney.org
+                                    {CHURCH_INFO.contact.email}
                                 </a>
                             </li>
                             <li>
-                                <a href="tel:+2341234567890" className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
+                                <a href={`tel:${CHURCH_INFO.contact.phoneLink}`} className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
                                     <svg className="w-4 h-4 text-brand-primary group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
-                                    +234 (0) 123 456 7890
+                                    {CHURCH_INFO.contact.phone}
                                 </a>
                             </li>
                         </ul>
@@ -233,19 +295,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 <div className="max-w-7xl mx-auto px-6 border-t border-gray-100 pt-8 flex flex-col items-center text-center">
 
                     {/* Secondary Navigation */}
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6 text-xs font-bold uppercase tracking-widest text-gray-400">
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6 text-[10px] font-bold uppercase tracking-widest text-gray-400">
                         <a
                             href="https://wa.me/2340000000000?text=Hi, I am reaching out from the Milk & Honey website."
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 hover:text-green-600 transition-colors"
                         >
-                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                            <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
                             </svg>
                             WhatsApp Support
                         </a>
-                        <a href="mailto:support@milkandhoney.org" className="hover:text-brand-primary transition-colors">
+                        <a href={CHURCH_INFO.contact.emailTech} className="hover:text-brand-primary transition-colors">
                             Technical Support
                         </a>
                         <a href="/privacy" className="hover:text-brand-primary transition-colors">
@@ -253,34 +315,35 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                         </a>
                         <a href="https://rccg.org" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors flex items-center gap-1">
                             RCCG Global
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                         </a>
                     </div>
 
                     {/* Official Badges & CREATOR SIGNATURE */}
-                    <div className="space-y-2 mb-4">
-                        <p className="text-[10px] md:text-xs text-brand-primary uppercase tracking-[0.2em] font-black">
+                    <div className="space-y-1.5 mb-4">
+                        <p className="text-[9px] md:text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black">
                             The Redeemed Christian Church of God (RCCG)
                         </p>
-                        <p className="text-xs text-gray-500 font-medium">
+                        <p className="text-[10px] text-gray-500 font-medium">
                             © 2026 <span className="font-bold text-gray-700">Milk and Honey Center</span> • Lagos Province 56
                         </p>
 
                         {/* SUBTLE CREATOR LOGO/TEXT */}
-                        <p className="text-[10px] text-gray-400 mt-2">
+                        <p className="text-[9px] text-gray-400 mt-2">
                             Designed & Built by <a href="#" target="_blank" className="font-bold hover:text-amber-600 transition-colors">Byte&Security</a>
                         </p>
                     </div>
 
                     {/* Secure Session / Verified */}
-                    <div className="flex items-center gap-1.5 text-[9px] text-brand-primary bg-slate-50 px-3 py-1 rounded-full font-bold border border-gray-100 mt-2">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="flex items-center gap-1.5 text-[8px] text-brand-primary bg-slate-50 px-3 py-1 rounded-full font-bold border border-gray-100 mt-2 uppercase tracking-wider">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
                         Verified Public Domain
                     </div>
 
                 </div>
+
             </footer>
         </div>
     );
