@@ -236,10 +236,10 @@ export default function AboutPage() {
             <section className="relative w-full h-[500px] md:h-[650px] bg-slate-100 group">
                 {/* Visual Placeholder for Google Maps Embed */}
                 <div className="absolute inset-0 bg-slate-200 flex items-center justify-center overflow-hidden">
-                    <div className="text-center space-y-4 opacity-30 group-hover:opacity-50 transition-opacity">
+                    {/* <div className="text-center space-y-4 opacity-30 group-hover:opacity-50 transition-opacity">
                         <MapPin size={64} className="mx-auto" />
                         <p className="font-bold tracking-widest uppercase">Interactive Map Display</p>
-                    </div>
+                    </div> */}
                     <iframe
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d832.2053568590655!2d3.373985169507433!3d6.569560031888077!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103b927f269e1105%3A0xefd56a17bce5ff1e!2sThe%20Redeemed%20Christian%20Church%20Of%20God%2C%20Milk%20%26%20Honey!5e1!3m2!1sen!2snl!4v1777332651414!5m2!1sen!2snl"
                         className="w-full h-full grayscale-[0.5] contrast-[1.1]"
