@@ -282,7 +282,7 @@ export default function AdsDashboardPage() {
                                                     <Archive size={14} />
                                                     <span className="text-[7px] font-bold uppercase text-slate-500">Arch</span>
                                                 </button>
-                                                <Link href={`/ads/edit/${ad.id}`} title="Edit" className="text-brand-primary flex flex-col items-center gap-1 hover:scale-110 transition-transform">
+                                                <Link href={`/src/app/(admin)/admin/ads/edit/${ad.id}`} title="Edit" className="text-brand-primary flex flex-col items-center gap-1 hover:scale-110 transition-transform">
                                                     <Edit3 size={14} />
                                                     <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
                                                 </Link>

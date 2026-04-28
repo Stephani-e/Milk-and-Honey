@@ -13,14 +13,14 @@ export default function AdminDashboard() {
         return () => clearTimeout(timer);
     }, []);
 
-    const goToSermon = () => router.push("/sermons");
-    const goToMedia = () => router.push("/gallery");
-    const goToEvents = () => router.push("/events");
-    const goToDepartments = () => router.push("/departments")
-    const goToLifeStages = () => router.push("/life-stages")
-    const goToLeadership = () => router.push("/leadership")
-    const goToParishes = () => router.push("/parishes")
-    const goToAds = () => router.push("/ads")
+    const goToSermon = () => router.push("/admin/sermons");
+    const goToMedia = () => router.push("/admin/gallery");
+    const goToEvents = () => router.push("/admin/events");
+    const goToDepartments = () => router.push("/admin/departments")
+    const goToLifeStages = () => router.push("/admin/life-stages")
+    const goToLeadership = () => router.push("/admin/leadership")
+    const goToParishes = () => router.push("/admin/parishes")
+    const goToAds = () => router.push("/admin/ads")
 
     if (initialLoading) {
         return <LoadingState variant="full" message="Opening Control Center..." />;

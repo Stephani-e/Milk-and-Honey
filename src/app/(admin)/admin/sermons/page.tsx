@@ -751,7 +751,7 @@ function ActionButtons({
                             <Inbox size={18} className="text-brand-primary" />
                             <span className="text-[8px] font-bold uppercase text-brand-primary">Publish</span>
                         </button>
-                        <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
+                        <Link href={`/src/app/(admin)/admin/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
                             <FileText size={18} className="text-slate-400 group-hover:text-brand-primary" />
                             <span className="text-[8px] font-bold uppercase text-slate-400">Edit</span>
                         </Link>
@@ -783,7 +783,7 @@ function ActionButtons({
                         <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}`} />
                         <span className={`text-[8px] font-bold uppercase ${sermon.is_archived ? "text-green-600" : "text-gray-400"}`}>{sermon.is_archived ? "Restore" : "Arch"}</span>
                     </button>
-                    <Link href={`/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
+                    <Link href={`/src/app/(admin)/admin/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
                         <FileText size={18} className="text-brand-primary" />
                         <span className="text-[8px] font-bold uppercase text-brand-primary">Edit</span>
                     </Link>

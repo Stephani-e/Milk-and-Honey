@@ -334,7 +334,7 @@ export default function GalleryPage() {
                                                             <Inbox size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-brand-primary">Publish</span>
                                                         </button>
-                                                        <Link href={`/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1">
+                                                        <Link href={`/src/app/(admin)/admin/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1">
                                                             <FileText size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-slate-400">Edit</span>
                                                         </Link>
@@ -361,7 +361,7 @@ export default function GalleryPage() {
                                                             <Archive size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-brand-primary">Archive</span>
                                                         </button>
-                                                        <Link href={`/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1">
+                                                        <Link href={`/src/app/(admin)/admin/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1">
                                                             <FileText size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
                                                         </Link>
