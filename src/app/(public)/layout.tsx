@@ -26,6 +26,12 @@ const YouTubeIcon = ({ size = 20, className = "" }) => (
     </svg>
 );
 
+const TwitterIcon = ({ size = 20, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+    </svg>
+);
+
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -115,6 +121,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="hover:text-red-600 transition-colors" aria-label="YouTube">
                                 <YouTubeIcon size={18} />
                             </a>
+                            <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer" className="hover:text-green-600 transition-colors" aria-label="X(Twitter)">
+                                <TwitterIcon size={18} />
+                            </a>
                         </div>
                         <Link href="/events" className="bg-amber-100 text-amber-900 px-6 py-2.5 rounded-full font-bold text-sm hover:bg-amber-200 transition-colors">
                             Plan a Visit
@@ -165,6 +174,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             <Link href="/events" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-gray-50">Events</Link>
                             <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="py-2">Contact</Link>
                         </div>
+
                         {/* Mobile Socials & CTA */}
                         <div className="mt-8 pt-4">
                             <div className="flex items-center justify-center gap-6 text-gray-400 mb-6">
@@ -176,6 +186,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                                 </a>
                                 <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="hover:text-red-600 transition-colors" aria-label="YouTube">
                                     <YouTubeIcon size={24} />
+                                </a>
+                                <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer" className="hover:text-green-600 transition-colors" aria-label="X(Twitter)">
+                                    <TwitterIcon size={24} />
                                 </a>
                             </div>
                             <Link href="/events" onClick={() => setMobileMenuOpen(false)} className="block w-full bg-brand-primary text-white text-center py-4 rounded-xl font-bold active:scale-95 transition-transform">
@@ -217,6 +230,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             </a>
                             <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-100 hover:border-red-200" aria-label="YouTube">
                                 <YouTubeIcon size={20} />
+                            </a>
+                            <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors border border-gray-100 hover:border-green-200" aria-label="X(Twitter)">
+                                <TwitterIcon size={20} />
                             </a>
                         </div>
 

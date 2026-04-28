@@ -18,8 +18,9 @@ export const CHURCH_INFO = {
         emailTech: "technical@milkandhoney.org",
     },
     socialMedia: {
-        instagram: "https://www.instagram.com/milkandhoneycenter",
-        facebook: "https://www.facebook.com/milkandhoneycenter",
-        youtube: "https://www.youtube.com/channel/UC1234567890",
+        instagram: "https://www.instagram.com/rccg.mhc?igsh=MTZ1ZXF0NmwxYWRpNA==",
+        facebook: "https://www.facebook.com/rccgmilkandhoneyfamily/",
+        youtube: "https://www.youtube.com/@rccgmilkandhoneyfamily",
+        twitter: "https://x.com/rccg_mhc"
     }
 };
