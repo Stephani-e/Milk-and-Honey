@@ -383,13 +383,17 @@ export default function SermonsPage() {
                                     {/* Row 1: The Logic Badges */}
                                     <div className="flex gap-2 mb-2">
                                         {s.service_category === "Weekly" ? (
-                                            <span className="bg-purple-100 text-purple-700 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">
-                                                    {s.weekly_type}
+                                            <span className="bg-purple-100 text-purple-700 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                                                {s.weekly_type}
+                                            </span>
+                                        ) : s.service_category === "Monthly" ? (
+                                            <span className="bg-blue-100 text-blue-700 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                                                {s.special_service_name || "Monthly Service"}
                                             </span>
                                         ) : (
-                                            <span className="bg-amber-100 text-amber-700 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase">
-                                                    Special: {s.special_service_name}
-                                                </span>
+                                            <span className="bg-amber-100 text-amber-700 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                                                Special: {s.special_service_name || "Event"}
+                                            </span>
                                         )}
 
                                         {/* Sub-labels (Day 3, 2nd Service, etc.) */}

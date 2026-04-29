@@ -155,6 +155,7 @@ export default function EditSermonPage() {
                 <Link href="/admin/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to Sermons Dashboard</Link>
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-accent">
                     <h1 className="text-3xl font-serif font-bold text-brand-primary mb-8">Edit Sermon</h1>
+
                     <form className="space-y-10">
 
                         {/* LOCKED Step 1: Category */}
@@ -163,7 +164,8 @@ export default function EditSermonPage() {
                                 <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1: Service Category</label>
                                 <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 opacity-75">
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 opacity-75 text-center">
                                 {["Weekly", "Monthly", "Special"].map((item) => (
                                     <div
                                         key={item}
@@ -182,7 +184,7 @@ export default function EditSermonPage() {
                                     <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1.1: Edit/Change Day of the Week</label>
                                     <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 opacity-75">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 opacity-75 text-center">
                                     {["Sunday", "Tuesday", "Thursday"].map((day) => (
                                         <div
                                             key={day}
@@ -301,7 +303,7 @@ export default function EditSermonPage() {
                         )}
 
                         {/* MEDIA & REMAINING FIELDS */}
-                        {(weeklyType || category === "Special") && (
+                        {(weeklyType || category === "Monthly" || category === "Special") && (
                             <div className="pt-10 border-t border-gray-100 space-y-6">
                                 <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">Step 2: Edit/Change Service Info</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -375,7 +377,7 @@ export default function EditSermonPage() {
                                                         content={{
                                                             button({ ready }) {
                                                                 if (ready) return "Select Banner Image";
-                                                                return "Loading...";
+                                                                return "Image UpLoading";
                                                             },
                                                         }}
                                                         onClientUploadComplete={(res) => {

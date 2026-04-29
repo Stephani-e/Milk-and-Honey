@@ -410,7 +410,7 @@ export default function NewSermonPage() {
                                                                 endpoint="imageUploader"
                                                                 appearance={{
                                                                     // Added w-full to ensure the button fills its responsive container
-                                                                    button: "w-full bg-brand-primary text-white text-[7px] md:text-[15px] p-4 rounded-xl after:bg-brand-secondary",
+                                                                    button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                                 }}
                                                                 content={{
@@ -472,7 +472,7 @@ export default function NewSermonPage() {
                                                             <UploadButton
                                                                 endpoint="videoUploader"
                                                                 appearance={{
-                                                                    button: "w-full bg-brand-primary text-white text-[7px] md:text-[15px] p-4 rounded-xl after:bg-brand-secondary",
+                                                                    button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
