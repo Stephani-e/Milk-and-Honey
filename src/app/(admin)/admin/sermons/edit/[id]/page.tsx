@@ -6,7 +6,7 @@ import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
-import {Film, Lock} from "lucide-react"; // Import the Lock icon
+import {Film, LinkIcon, Lock} from "lucide-react"; // Import the Lock icon
 
 export default function EditSermonPage() {
     const router = useRouter();
@@ -46,6 +46,12 @@ export default function EditSermonPage() {
         youtube_url: "",
         banner_url: "",
         clip_url: "",
+        link_ig: "",
+        link_twitter: "",
+        link_facebook: "",
+        link_spotify: "",
+        link_ytmusic: "",
+        link_apple: ""
     });
 
     useEffect(() => {
@@ -130,7 +136,7 @@ export default function EditSermonPage() {
                     : "Unpublished: Sermon moved to Drafts"
             );
 
-            const targetPath = targetStatus === 'published' ? "/sermons" : "/sermons?tab=draft";
+            const targetPath = targetStatus === 'published' ? "/admin/sermons" : "/admin/sermons?tab=draft";
             router.push(targetPath);
             router.refresh();
         }
@@ -141,7 +147,7 @@ export default function EditSermonPage() {
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
             <div className="max-w-4xl mx-auto">
-                <Link href="/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to List</Link>
+                <Link href="/admin/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to Sermons Dashboard</Link>
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-accent">
                     <h1 className="text-3xl font-serif font-bold text-brand-primary mb-8">Edit Sermon</h1>
                     <form className="space-y-10">
@@ -152,11 +158,11 @@ export default function EditSermonPage() {
                                 <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1: Service Category</label>
                                 <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-75">
+                            <div className="grid grid-cols-2 gap-4 opacity-75">
                                 {["Weekly", "Special"].map((item) => (
                                     <div
                                         key={item}
-                                        className={`p-4 md:p-6 rounded-2xl border-2 font-bold cursor-not-allowed ${category === item ? "border-brand-primary bg-brand-primary/5 text-brand-primary" : "border-gray-100 bg-gray-50 text-gray-300"}`}
+                                        className={`p-6 rounded-2xl border-2 font-bold cursor-not-allowed ${category === item ? "border-brand-primary bg-brand-primary/5 text-brand-primary" : "border-gray-100 bg-gray-50 text-gray-300"}`}
                                     >
                                         {item === "Weekly" ? "Weekly / Fixed" : "Special Service"}
                                     </div>
@@ -167,7 +173,11 @@ export default function EditSermonPage() {
                         {/* Weekly Branch - LOCKED Tabs, Editable Content */}
                         {category === "Weekly" && (
                             <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-top-2">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 opacity-75">
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1.1: Edit/Change Day of the Week</label>
+                                    <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 opacity-75">
                                     {["Sunday", "Tuesday", "Thursday"].map((day) => (
                                         <div
                                             key={day}
@@ -180,6 +190,10 @@ export default function EditSermonPage() {
 
                                 {weeklyType === "Sunday" && (
                                     <div className="bg-slate-50 p-6 rounded-2xl space-y-6">
+                                        <div className="flex items-center gap-2">
+                                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1.2: Edit/Change Sunday Service Information</label>
+                                            <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
+                                        </div>
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -230,6 +244,7 @@ export default function EditSermonPage() {
                         {/* Special Branch - Locked Tabs, Editable Content */}
                         {category === "Special" && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in">
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">Step 2: Edit/Change Service Info</label>
                                 <div className="space-y-4">
                                     <input
                                         list="specialNames"
@@ -262,6 +277,7 @@ export default function EditSermonPage() {
                         {/* MEDIA & REMAINING FIELDS */}
                         {(weeklyType || category === "Special") && (
                             <div className="pt-10 border-t border-gray-100 space-y-6">
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-1">Step 2: Edit/Change Service Info</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <input
                                         required
@@ -294,145 +310,191 @@ export default function EditSermonPage() {
                                     />
                                 </div>
 
-                                <div className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
-                                    <p className="text-[10px] font-bold text-brand-secondary uppercase">Media Attachments (Recommended)</p>
-                                    <input
-                                        placeholder="YouTube URL (Optional)"
-                                        className="w-full p-3 border rounded-lg bg-white text-brand-primary"
-                                        value={formData.youtube_url}
-                                        onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
-                                    />
+                                <div className='flex flex-col gap-2 mt-2'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 3: Edit/Change Sermon Media</label>
+                                    <div className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
+                                        <p className="text-[10px] font-bold text-brand-secondary uppercase">Media Attachments (Recommended)</p>
+                                        <input
+                                            placeholder="YouTube URL (Optional)"
+                                            className="w-full p-3 border rounded-lg bg-white text-brand-primary"
+                                            value={formData.youtube_url}
+                                            onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
+                                        />
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                                        {/* Banner Upload */}
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-bold uppercase text-blue-950 block">Sermon Banner</label>
-                                            {bannerUploaded && formData.banner_url ? (
-                                                <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
-                                                    <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative">
-                                                        <img src={formData.banner_url} alt="Sermon Banner" className="w-full h-full object-cover" />
-                                                    </div>
-                                                    <div className='flex justify-between items-center px-1'>
-                                                        <span className="text-[9px] font-bold text-green-600 uppercase">Uploaded</span>
-                                                        <div className="flex gap-3">
-                                                            <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
-                                                            <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                            {/* Banner Upload */}
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-bold uppercase text-blue-950 block">Sermon Banner</label>
+                                                {bannerUploaded && formData.banner_url ? (
+                                                    <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
+                                                        <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative">
+                                                            <img src={formData.banner_url} alt="Sermon Banner" className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <div className='flex justify-between items-center px-1'>
+                                                            <span className="text-[9px] font-bold text-green-600 uppercase">Uploaded</span>
+                                                            <div className="flex gap-3">
+                                                                <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
+                                                                <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ) : (
-                                                <UploadButton
-                                                    endpoint="imageUploader"
-                                                    appearance={{
-                                                        // Added w-full to ensure the button fills its responsive container
-                                                        button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
-                                                        allowedContent: "text-brand-secondary text-[6px] md:text-[10px] font-bold uppercase",
-                                                    }}
-                                                    content={{
-                                                        button({ ready }) {
-                                                            if (ready) return "Select Banner Image";
-                                                            return "Loading...";
-                                                        },
-                                                    }}
-                                                    onClientUploadComplete={(res) => {
-                                                        setFormData({ ...formData, banner_url: res[0].url });
-                                                        setBannerUploaded(true);
-                                                    }}
-                                                    onUploadError={(error) => {
-                                                        toast.error(`Upload Failed: ${error.message}`)
-                                                    }}
-                                                />
-                                            )}
-                                        </div>
+                                                ) : (
+                                                    <UploadButton
+                                                        endpoint="imageUploader"
+                                                        appearance={{
+                                                            // Added w-full to ensure the button fills its responsive container
+                                                            button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
+                                                            allowedContent: "text-brand-secondary text-[6px] md:text-[10px] font-bold uppercase",
+                                                        }}
+                                                        content={{
+                                                            button({ ready }) {
+                                                                if (ready) return "Select Banner Image";
+                                                                return "Loading...";
+                                                            },
+                                                        }}
+                                                        onClientUploadComplete={(res) => {
+                                                            setFormData({ ...formData, banner_url: res[0].url });
+                                                            setBannerUploaded(true);
+                                                        }}
+                                                        onUploadError={(error) => {
+                                                            toast.error(`Upload Failed: ${error.message}`)
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
 
-                                        {/* Video Clip Upload */}
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-bold uppercase text-blue-950 block">Video Clip</label>
+                                            {/* Video Clip Upload */}
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-bold uppercase text-blue-950 block">Video Clip</label>
 
-                                            {clipUploaded && formData.clip_url ? (
-                                                <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
-                                                    <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative group/video cursor-pointer">
-                                                        <video
-                                                            src={formData.clip_url}
-                                                            className="w-full h-full object-cover"
-                                                            muted
-                                                            playsInline
-                                                            preload="metadata"
-                                                            onMouseOver={(e) => {
-                                                                const playPromise = e.currentTarget.play();
-                                                                if (playPromise !== undefined) {
-                                                                    playPromise.catch(error => console.log("Auto-play prevented:", error));
-                                                                }
-                                                            }}
-                                                            onMouseOut={(e) => {
-                                                                e.currentTarget.pause();
-                                                                e.currentTarget.currentTime = 0;
-                                                            }}
-                                                        />
-                                                        <div className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
-                                                            <div className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm"><Film size={16} /></div>
+                                                {clipUploaded && formData.clip_url ? (
+                                                    <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
+                                                        <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative group/video cursor-pointer">
+                                                            <video
+                                                                src={formData.clip_url}
+                                                                className="w-full h-full object-cover"
+                                                                muted
+                                                                playsInline
+                                                                preload="metadata"
+                                                                onMouseOver={(e) => {
+                                                                    const playPromise = e.currentTarget.play();
+                                                                    if (playPromise !== undefined) {
+                                                                        playPromise.catch(error => console.log("Auto-play prevented:", error));
+                                                                    }
+                                                                }}
+                                                                onMouseOut={(e) => {
+                                                                    e.currentTarget.pause();
+                                                                    e.currentTarget.currentTime = 0;
+                                                                }}
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
+                                                                <div className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm"><Film size={16} /></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className='flex justify-between items-center px-1'>
+                                                            <span className="text-[9px] font-bold text-green-600 uppercase">Attached</span>
+                                                            <div className="flex gap-3">
+                                                                <button type="button" onClick={() => triggerMediaAction('clip', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
+                                                                <button type="button" onClick={() => triggerMediaAction('clip', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div className='flex justify-between items-center px-1'>
-                                                        <span className="text-[9px] font-bold text-green-600 uppercase">Attached</span>
-                                                        <div className="flex gap-3">
-                                                            <button type="button" onClick={() => triggerMediaAction('clip', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
-                                                            <button type="button" onClick={() => triggerMediaAction('clip', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <UploadButton
-                                                    endpoint="videoUploader"
-                                                    appearance={{
-                                                        button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
-                                                        allowedContent: "text-brand-secondary text-[6px] md:text-[10px] font-bold uppercase",
-                                                    }}
-                                                    content={{
-                                                        button({ ready }) {
-                                                            if (ready) return "Select Video Clip";
-                                                            return "Loading...";
-                                                        },
-                                                    }}
-                                                    onClientUploadComplete={(res) => {
-                                                        setFormData({ ...formData, clip_url: res[0].url });
-                                                        setClipUploaded(true);
-                                                    }}
-                                                    onUploadError={(error) => {
-                                                        toast.error(`Upload Failed: ${error.message}`)
-                                                    }}
-                                                />
-                                            )}
+                                                ) : (
+                                                    <UploadButton
+                                                        endpoint="videoUploader"
+                                                        appearance={{
+                                                            button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
+                                                            allowedContent: "text-brand-secondary text-[6px] md:text-[10px] font-bold uppercase",
+                                                        }}
+                                                        content={{
+                                                            button({ ready }) {
+                                                                if (ready) return "Select Video Clip";
+                                                                return "Loading...";
+                                                            },
+                                                        }}
+                                                        onClientUploadComplete={(res) => {
+                                                            setFormData({ ...formData, clip_url: res[0].url });
+                                                            setClipUploaded(true);
+                                                        }}
+                                                        onUploadError={(error) => {
+                                                            toast.error(`Upload Failed: ${error.message}`)
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <textarea
-                                    placeholder="Sermon Notes..."
-                                    rows={6}
-                                    className="w-full p-3 border rounded-lg text-brand-primary"
-                                    value={formData.content}
-                                    onChange={(e) => setFormData({...formData, content: e.target.value})}
-                                />
+                                {/* NEW: Cross-Platform Links */}
+                                <div className='flex flex-col gap-2 mt-2'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 4: Edit/Change Service Links</label>
+                                    <div className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
+                                        <p className="text-[10px] font-bold text-brand-secondary uppercase flex items-center gap-2">
+                                            <LinkIcon size={14}/> External Platform Links (Optional)
+                                        </p>
 
-                                <div className="flex flex-col md:flex-row gap-4 pt-6">
-                                    <button
-                                        type="button"
-                                        disabled={loading}
-                                        onClick={() => handleSubmit('draft')}
-                                        className="flex-1 bg-white border-2 border-brand-primary text-brand-primary py-5 rounded-2xl font-bold hover:bg-brand-primary/5 transition-all"
-                                    >
-                                        {loading ? "Saving..." : "Revert to Draft"}
-                                    </button>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">IG URL:</span>
+                                                <input type="url" placeholder="https://instagram.com/..." className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_ig || ""} onChange={(e) => setFormData({...formData, link_ig: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">X URL:</span>
+                                                <input type="url" placeholder="https://x.com/..." className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_twitter || ""} onChange={(e) => setFormData({...formData, link_twitter: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">FB URL:</span>
+                                                <input type="url" placeholder="https://facebook.com/..." className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_facebook || ""} onChange={(e) => setFormData({...formData, link_facebook: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">Spotify:</span>
+                                                <input type="url" placeholder="https://open.spotify.com/..." className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_spotify || ""} onChange={(e) => setFormData({...formData, link_spotify: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">Apple:</span>
+                                                <input type="url" placeholder="https://podcasts.apple.com/..." className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_apple || ""} onChange={(e) => setFormData({...formData, link_apple: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">YT Music:</span>
+                                                <input type="url" placeholder="https://music.youtube.com/..." className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_ytmusic || ""} onChange={(e) => setFormData({...formData, link_ytmusic: e.target.value})} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                    <button
-                                        type="button"
-                                        disabled={loading}
-                                        onClick={() => handleSubmit('published')}
-                                        className="flex-[2] bg-brand-primary text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all"
-                                    >
-                                        {loading ? "Updating..." : "Save Changes"}
-                                    </button>
+                                <div className='flex flex-col'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Edit/Change Sermon Note</label>
+                                    <textarea
+                                        placeholder="Sermon Notes..."
+                                        rows={6}
+                                        className="w-full p-3 border rounded-lg text-brand-primary"
+                                        value={formData.content}
+                                        onChange={(e) => setFormData({...formData, content: e.target.value})}
+                                    />
+                                </div>
+
+                                <div className='flex flex-col pt-6'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 6: Publish Sermon or Save As Draft</label>
+                                    <div className="flex flex-col md:flex-row gap-4 pt-1">
+                                        <button
+                                            type="button"
+                                            disabled={loading}
+                                            onClick={() => handleSubmit('draft')}
+                                            className="flex-1 bg-white border-2 border-brand-primary text-brand-primary py-5 rounded-2xl font-bold hover:bg-brand-primary/5 transition-all"
+                                        >
+                                            {loading ? "Saving..." : "Revert to Draft"}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            disabled={loading}
+                                            onClick={() => handleSubmit('published')}
+                                            className="flex-[2] bg-brand-primary text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all"
+                                        >
+                                            {loading ? "Updating..." : "Save Changes"}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

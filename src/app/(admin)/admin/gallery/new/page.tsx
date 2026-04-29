@@ -125,7 +125,7 @@ export default function NewGalleryPage() {
             toast.success(targetStatus === 'published' ? "Gallery Published!" : "Draft Saved");
             localStorage.removeItem("gallery_draft"); // Clear cache on success
 
-            const targetPath = targetStatus === 'published' ? "/gallery" : "/gallery?tab=draft";
+            const targetPath = targetStatus === 'published' ? "/admin/gallery" : "/admin/gallery?tab=draft";
             router.push(targetPath);
             router.refresh();
         }
@@ -135,7 +135,7 @@ export default function NewGalleryPage() {
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-5xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
-                    <Link href="/gallery" className="text-sm font-bold text-brand-secondary block hover:underline">← Back to Gallery List</Link>
+                    <Link href="/admin/gallery" className="text-sm font-bold text-brand-secondary block hover:underline">← Back to Gallery Dashboard</Link>
                     {/* Visual indicator that Auto-Save is working */}
                     {mediaItems.length > 0 && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">Draft Auto-Saved</span>}
                 </div>
@@ -146,7 +146,7 @@ export default function NewGalleryPage() {
                     <div className="space-y-8 md:space-y-10">
                         {/* Step 1: Category */}
                         <div className="space-y-4">
-                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1: Service Category</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1: Service Category</label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {["Weekly", "Special"].map((item) => (
                                     <button
@@ -163,6 +163,7 @@ export default function NewGalleryPage() {
                         {/* Weekly Branch */}
                         {category === "Weekly" && (
                             <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-top-2">
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1.1: Select Weekly Type</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     {["Sunday", "Tuesday", "Thursday"].map((day) => (
                                         <button
@@ -177,6 +178,7 @@ export default function NewGalleryPage() {
 
                                 {weeklyType === "Sunday" && (
                                     <div className="bg-slate-50 p-4 md:p-6 rounded-2xl space-y-4 md:space-y-6">
+                                        <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1.2: Select Which Sunday Service and Fill the Information</label>
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -217,6 +219,7 @@ export default function NewGalleryPage() {
                         {/* Special Branch */}
                         {category === "Special" && (
                             <div className="space-y-4 md:space-y-6 animate-in fade-in">
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
                                 <input
                                     list="specialNames"
                                     placeholder="Service Name (e.g. Wind of Change)"
@@ -244,50 +247,54 @@ export default function NewGalleryPage() {
 
                         {/* Step 2: Upload Media */}
                         {(weeklyType || category === "Special") && (
-                            <div className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center animate-in fade-in">
-                                <h3 className="font-bold text-brand-primary mb-2">Upload Files</h3>
-                                <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Photos and Highlights</p>
-                                <UploadButton
-                                    endpoint="mediaGalleryUploader"
-                                    appearance={{
-                                        button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-[7px] md:text-[15px] font-bold after:bg-brand-secondary"
-                                    }}
-                                    content={{
-                                        button({ ready }) {
-                                            if (ready) return "Select Media";
-                                            return "Loading...";
-                                        },
-                                    }}
-                                    onClientUploadComplete={(res) => {
-                                        const newItems: MediaItem[] = res.map(file => {
-                                            // Look at the original file name to determine if it's a video
-                                            const fileName = (file.name || "").toLowerCase();
-                                            const isVideo = fileName.endsWith('.mp4') ||
-                                                fileName.endsWith('.mov') ||
-                                                fileName.endsWith('.webm') ||
-                                                file.url.includes('.mp4');
+                            <div className='flex flex-col gap-2'>
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 3: Upload All Media (Pictures & Videos)</label>
+                                <div className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center animate-in fade-in">
+                                    <h3 className="font-bold text-brand-primary mb-2">Upload Files</h3>
+                                    <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Photos and Highlights</p>
+                                    <UploadButton
+                                        endpoint="mediaGalleryUploader"
+                                        appearance={{
+                                            button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-[7px] md:text-[15px] font-bold after:bg-brand-secondary"
+                                        }}
+                                        content={{
+                                            button({ ready }) {
+                                                if (ready) return "Select Media";
+                                                return "Loading...";
+                                            },
+                                        }}
+                                        onClientUploadComplete={(res) => {
+                                            const newItems: MediaItem[] = res.map(file => {
+                                                // Look at the original file name to determine if it's a video
+                                                const fileName = (file.name || "").toLowerCase();
+                                                const isVideo = fileName.endsWith('.mp4') ||
+                                                    fileName.endsWith('.mov') ||
+                                                    fileName.endsWith('.webm') ||
+                                                    file.url.includes('.mp4');
 
-                                            return {
-                                                url: file.url,
-                                                key: file.key,
-                                                type: isVideo ? "video" : "image",
-                                                caption: ""
-                                            };
-                                        });
-                                        setMediaItems(prev => [...prev, ...newItems]);
-                                        toast.success("Files uploaded!");
-                                    }}
-                                    onUploadError={(error) => {
-                                        console.error("Upload error:", error);
-                                        toast.error("Upload failed. Please try again.");
-                                    }}
-                                />
+                                                return {
+                                                    url: file.url,
+                                                    key: file.key,
+                                                    type: isVideo ? "video" : "image",
+                                                    caption: ""
+                                                };
+                                            });
+                                            setMediaItems(prev => [...prev, ...newItems]);
+                                            toast.success("Files uploaded!");
+                                        }}
+                                        onUploadError={(error) => {
+                                            console.error("Upload error:", error);
+                                            toast.error("Upload failed. Please try again.");
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )}
 
                         {/* Media Management Grid */}
                         {mediaItems.length > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-4">
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 4: Preview the Media. Captions can be added to each. Media can be deleted individually.</label>
                                 {mediaItems.map((item, index) => (
                                     <div key={item.key} className="flex gap-3 md:gap-4 p-3 md:p-4 bg-white border border-brand-accent rounded-2xl group shadow-sm flex-col sm:flex-row items-start sm:items-center">
                                         <div className="w-full sm:w-24 h-32 sm:h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 relative">
@@ -350,23 +357,31 @@ export default function NewGalleryPage() {
                         {/* Final Details & Submit */}
                         {(weeklyType || category === "Special") && (
                             <div className="space-y-6 pt-8 border-t border-gray-100">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                    <input
-                                        placeholder="Gallery Title (e.g. Easter 2026)"
-                                        className="p-3 border rounded-lg text-brand-primary font-bold w-full"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                    />
-                                    <input
-                                        type="date"
-                                        className="p-3 border rounded-lg text-brand-primary w-full"
-                                        value={formData.service_date}
-                                        onChange={(e) => setFormData({...formData, service_date: e.target.value})}
-                                    />
+                                <div>
+                                    <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 5: Edit Final Info (Title and Date)</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <input
+                                            placeholder="Gallery Title (e.g. Easter 2026)"
+                                            className="p-3 border rounded-lg text-brand-primary font-bold w-full"
+                                            value={formData.title}
+                                            onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                        />
+                                        <input
+                                            type="date"
+                                            className="p-3 border rounded-lg text-brand-primary w-full"
+                                            value={formData.service_date}
+                                            onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <button onClick={() => handleSubmit('draft')} className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold">Save Draft</button>
-                                    <button onClick={() => handleSubmit('published')} className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold">Publish Gallery</button>
+
+                                <div className='flex flex-col gap-2'>
+                                    <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 6: Publish Sermon or Save As Draft</label>
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <button onClick={() => handleSubmit('draft')} className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold">Save Draft</button>
+                                        <button onClick={() => handleSubmit('published')} className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold">Publish Gallery</button>
+                                    </div>
+
                                 </div>
                             </div>
                         )}

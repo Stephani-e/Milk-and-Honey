@@ -58,7 +58,7 @@ export default function EditEventPage() {
 
             if (error || !data) {
                 toast.error("Failed to load event data.");
-                router.push("/events");
+                router.push("/admin/events");
                 return;
             }
 
@@ -166,7 +166,7 @@ export default function EditEventPage() {
             setLoading(false);
         } else {
             toast.success("Event updated successfully!");
-            router.push("/events");
+            router.push("/admin/events");
             router.refresh();
         }
     };
@@ -176,8 +176,8 @@ export default function EditEventPage() {
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-4xl mx-auto">
-                <Link href="/events" className="text-sm font-bold text-brand-secondary mb-6 flex items-center gap-2 hover:underline w-fit">
-                    <ArrowLeft size={16} /> Back to Dashboard
+                <Link href="/admin/events" className="text-sm font-bold text-brand-secondary mb-6 flex items-center gap-2 hover:underline w-fit">
+                    <ArrowLeft size={16} /> Back to Events Dashboard
                 </Link>
 
                 <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-brand-accent">
@@ -194,51 +194,56 @@ export default function EditEventPage() {
 
                         {/* 1. CORE DETAILS */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-bold text-purple-600 uppercase tracking-widest">1. Core Details</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Event Title *</label><input required value={title} onChange={e => setTitle(e.target.value)} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2 flex justify-between">Category <span className="flex items-center gap-1 text-gray-400"><Lock size={10}/> Locked</span></label>
-                                    <div className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 font-bold cursor-not-allowed">{category}</div>
+                            <div className='flex flex-col gap-3 mt-2'>
+                                <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">Step 1: Edit/Change Core Details</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Event Title *</label><input required value={title} onChange={e => setTitle(e.target.value)} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2 flex justify-between">Category <span className="flex items-center gap-1 text-gray-400"><Lock size={10}/> Locked</span></label>
+                                        <div className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 font-bold cursor-not-allowed">{category}</div>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* SMART LOCATION PICKER */}
-                            <div className="bg-slate-50 p-4 rounded-2xl border border-gray-100">
-                                <label className="text-[10px] font-bold text-brand-primary uppercase tracking-widest block mb-3 flex items-center gap-1">
-                                    <MapPin size={12}/> Event Location
-                                </label>
-                                <select
-                                    value={locationSelection}
-                                    onChange={e => setLocationSelection(e.target.value)}
-                                    className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none cursor-pointer"
-                                >
-                                    <option value="Main Auditorium">Main Auditorium (Default)</option>
-                                    <option disabled value="Parish A">Parish A (Syncing soon...)</option>
-                                    <option disabled value="Parish B">Parish B (Syncing soon...)</option>
-                                    <option value="Custom">Custom / External Venue</option>
-                                </select>
+                            <div className='flex flex-col gap-3 mt-2'>
+                                <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">Step 1.1: Edit/Change Pick Location</label>
+                                <div className="bg-slate-50 p-3 rounded-2xl border border-gray-100">
+                                    <label className="text-[10px] font-bold text-brand-primary uppercase tracking-widest block mb-3 flex items-center gap-1">
+                                        <MapPin size={12}/> Event Location
+                                    </label>
+                                    <select
+                                        value={locationSelection}
+                                        onChange={e => setLocationSelection(e.target.value)}
+                                        className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none cursor-pointer"
+                                    >
+                                        <option value="Main Auditorium">Main Auditorium (Default)</option>
+                                        <option disabled value="Parish A">Parish A (Syncing soon...)</option>
+                                        <option disabled value="Parish B">Parish B (Syncing soon...)</option>
+                                        <option value="Custom">Custom / External Venue</option>
+                                    </select>
 
-                                {locationSelection === "Custom" && (
-                                    <input
-                                        required
-                                        placeholder="Enter specific address or venue name..."
-                                        value={customLocation}
-                                        onChange={e => setCustomLocation(e.target.value)}
-                                        className="w-full p-4 mt-3 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none animate-in fade-in slide-in-from-top-2"
-                                    />
-                                )}
+                                    {locationSelection === "Custom" && (
+                                        <input
+                                            required
+                                            placeholder="Enter specific address or venue name..."
+                                            value={customLocation}
+                                            onChange={e => setCustomLocation(e.target.value)}
+                                            className="w-full p-4 mt-3 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none animate-in fade-in slide-in-from-top-2"
+                                        />
+                                    )}
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Description</label>
+                            <div className='flex flex-col gap-3 mt-2'>
+                                <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">Step 1.2: Edit/Change Description of the Event</label>
                                 <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none" />
                             </div>
                         </div>
 
                         {/* 2. FLYERS & MEDIA (DYNAMIC) */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-bold text-purple-600 uppercase tracking-widest">2. Event Flyer(s)</h3>
+                            <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">Step 2: Edit/Change Event Flyer(s)</label>
 
                             {/* ONLY DO MULTIPLE FLYERS IF IT IS SUNDAY SERVICE */}
                             {eventType === 'recurring' && recurringDay === 'sunday' && title === 'Sunday Service' ? (
@@ -333,69 +338,72 @@ export default function EditEventPage() {
                         </div>
 
                         {/* 3. TIME & LOGIC (WITH RBAC LOCK) */}
-                        <div className="space-y-6 p-6 md:p-8 bg-slate-50 border border-gray-100 rounded-3xl relative">
-                            {userRole !== 'super_admin' && (
-                                <div className="absolute top-4 right-6 bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1"><Lock size={12}/> Time Edit Restricted</div>
-                            )}
-                            <h3 className="text-xs font-bold text-brand-primary uppercase tracking-widest flex items-center gap-2"><Calendar size={16}/> 3. Scheduling Rules</h3>
+                        <div className='flex flex-col gap-3 mt-2'>
+                            <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest mb-2">Step 3: Edit/Change Event Time(s)</label>
+                            <div className="space-y-6 p-6 md:p-8 bg-slate-50 border border-gray-100 rounded-3xl relative">
+                                {userRole !== 'super-admin' && (
+                                    <div className="absolute top-4 right-6 bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1"><Lock size={12}/> Time Edit Restricted</div>
+                                )}
+                                <h3 className="text-xs font-bold text-brand-primary uppercase tracking-widest flex items-center gap-2"><Calendar size={16}/> Scheduling Rules</h3>
 
-                            {eventType === 'recurring' && standardSessions.length === 0 && !thanksgivingSession && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="opacity-75"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Pattern</label><input disabled value={recurringPattern} className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 capitalize cursor-not-allowed" /></div>
-                                    <div className="opacity-75"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Rule</label><input disabled value={recurringDay.replace('_', ' ')} className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 capitalize cursor-not-allowed" /></div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label>
-                                        <input type="time" disabled={userRole !== 'super_admin'} value={startTime} onChange={e => setStartTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label>
-                                        <input type="time" disabled={userRole !== 'super_admin'} value={endTime} onChange={e => setEndTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {eventType === 'recurring' && standardSessions.length > 0 && (
-                                <div className="p-4 border border-brand-primary/20 bg-brand-primary/5 rounded-xl text-sm text-brand-primary font-bold">
-                                    Notice: Times for multi-session events are locked globally to preserve schedule integrity.
-                                </div>
-                            )}
-
-                            {eventType === 'single_day' && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Date</label><input type="date" disabled={userRole !== 'super_admin'} required value={singleDate} onChange={e => setSingleDate(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label><input type="time" disabled={userRole !== 'super_admin'} required value={startTime} onChange={e => setStartTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label><input type="time" disabled={userRole !== 'super_admin'} required value={endTime} onChange={e => setEndTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
-                                </div>
-                            )}
-
-                            {eventType === 'multi_day' && (
-                                <div className="space-y-4">
-                                    {multiDays.map((day, index) => (
-                                        <div key={index} className="flex flex-col sm:flex-row gap-4 items-end bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative group">
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Label</label><input disabled={userRole !== 'super_admin'} value={day.label} onChange={e => {const newDays = [...multiDays]; newDays[index].label = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Date</label><input type="date" disabled={userRole !== 'super_admin'} required value={day.date} onChange={e => {const newDays = [...multiDays]; newDays[index].date = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Start</label><input type="time" disabled={userRole !== 'super_admin'} required value={day.start_time} onChange={e => {const newDays = [...multiDays]; newDays[index].start_time = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
-                                            <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">End</label><input type="time" disabled={userRole !== 'super_admin'} required value={day.end_time} onChange={e => {const newDays = [...multiDays]; newDays[index].end_time = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super_admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
-
-                                            {multiDays.length > 1 && userRole === 'super_admin' && (
-                                                <button type="button" onClick={() => handleRemoveMultiDay(index)} className="p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
-                                            )}
+                                {eventType === 'recurring' && standardSessions.length === 0 && !thanksgivingSession && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="opacity-75"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Pattern</label><input disabled value={recurringPattern} className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 capitalize cursor-not-allowed" /></div>
+                                        <div className="opacity-75"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Rule</label><input disabled value={recurringDay.replace('_', ' ')} className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 capitalize cursor-not-allowed" /></div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label>
+                                            <input type="time" disabled={userRole !== 'super-admin'} value={startTime} onChange={e => setStartTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} />
                                         </div>
-                                    ))}
-                                    {userRole === 'super_admin' && (
-                                        <button type="button" onClick={handleAddMultiDay} className="w-full py-4 border-2 border-dashed border-purple-200 text-purple-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
-                                            <Plus size={18} /> Add Another Day
-                                        </button>
-                                    )}
-                                </div>
-                            )}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label>
+                                            <input type="time" disabled={userRole !== 'super-admin'} value={endTime} onChange={e => setEndTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {eventType === 'recurring' && standardSessions.length > 0 && (
+                                    <div className="p-4 border border-brand-primary/20 bg-brand-primary/5 rounded-xl text-sm text-brand-primary font-bold">
+                                        Notice: Times for multi-session events are locked globally to preserve schedule integrity.
+                                    </div>
+                                )}
+
+                                {eventType === 'single_day' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Date</label><input type="date" disabled={userRole !== 'super-admin'} required value={singleDate} onChange={e => setSingleDate(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
+                                        <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label><input type="time" disabled={userRole !== 'super-admin'} required value={startTime} onChange={e => setStartTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
+                                        <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label><input type="time" disabled={userRole !== 'super-admin'} required value={endTime} onChange={e => setEndTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
+                                    </div>
+                                )}
+
+                                {eventType === 'multi_day' && (
+                                    <div className="space-y-4">
+                                        {multiDays.map((day, index) => (
+                                            <div key={index} className="flex flex-col sm:flex-row gap-4 items-end bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative group">
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Label</label><input disabled={userRole !== 'super-admin'} value={day.label} onChange={e => {const newDays = [...multiDays]; newDays[index].label = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Date</label><input type="date" disabled={userRole !== 'super-admin'} required value={day.date} onChange={e => {const newDays = [...multiDays]; newDays[index].date = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Start</label><input type="time" disabled={userRole !== 'super-admin'} required value={day.start_time} onChange={e => {const newDays = [...multiDays]; newDays[index].start_time = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">End</label><input type="time" disabled={userRole !== 'super-admin'} required value={day.end_time} onChange={e => {const newDays = [...multiDays]; newDays[index].end_time = e.target.value; setMultiDays(newDays);}} className={`w-full p-3 border rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : ''}`} /></div>
+
+                                                {multiDays.length > 1 && userRole === 'super-admin' && (
+                                                    <button type="button" onClick={() => handleRemoveMultiDay(index)} className="p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {userRole === 'super-admin' && (
+                                            <button type="button" onClick={handleAddMultiDay} className="w-full py-4 border-2 border-dashed border-purple-200 text-purple-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
+                                                <Plus size={18} /> Add Another Day
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* 4. OPTIONAL OVERRIDES (Point #4 - Only shows for Non-Recurring) */}
                         {eventType !== 'recurring' && (
                             <div className="space-y-6">
-                                <h3 className="text-xs font-bold text-purple-600 uppercase tracking-widest">4. Special Overrides (Optional)</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <label className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-3">Step 4: Edit/Change Additional Event Info</label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
                                     <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Guest Speaker(s)</label><input value={guestSpeaker} onChange={e => setGuestSpeaker(e.target.value)} placeholder="e.g. Pastor E.A. Adeboye" className="w-full p-4 border rounded-xl bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none" /></div>
                                     <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Theme</label><input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. Let There Be Light" className="w-full p-4 border rounded-xl bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none" /></div>
                                     <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g. Faith to Move Mountains" className="w-full p-4 border rounded-xl bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none" /></div>
@@ -403,10 +411,13 @@ export default function EditEventPage() {
                             </div>
                         )}
 
-                        <div className="pt-8 border-t border-gray-100 flex justify-end">
-                            <button type="submit" disabled={loading} className="w-full sm:w-auto px-10 py-5 bg-brand-primary text-white rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-colors disabled:opacity-50">
-                                {loading ? "Saving Changes..." : "Save Changes"}
-                            </button>
+                        <div className='flex flex-col gap-3 pt-8 border-t border-gray-100 '>
+                            <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest mb-2">Step 5: Save Event(s) Changes. It goes live Immediately!!!</label>
+                            <div className="flex justify-end">
+                                <button type="submit" disabled={loading} className="w-full sm:w-auto px-10 py-5 bg-brand-primary text-white rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-colors disabled:opacity-50">
+                                    {loading ? "Saving Changes..." : "Save Changes"}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

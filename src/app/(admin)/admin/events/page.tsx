@@ -187,7 +187,7 @@ export default function EventsDashboardPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <button onClick={() => router.push(`/events/edit/${event.id}`)} title="Edit" className="text-brand-secondary hover:text-brand-primary transition-colors"><Edit3 size={14}/></button>
+                                        <button onClick={() => router.push(`/admin/events/edit/${event.id}`)} title="Edit" className="text-brand-secondary hover:text-brand-primary transition-colors"><Edit3 size={14}/></button>
                                         <button onClick={() => { setSelectedEvent(event); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-500 transition-colors"><Trash2 size={14}/></button>
                                     </>
                                 )}
@@ -207,7 +207,7 @@ export default function EventsDashboardPage() {
             <div className="max-w-6xl mx-auto">
                 <div className="flex justify-between items-center mb-6 md:mb-8">
                     <Link href="/admin" className="text-xs md:text-sm text-brand-secondary font-bold hover:underline">
-                        <span className="text-lg leading-none">←</span> Back to Dashboard
+                        <span className="text-lg leading-none">←</span> Back to Admin Dashboard
                     </Link>
 
                     {role !== 'viewer' && (
@@ -226,7 +226,7 @@ export default function EventsDashboardPage() {
                     </h1>
                     {role !== 'viewer' && !viewTrash && (
                         <button
-                            onClick={() => router.push("/events/new")}
+                            onClick={() => router.push("/admin/events/new")}
                             className="flex items-center gap-2 bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap"
                         >
                             <Plus size={16} /> New Event

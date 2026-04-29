@@ -148,7 +148,7 @@ export default function NewEventPage() {
         } else {
             localStorage.removeItem(DRAFT_EVENT_STORAGE_KEY);
             toast.success("Event created successfully!");
-            router.push("/events");
+            router.push("/admin/events");
             router.refresh();
         }
     };
@@ -157,7 +157,7 @@ export default function NewEventPage() {
         return (
             <div className="min-h-screen bg-brand-surface p-6 md:p-12 font-sans flex flex-col items-center justify-center">
                 <div className="max-w-4xl w-full">
-                    <Link href="/events" className="text-sm font-bold text-brand-secondary mb-8 block hover:underline">← Back to Dashboard</Link>
+                    <Link href="/admin/events" className="text-sm font-bold text-brand-secondary mb-8 block hover:underline">← Back to Events Dashboard</Link>
                     <div className="flex flex-col items-center">
                         <h1 className="text-3xl md:text-4xl font-serif font-bold text-brand-primary text-center mb-4">What kind of event are you creating?</h1>
                         {(title || flyerUrl) && (
@@ -216,7 +216,7 @@ export default function NewEventPage() {
 
                         {/* 1. CORE DETAILS */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-bold text-purple-600 uppercase tracking-widest">1. Core Details</h3>
+                            <h3 className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">1. Core Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Event Title *</label>
@@ -234,6 +234,7 @@ export default function NewEventPage() {
 
                             {/* SMART LOCATION PICKER */}
                             <div className="bg-slate-50 p-4 rounded-2xl border border-gray-100">
+                                <h3 className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">2. Pick Location</h3>
                                 <label className="text-[10px] font-bold text-brand-primary uppercase tracking-widest block mb-3 flex items-center gap-1">
                                     <MapPin size={12}/> Event Location
                                 </label>
@@ -261,6 +262,7 @@ export default function NewEventPage() {
                             </div>
 
                             <div>
+                                <h3 className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest mb-2">3. Description of Events</h3>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Description</label>
                                 <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none" />
                             </div>

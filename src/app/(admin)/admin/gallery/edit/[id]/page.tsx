@@ -139,7 +139,7 @@ export default function EditGalleryPage() {
             setLoading(false);
         } else {
             toast.success(targetStatus === 'published' ? "Gallery Changes Published!" : "Changes Saved to Draft");
-            const targetPath = targetStatus === 'published' ? "/gallery" : "/gallery?tab=draft";
+            const targetPath = targetStatus === 'published' ? "/admin/gallery" : "/admin/gallery?tab=draft";
             router.push(targetPath);
             router.refresh();
         }
@@ -150,7 +150,7 @@ export default function EditGalleryPage() {
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-5xl mx-auto">
-                <Link href="/gallery" className="text-sm font-bold text-brand-secondary mb-6 block hover:underline">← Back to Gallery List</Link>
+                <Link href="/admin/gallery" className="text-sm font-bold text-brand-secondary mb-6 block hover:underline">← Back to Gallery Dashboard</Link>
 
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-accent">
                     <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary mb-8">Edit Gallery Entry</h1>
@@ -160,7 +160,7 @@ export default function EditGalleryPage() {
                         {/* LOCKED Step 1: Category */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 1: Service Category</label>
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1: Service Category</label>
                                 <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-75">
@@ -178,6 +178,10 @@ export default function EditGalleryPage() {
                         {/* Weekly Branch - LOCKED Tabs, Editable Content */}
                         {category === "Weekly" && (
                             <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center gap-2">
+                                    <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1.1: Select Weekly Type</label>
+                                    <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
+                                </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 opacity-75">
                                     {["Sunday", "Tuesday", "Thursday"].map((day) => (
                                         <div
@@ -191,6 +195,7 @@ export default function EditGalleryPage() {
 
                                 {weeklyType === "Sunday" && (
                                     <div className="bg-slate-50 p-4 md:p-6 rounded-2xl space-y-4 md:space-y-6">
+                                        <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1.2: Select Which Sunday Service and Fill the Information</label>
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -231,6 +236,7 @@ export default function EditGalleryPage() {
                         {/* Special Branch - Locked Tabs, Editable Content */}
                         {category === "Special" && (
                             <div className="space-y-4 md:space-y-6 animate-in fade-in">
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Edit/Change Service Information</label>
                                 <input
                                     list="specialNames"
                                     placeholder="Service Name (e.g. Wind of Change)"
@@ -257,45 +263,48 @@ export default function EditGalleryPage() {
                         )}
 
                         {/* Add MORE Media Section */}
-                        <div className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center">
-                            <h3 className="font-bold text-brand-primary mb-2">Add More Files</h3>
-                            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Append new photos/videos to this gallery</p>
-                            <UploadButton
-                                endpoint="mediaGalleryUploader"
-                                appearance={{ button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-xs font-bold after:bg-brand-secondary" }}
-                                content={{
-                                    button({ ready }) {
-                                        if (ready) return "Select Media";
-                                        return "Loading...";
-                                    },
-                                }}
-                                onClientUploadComplete={(res) => {
-                                    const newItems: MediaItem[] = res.map(file => {
-                                        const fileName = (file.name || "").toLowerCase();
-                                        const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || file.url.includes('.mp4');
+                        <div className='flex flex-col gap-2'>
+                            <label className="text-[9px] md:text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 3: Upload New Media (Pictures & Videos)</label>
+                            <div className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center">
+                                <h3 className="font-bold text-brand-primary mb-2">Add More Files</h3>
+                                <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Append new photos/videos to this gallery</p>
+                                <UploadButton
+                                    endpoint="mediaGalleryUploader"
+                                    appearance={{ button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-xs font-bold after:bg-brand-secondary" }}
+                                    content={{
+                                        button({ ready }) {
+                                            if (ready) return "Select Media";
+                                            return "Loading...";
+                                        },
+                                    }}
+                                    onClientUploadComplete={(res) => {
+                                        const newItems: MediaItem[] = res.map(file => {
+                                            const fileName = (file.name || "").toLowerCase();
+                                            const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || file.url.includes('.mp4');
 
-                                        return {
-                                            url: file.url,
-                                            key: file.key,
-                                            type: isVideo ? "video" : "image",
-                                            caption: ""
-                                        };
-                                    });
-                                    setMediaItems(prev => [...prev, ...newItems]);
-                                    toast.success("Additional files attached!");
-                                }}
-                                onUploadError={(error) => {
-                                    console.error("Upload error:", error);
-                                    toast.error("Failed to upload media. Please try again.");
-                                }}
-                            />
+                                            return {
+                                                url: file.url,
+                                                key: file.key,
+                                                type: isVideo ? "video" : "image",
+                                                caption: ""
+                                            };
+                                        });
+                                        setMediaItems(prev => [...prev, ...newItems]);
+                                        toast.success("Additional files attached!");
+                                    }}
+                                    onUploadError={(error) => {
+                                        console.error("Upload error:", error);
+                                        toast.error("Failed to upload media. Please try again.");
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         {/* Media Management Grid (Edit/Delete Existing) */}
                         {mediaItems.length > 0 && (
                             <div className="space-y-4 animate-in slide-in-from-bottom-4">
-                                <div className="flex justify-between items-end">
-                                    <h3 className="text-xs font-black text-purple-600 uppercase tracking-widest">Manage Items & Captions</h3>
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 4: Edit/Change Old Media & Preview New Media. Captions can be added to each. Media can be deleted individually.</label>
+                                <div className="flex justify-between items-end mt-2 ">
                                     <span className="text-xs font-bold text-gray-400">{mediaItems.length} Items</span>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -356,37 +365,44 @@ export default function EditGalleryPage() {
 
                         {/* Final Details & Submit */}
                         <div className="space-y-6 pt-8 border-t border-gray-100">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                <input
-                                    placeholder="Gallery Title (e.g. Easter 2026)"
-                                    className="p-3 border rounded-lg text-brand-primary font-bold w-full"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                />
-                                <input
-                                    type="date"
-                                    className="p-3 border rounded-lg text-brand-primary w-full"
-                                    value={formData.service_date}
-                                    onChange={(e) => setFormData({...formData, service_date: e.target.value})}
-                                />
+                            <div className='flex flex-col gap-2'>
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 5: Edit Final Info (Title and Date)</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                    <input
+                                        placeholder="Gallery Title (e.g. Easter 2026)"
+                                        className="p-3 border rounded-lg text-brand-primary font-bold w-full"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                    />
+                                    <input
+                                        type="date"
+                                        className="p-3 border rounded-lg text-brand-primary w-full"
+                                        value={formData.service_date}
+                                        onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                    />
+                                </div>
                             </div>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => handleSubmit('draft')}
-                                    disabled={loading}
-                                    className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold disabled:opacity-50 hover:bg-brand-primary/5 transition-all"
-                                >
-                                    Revert to Draft
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleSubmit('published')}
-                                    disabled={loading}
-                                    className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold disabled:opacity-50 shadow-lg hover:bg-slate-800 transition-all"
-                                >
-                                    {loading ? "Updating..." : "Save Changes"}
-                                </button>
+
+                            <div className='flex flex-col gap-2'>
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 6: Publish Sermon or Save As Draft</label>
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSubmit('draft')}
+                                        disabled={loading}
+                                        className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold disabled:opacity-50 hover:bg-brand-primary/5 transition-all"
+                                    >
+                                        Revert to Draft
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSubmit('published')}
+                                        disabled={loading}
+                                        className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold disabled:opacity-50 shadow-lg hover:bg-slate-800 transition-all"
+                                    >
+                                        {loading ? "Updating..." : "Save Changes"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

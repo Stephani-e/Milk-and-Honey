@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { ArrowLeft, Megaphone, Target, Image as ImageIcon, CalendarClock, Link as LinkIcon, Film } from "lucide-react";
+import {
+    ArrowLeft,
+    Megaphone,
+    Target,
+    Image as ImageIcon,
+    CalendarClock,
+    Link as LinkIcon,
+    Film,
+    CheckCircle
+} from "lucide-react";
 import { useAuth } from "@/components/Admin/Admin Guard";
 
 const DRAFT_STORAGE_KEY = "milk_and_honey_ad_draft";
@@ -106,7 +115,7 @@ export default function NewAdPage() {
         } else {
             localStorage.removeItem(DRAFT_STORAGE_KEY);
             toast.success(submitType === 'active' ? "Campaign is now LIVE!" : "Campaign saved to Paused.");
-            router.push("/ads");
+            router.push("/admin/ads");
             router.refresh();
         }
     };
@@ -116,8 +125,8 @@ export default function NewAdPage() {
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-4xl mx-auto">
-                <Link href="/ads" className="text-sm font-bold text-brand-secondary mb-6 flex items-center gap-2 hover:underline w-fit">
-                    <ArrowLeft size={16} /> Back to Campaigns
+                <Link href="/admin/ads" className="text-sm font-bold text-brand-secondary mb-6 flex items-center gap-2 hover:underline w-fit">
+                    <ArrowLeft size={16} /> Back to Ad Campaigns
                 </Link>
 
                 <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-brand-accent">
@@ -139,8 +148,8 @@ export default function NewAdPage() {
 
                         {/* 1. CORE DETAILS */}
                         <div className="space-y-6">
-                            <h3 className="text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
-                                <Target size={16}/> 1. Campaign Details
+                            <h3 className="text-[9px] md:text-xs  font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                                <Target size={16}/> Step 1: Campaign Details
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
@@ -164,28 +173,31 @@ export default function NewAdPage() {
                         </div>
 
                         {/* 2. CALL TO ACTION */}
-                        <div className="space-y-6 p-6 bg-pink-50/50 border border-pink-100 rounded-3xl">
-                            <h3 className="text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
-                                <LinkIcon size={16}/> 2. Call to Action (Optional)
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Target URL</label>
-                                    <input type="url" value={targetLink} onChange={e => setTargetLink(e.target.value)} placeholder="https://..." className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Button Text</label>
-                                    <input value={buttonText} onChange={e => setButtonText(e.target.value)} placeholder="e.g. Register Now" className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none" />
+                        <div className='flex flex-col gap-4'>
+                            <label className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                                <LinkIcon size={16}/> Step 2: Call to Action (Link To AD)
+                            </label>
+
+                            <div className="space-y-6 p-6 bg-pink-50/50 border border-pink-100 rounded-3xl">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Target URL</label>
+                                        <input type="url" value={targetLink} onChange={e => setTargetLink(e.target.value)} placeholder="https://..." className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Button Text</label>
+                                        <input value={buttonText} onChange={e => setButtonText(e.target.value)} placeholder="e.g. Register Now" className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* 3. MEDIA UPLOAD */}
-                        <div className="space-y-6">
-                            <h3 className="text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
-                                <ImageIcon size={16}/> 3. Campaign Creative
-                            </h3>
-
+                        <div className='flex flex-col gap-4'>
+                            <label className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                                <ImageIcon size={16}/> Step 3: Edit/Change Campaign Creative (Either a Picture or Video)
+                            </label>
+                            <div className="space-y-6">
                             <div className="flex gap-4 mb-4">
                                 <button type="button" onClick={() => { setMediaType('image'); setMediaUrl(""); setFallbackImageUrl(""); }} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'image' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Image Ad</button>
                                 <button type="button" onClick={() => { setMediaType('video'); setMediaUrl(""); }} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'video' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Video Ad</button>
@@ -252,11 +264,16 @@ export default function NewAdPage() {
                                 )}
                             </div>
                         </div>
+                        </div>
 
                         {/* 4. PLACEMENT & EXPIRY */}
-                        <div className="space-y-6 p-6 md:p-8 bg-slate-50 border border-gray-100 rounded-3xl">
+                        <div className='flex flex-col gap-4'>
+                            <label className="text-[9px] md:text-xs  font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                                <CalendarClock size={16}/> Step 4: Delivery Rules
+                            </label>
+                            <div className="space-y-6 p-6 md:p-8 bg-slate-50 border border-gray-100 rounded-3xl">
                             <h3 className="text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
-                                <CalendarClock size={16}/> 4. Delivery Rules
+                                Delivery Rules. (Where Ad will be placed, Expiry, and Status)
                             </h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -278,9 +295,14 @@ export default function NewAdPage() {
                                 </div>
                             </div>
                         </div>
+                        </div>
 
                         {/* SUBMIT BUTTONS */}
-                        <div className="pt-8 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-4">
+                        <div className='flex flex-col gap-4 pt-8 border-t border-gray-100 '>
+                            <label className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                                <CheckCircle size={16}/> Step 5. Final Step: Review and Save
+                            </label>
+                            <div className="pt-8 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-4">
                             <button
                                 type="submit"
                                 disabled={loading}
@@ -297,6 +319,7 @@ export default function NewAdPage() {
                             >
                                 {loading ? "Publishing..." : "Publish Live Campaign"}
                             </button>
+                        </div>
                         </div>
                     </form>
                 </div>

@@ -8,7 +8,7 @@ import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import LoadingState from "@/components/Admin/LoadingPage";
-import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox, } from "lucide-react";
+import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox, Headphones,} from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -287,7 +287,7 @@ export default function SermonsPage() {
                     <Link
                         href="/admin"
                         className="text-xs md:text-sm text-brand-secondary font-bold hover:underline">
-                        <span className="text-lg leading-none">←</span> Back to Dashboard
+                        <span className="text-lg leading-none">←</span> Back to Admin Dashboard
                     </Link>
                 </div>
 
@@ -336,7 +336,7 @@ export default function SermonsPage() {
 
                     {view === 'active' && role !== 'viewer' && (
                         <button
-                            onClick={() => router.push("/sermons/new")}
+                            onClick={() => router.push("/admin/sermons/new")}
                             className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
                             + New Entry
                         </button>
@@ -344,7 +344,7 @@ export default function SermonsPage() {
 
                     {view === 'draft' && role !== 'viewer' && (
                         <button
-                            onClick={() => router.push("/sermons/new")}
+                            onClick={() => router.push("/admin/sermons/new")}
                             className="w-auto md:w-auto bg-brand-primary text-white px-6 py-4 md:py-2 rounded-xl md:rounded-lg font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform">
                             + New Entry
                         </button>
@@ -413,6 +413,31 @@ export default function SermonsPage() {
                                                     </span>
                                                 )}
                                             </span>
+                                        )}
+                                    </div>
+                                    {/* NEW: Cross-Platform Badges */}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        {s.link_ig && (
+                                            <a href={s.link_ig} target="_blank" rel="noreferrer" title="View on Instagram" className="p-1.5 bg-pink-50 text-pink-600 rounded-md hover:bg-pink-100 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                            </a>
+                                        )}
+                                        {s.link_twitter && (
+                                            <a href={s.link_twitter} target="_blank" rel="noreferrer" title="View on X" className="p-1.5 bg-slate-100 text-slate-800 rounded-md hover:bg-slate-200 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M4 20L20 4"></path></svg>
+                                            </a>
+                                        )}
+                                        {s.link_facebook && (
+                                            <a href={s.link_facebook} target="_blank" rel="noreferrer" title="View on Facebook" className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                                            </a>
+                                        )}
+                                        {(s.link_spotify || s.link_apple || s.link_ytmusic) && (
+                                            <div className="flex items-center gap-1.5 ml-2 pl-3 border-l border-gray-100">
+                                                {s.link_spotify && <a href={s.link_spotify} target="_blank" rel="noreferrer" className="text-green-500 hover:scale-110 transition-transform" title="Listen on Spotify" onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
+                                                {s.link_apple && <a href={s.link_apple} target="_blank" rel="noreferrer" className="text-purple-500 hover:scale-110 transition-transform" title="Listen on Apple Music" onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
+                                                {s.link_ytmusic && <a href={s.link_ytmusic} target="_blank" rel="noreferrer" className="text-red-500 hover:scale-110 transition-transform" title="Listen on YT Music" onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
+                                            </div>
                                         )}
                                     </div>
                                 </td>
@@ -495,6 +520,32 @@ export default function SermonsPage() {
                             {s.host && s.host !== "General" && (
                                 <p className="text-[10px] text-purple-600 font-bold uppercase tracking-wider mb-4">Host: {s.host}</p>
                             )}
+
+                            {/* NEW: Cross-Platform Badges for Mobile */}
+                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                {s.link_ig && (
+                                    <a href={s.link_ig} target="_blank" rel="noreferrer" title="View on Instagram" className="p-1.5 bg-pink-50 text-pink-600 rounded-md hover:bg-pink-100 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                    </a>
+                                )}
+                                {s.link_twitter && (
+                                    <a href={s.link_twitter} target="_blank" rel="noreferrer" title="View on X" className="p-1.5 bg-slate-100 text-slate-800 rounded-md hover:bg-slate-200 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M4 20L20 4"></path></svg>
+                                    </a>
+                                )}
+                                {s.link_facebook && (
+                                    <a href={s.link_facebook} target="_blank" rel="noreferrer" title="View on Facebook" className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                                    </a>
+                                )}
+                                {(s.link_spotify || s.link_apple || s.link_ytmusic) && (
+                                    <div className="flex items-center gap-1.5 ml-1 pl-2 border-l border-gray-100">
+                                        {s.link_spotify && <a href={s.link_spotify} target="_blank" rel="noreferrer" className="text-green-500 hover:scale-110 transition-transform" title="Listen on Spotify" onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
+                                        {s.link_apple && <a href={s.link_apple} target="_blank" rel="noreferrer" className="text-purple-500 hover:scale-110 transition-transform" title="Listen on Apple Music" onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
+                                        {s.link_ytmusic && <a href={s.link_ytmusic} target="_blank" rel="noreferrer" className="text-red-500 hover:scale-110 transition-transform" title="Listen on YT Music" onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="flex flex-wrap gap-4 justify-between items-center pt-4 border-t border-gray-50">
                                 {view === "trash" && (
@@ -751,7 +802,7 @@ function ActionButtons({
                             <Inbox size={18} className="text-brand-primary" />
                             <span className="text-[8px] font-bold uppercase text-brand-primary">Publish</span>
                         </button>
-                        <Link href={`/src/app/(admin)/admin/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
+                        <Link href={`/admin/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1">
                             <FileText size={18} className="text-slate-400 group-hover:text-brand-primary" />
                             <span className="text-[8px] font-bold uppercase text-slate-400">Edit</span>
                         </Link>
@@ -783,7 +834,7 @@ function ActionButtons({
                         <Archive size={18} className={`${sermon.is_archived ? "text-green-600" : "text-slate-400 group-hover:text-slate-600"}`} />
                         <span className={`text-[8px] font-bold uppercase ${sermon.is_archived ? "text-green-600" : "text-gray-400"}`}>{sermon.is_archived ? "Restore" : "Arch"}</span>
                     </button>
-                    <Link href={`/src/app/(admin)/admin/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
+                    <Link href={`/admin/sermons/edit/${sermon.id}`} className="flex flex-col items-center gap-1 min-h-[40px] py-1">
                         <FileText size={18} className="text-brand-primary" />
                         <span className="text-[8px] font-bold uppercase text-brand-primary">Edit</span>
                     </Link>

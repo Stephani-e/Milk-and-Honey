@@ -137,7 +137,7 @@ export default function AdsDashboardPage() {
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 md:mb-8">
                     <Link href="/admin" className="text-xs md:text-sm text-brand-secondary font-bold hover:underline">
-                        <span className="text-lg leading-none">←</span> Back to Dashboard
+                        <span className="text-lg leading-none">←</span> Back to Admin Dashboard
                     </Link>
                 </div>
 
@@ -180,7 +180,7 @@ export default function AdsDashboardPage() {
 
                     {/* RBAC: Hide New Ad from Viewers */}
                     {role !== 'viewer' && view !== 'trash' && (
-                        <button onClick={() => router.push("/ads/new")} className="bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap flex items-center gap-2">
+                        <button onClick={() => router.push("/admin/ads/new")} className="bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap flex items-center gap-2">
                             <Plus size={16} /> New Campaign
                         </button>
                     )}
@@ -282,7 +282,7 @@ export default function AdsDashboardPage() {
                                                     <Archive size={14} />
                                                     <span className="text-[7px] font-bold uppercase text-slate-500">Arch</span>
                                                 </button>
-                                                <Link href={`/src/app/(admin)/admin/ads/edit/${ad.id}`} title="Edit" className="text-brand-primary flex flex-col items-center gap-1 hover:scale-110 transition-transform">
+                                                <Link href={`/admin/ads/edit/${ad.id}`} title="Edit" className="text-brand-primary flex flex-col items-center gap-1 hover:scale-110 transition-transform">
                                                     <Edit3 size={14} />
                                                     <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
                                                 </Link>

@@ -153,7 +153,7 @@ export default function GalleryPage() {
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 md:mb-8">
                     <Link href="/admin" className="text-xs md:text-sm text-brand-secondary font-bold hover:underline">
-                        <span className="text-lg leading-none">←</span> Back to Dashboard
+                        <span className="text-lg leading-none">←</span> Back to Admin Dashboard
                     </Link>
                 </div>
 
@@ -190,7 +190,7 @@ export default function GalleryPage() {
                 <div className="flex flex-row justify-between items-center mb-8 md:mb-10 gap-4">
                     <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">Media Gallery</h1>
                     {(view === 'active' || view === 'draft') && role !== 'viewer' && (
-                        <button onClick={() => router.push("/gallery/new")} className="w-auto bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl md:rounded-lg text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap">
+                        <button onClick={() => router.push("/admin/gallery/new")} className="w-auto bg-brand-primary text-white px-4 py-3 md:px-6 md:py-2 rounded-xl md:rounded-lg text-xs md:text-base font-bold shadow-lg shadow-brand-primary/20 active:scale-95 transition-transform whitespace-nowrap">
                             + New Gallery
                         </button>
                     )}
@@ -334,7 +334,7 @@ export default function GalleryPage() {
                                                             <Inbox size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-brand-primary">Publish</span>
                                                         </button>
-                                                        <Link href={`/src/app/(admin)/admin/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1">
+                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1">
                                                             <FileText size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-slate-400">Edit</span>
                                                         </Link>
@@ -361,7 +361,7 @@ export default function GalleryPage() {
                                                             <Archive size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-brand-primary">Archive</span>
                                                         </button>
-                                                        <Link href={`/src/app/(admin)/admin/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1">
+                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1">
                                                             <FileText size={14} />
                                                             <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
                                                         </Link>
