@@ -182,7 +182,7 @@ export default function SermonsPage() {
         return expandedMonths.includes(monthKey);
     };
 
-    const featuredSermon = sermons.find(s => s.service_category === "Weekly" && s.weekly_type === "Sunday" && s.youtube_url) || sermons[0];
+    const featuredSermon = sermons.find(s => s.service_category === "Weekly" && s.weekly_type === "Sunday" && s.service_category === "Special" ) || sermons[0];
 
     const getSermonBadge = (sermon: any) => {
         if (sermon.service_category === "Weekly") {
@@ -218,7 +218,7 @@ export default function SermonsPage() {
                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
                 <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 text-center">
                     <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
-                        Media Library
+                        Sermons Library
                     </span>
                     <h1 className="text-4xl md:text-6xl font-serif font-black text-white leading-tight mb-4">
                         Experience the Word.
@@ -239,29 +239,38 @@ export default function SermonsPage() {
                     {/* FEATURED MESSAGE */}
                     {featuredSermon && (
                         <section className="max-w-7xl mx-auto px-4 md:px-6 -mt-8 md:-mt-10 relative z-20 mb-12">
-                            <a href={featuredSermon.youtube_url || "#"} target="_blank" rel="noreferrer" className="bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row group cursor-pointer block">
-                                <div className="w-full lg:w-3/5 h-56 md:h-96 relative overflow-hidden bg-slate-900">
+                            <a href={`/sermons/${featuredSermon.id}`} className="bg-white rounded-[20px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row group cursor-pointer block max-w-5xl mx-auto">
+                                {/* Image Container - Reduced max height */}
+                                <div className="w-full lg:w-[55%] h-48 md:h-72 lg:h-80 relative overflow-hidden bg-slate-900 shrink-0">
                                     <div className="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
                                     <img src={getThumbnail(featuredSermon)} alt={featuredSermon.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
                                     <div className="absolute inset-0 z-20 flex items-center justify-center">
-                                        <div className="w-16 h-16 md:w-20 md:h-20 bg-brand-primary/90 backdrop-blur-md rounded-full flex items-center justify-center text-white group-hover:bg-amber-500 group-hover:scale-110 transition-all shadow-2xl">
-                                            <Play size={28} className="ml-1.5 md:ml-2 md:w-8 md:h-8" fill="currentColor" />
+                                        <div className="w-14 h-14 md:w-16 md:h-16 bg-brand-primary/90 backdrop-blur-md rounded-full flex items-center justify-center text-white group-hover:bg-amber-500 group-hover:scale-110 transition-all shadow-xl">
+                                            <Play size={24} className="ml-1 md:ml-1.5 md:w-6 md:h-6" fill="currentColor" />
                                         </div>
                                     </div>
-                                    <span className="absolute top-4 left-4 md:top-6 md:left-6 z-20 bg-amber-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-1.5 rounded-full shadow-lg">Latest Message</span>
+                                    <span className="absolute top-4 left-4 z-20 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md">Latest Message</span>
                                 </div>
-                                <div className="w-full lg:w-2/5 p-6 md:p-12 flex flex-col justify-center">
-                                    <div className="flex items-center gap-2 text-amber-600 mb-3 md:mb-4 text-[10px] md:text-xs font-bold uppercase tracking-widest">
-                                        <BookOpen size={16} /> {getSermonBadge(featuredSermon)}
+
+                                {/* Text Container - Adjusted padding and centering */}
+                                <div className="w-full lg:w-[45%] p-6 md:p-8 lg:p-10 flex flex-col justify-center my-auto">
+                                    <div className="flex items-center gap-2 text-amber-600 mb-2 md:mb-3 text-[10px] md:text-[11px] font-bold uppercase tracking-widest">
+                                        <BookOpen size={14} /> {getSermonBadge(featuredSermon)}
                                     </div>
-                                    <h2 className="text-2xl md:text-4xl font-serif font-black text-brand-primary mb-4 leading-tight group-hover:text-amber-600 transition-colors">
+                                    <h2 className="text-xl md:text-2xl lg:text-3xl font-serif font-black text-brand-primary mb-3 md:mb-4 leading-snug group-hover:text-amber-600 transition-colors line-clamp-3">
                                         {featuredSermon.title}
                                     </h2>
-                                    <div className="space-y-2 md:space-y-3 mb-6 md:mb-8">
-                                        <p className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-500 font-medium"><User size={16} className="text-gray-400" /> {featuredSermon.preacher}</p>
-                                        <p className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-500 font-medium"><Calendar size={16} className="text-gray-400" /> {new Date(featuredSermon.service_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                                    <div className="space-y-2 mb-6">
+                                        <p className="flex items-center gap-2 text-[11px] md:text-sm text-gray-500 font-medium">
+                                            <User size={14} className="text-gray-400" /> {featuredSermon.preacher}
+                                        </p>
+                                        <p className="flex items-center gap-2 text-[11px] md:text-sm text-gray-500 font-medium">
+                                            <Calendar size={14} className="text-gray-400" /> {new Date(featuredSermon.service_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                        </p>
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs md:text-sm font-black uppercase tracking-widest text-brand-primary group-hover:text-amber-600 transition-colors">Watch Now <ArrowRight size={16} /></div>
+                                    <div className="flex items-center gap-2 text-[11px] md:text-xs font-black uppercase tracking-widest text-brand-primary group-hover:text-amber-600 transition-colors mt-auto">
+                                        Watch Now <ArrowRight size={14} />
+                                    </div>
                                 </div>
                             </a>
                         </section>
@@ -445,7 +454,7 @@ export default function SermonsPage() {
                                                                     {isMonthExpanded(monthKey) && (
                                                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-6 animate-in slide-in-from-top-2 fade-in duration-300 w-full">
                                                                             {monthMessages.map((sermon: any) => (
-                                                                                <a key={sermon.id} href={sermon.youtube_url || "#"} target="_blank" rel="noreferrer" className="bg-slate-50 rounded-2xl md:rounded-3xl overflow-hidden border border-gray-100 group cursor-pointer hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 flex flex-col hover:shadow-lg">
+                                                                                <a key={sermon.id} href={`/sermons/${sermon.id}`} className="bg-slate-50 rounded-2xl md:rounded-3xl overflow-hidden border border-gray-100 group cursor-pointer hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 flex flex-col hover:shadow-lg">
                                                                                     <div className="h-40 relative overflow-hidden bg-slate-900">
                                                                                         <div className="absolute inset-0 bg-brand-primary/20 group-hover:bg-brand-primary/40 transition-colors z-10 duration-300"></div>
                                                                                         <img src={getThumbnail(sermon)} alt={sermon.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-700" />
@@ -518,16 +527,31 @@ export default function SermonsPage() {
                     </section>
 
                     {/* AUDIO PROMO */}
+                    {/* AUDIO PROMO */}
                     <section className="max-w-7xl mx-auto px-4 md:px-6">
-                        <div className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
+                        <div className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
                             <Headphones size={150} className="absolute -right-5 -bottom-5 md:-right-10 md:-bottom-10 text-white/5 pointer-events-none md:w-[200px] md:h-[200px]" />
-                            <div className="relative z-10 max-w-xl text-center md:text-left">
+
+                            <div className="relative z-10 max-w-xl text-center lg:text-left">
                                 <h2 className="text-2xl md:text-4xl font-serif font-black text-white mb-3 md:mb-4">Listen on the Go.</h2>
                                 <p className="text-slate-300 leading-relaxed text-sm md:text-lg">Take the word with you anywhere. All our Sunday messages and Bible studies are uploaded weekly to major audio platforms.</p>
                             </div>
-                            <div className="relative z-10 flex flex-col sm:flex-row gap-3 md:gap-4 w-full md:w-auto">
-                                <a href="https://spotify.com" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-amber-400 transition-colors shadow-lg">Spotify</a>
-                                <a href="https://apple.com/podcasts" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-white/20 transition-colors backdrop-blur-sm">Apple Podcasts</a>
+
+                            <div className="relative z-10 flex flex-col sm:flex-row flex-wrap justify-center lg:justify-end gap-3 md:gap-4 w-full lg:w-auto">
+                                {/* Spotify */}
+                                <a href="https://spotify.com" target="_blank" rel="noreferrer" className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#1DB954] hover:text-white transition-all shadow-lg group">
+                                    <Headphones size={18} className="group-hover:scale-110 transition-transform"/> Spotify
+                                </a>
+
+                                {/* Apple Podcasts */}
+                                <a href="https://apple.com/podcasts" target="_blank" rel="noreferrer" className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-white hover:text-purple-600 transition-all backdrop-blur-sm group">
+                                    <Headphones size={18} className="group-hover:scale-110 transition-transform"/> Apple Podcasts
+                                </a>
+
+                                {/* YouTube Music */}
+                                <a href="https://spotify.com" target="_blank" rel="noreferrer" className="flex flex-1 sm:flex-none w-full sm:w-auto items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#FF0000] hover:text-white transition-all shadow-lg group">
+                                    <PlayCircle size={18} className="group-hover:scale-110 transition-transform"/> YouTube Music
+                                </a>
                             </div>
                         </div>
                     </section>
