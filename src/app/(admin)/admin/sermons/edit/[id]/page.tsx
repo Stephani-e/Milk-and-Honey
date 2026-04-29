@@ -21,7 +21,7 @@ export default function EditSermonPage() {
         action: 'delete' | 'change';
     } | null>(null);
 
-    const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
+    const [category, setCategory] = useState<"Weekly" | "Monthly" | "Special" | "">("");
     const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
@@ -31,6 +31,8 @@ export default function EditSermonPage() {
 
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
+    const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
+
 
     const [formData, setFormData] = useState({
         title: "",
@@ -99,13 +101,16 @@ export default function EditSermonPage() {
 
     useEffect(() => {
         async function getSuggestions() {
-            const { data } = await supabase.from("sermons").select("co_host, special_service_name");
+            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
             if (data) {
                 const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
-                const names = Array.from(new Set(data.map(i => i.special_service_name).filter(Boolean)));
+
+                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
+                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
+
                 setSavedCoHosts(hosts);
-                setSavedSpecialNames(names);
-            }
+                setSavedSpecialNames(specialNames);
+                setSavedMonthlyNames(monthlyNames);            }
         }
         getSuggestions();
     }, []);
@@ -159,12 +164,12 @@ export default function EditSermonPage() {
                                 <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
                             </div>
                             <div className="grid grid-cols-2 gap-4 opacity-75">
-                                {["Weekly", "Special"].map((item) => (
+                                {["Weekly", "Monthly", "Special"].map((item) => (
                                     <div
                                         key={item}
                                         className={`p-6 rounded-2xl border-2 font-bold cursor-not-allowed ${category === item ? "border-brand-primary bg-brand-primary/5 text-brand-primary" : "border-gray-100 bg-gray-50 text-gray-300"}`}
                                     >
-                                        {item === "Weekly" ? "Weekly / Fixed" : "Special Service"}
+                                        {item === "Weekly" ? "Weekly / Fixed" : item === "Monthly" ? "Monthly" : "Special Service"}
                                     </div>
                                 ))}
                             </div>
@@ -238,6 +243,27 @@ export default function EditSermonPage() {
                                         )}
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {category === "Monthly" && (
+                            <div className="animate-in fade-in bg-slate-50 p-6 rounded-2xl border border-gray-100">
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
+                                <input
+                                    list="monthlyNames"
+                                    placeholder="e.g. Holy Communion, Holy Ghost Service"
+                                    className="w-full p-4 border rounded-xl text-lg font-serif text-brand-primary"
+                                    value={formData.special_service_name || ""}
+                                    onChange={(e) => setFormData({...formData, special_service_name: e.target.value})}
+                                />
+                                <datalist id="monthlyNames">
+                                    {/* Default RCCG Suggestions + Saved ones from DB */}
+                                    <option value="Holy Ghost Service" />
+                                    <option value="Holy Communion" />
+                                    <option value="Anointing Service" />
+                                    <option value="Wind of Change" />
+                                    {savedMonthlyNames.map(n => <option key={n} value={n} />)}
+                                </datalist>
                             </div>
                         )}
 

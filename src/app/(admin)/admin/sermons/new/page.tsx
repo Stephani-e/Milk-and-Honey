@@ -19,13 +19,14 @@ export default function NewSermonPage() {
         action: 'delete' | 'change';
     } | null>(null);
 
-    const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
+    const [category, setCategory] = useState<"Weekly" | "Monthly" | "Special" | "">("");
     const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
 
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
+    const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
 
     const [bannerUploaded, setBannerUploaded] = useState(false);
     const [clipUploaded, setClipUploaded] = useState(false);
@@ -57,7 +58,7 @@ export default function NewSermonPage() {
         if (savedDraft) {
             const draft = JSON.parse(savedDraft);
             setFormData(draft.formData);
-            setCategory(draft.category);
+            setCategory(draft.service_category);
             setWeeklyType(draft.weeklyType);
             setIsThanksgiving(draft.isThanksgiving || false);
             setIsMultiDay(draft.isMultiDay || false);
@@ -98,6 +99,24 @@ export default function NewSermonPage() {
         setMediaAction(null);
     };
 
+    useEffect(() => {
+        async function getSuggestions() {
+            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
+            if (data) {
+                // Use Set to get unique values only (no duplicates)
+                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
+
+                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
+                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
+
+                setSavedCoHosts(hosts);
+                setSavedSpecialNames(specialNames);
+                setSavedMonthlyNames(monthlyNames);
+            }
+        }
+        getSuggestions();
+    }, []);
+
     const handleSubmit = async (targetStatus: 'draft' | 'published') => {
         setLoading(true);
 
@@ -110,6 +129,7 @@ export default function NewSermonPage() {
             is_multi_day: category === "Special" ? isMultiDay : false,
         };
 
+        // Clean up data based on the selected category to prevent ghost data
         if (category === "Weekly") {
             submission.special_service_name = "";
             submission.day_identifier = "";
@@ -117,15 +137,19 @@ export default function NewSermonPage() {
                 submission.host = "";
                 submission.service_number = "";
             }
-        } else {
+        } else if (category === "Monthly") {
             submission.weekly_type = "";
             submission.host = "";
             submission.service_number = "";
-
+            submission.day_identifier = "";
+            submission.co_host = "";
+        } else if (category === "Special") {
+            submission.weekly_type = "";
+            submission.host = "";
+            submission.service_number = "";
             if (!isMultiDay) {
                 submission.day_identifier = "";
             }
-
             if (!formData.co_host) {
                 submission.co_host = "";
             }
@@ -150,25 +174,12 @@ export default function NewSermonPage() {
         }
     };
 
-    useEffect(() => {
-        async function getSuggestions() {
-            const { data } = await supabase.from("sermons").select("co_host, special_service_name");
-            if (data) {
-                // Use Set to get unique values only (no duplicates)
-                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
-                const names = Array.from(new Set(data.map(i => i.special_service_name).filter(Boolean)));
-                setSavedCoHosts(hosts);
-                setSavedSpecialNames(names);
-            }
-        }
-        getSuggestions();
-    }, []);
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
-                    <Link href="/admin/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to Sermon Dasboard</Link>
+                    <Link href="/admin/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to Sermon Dashboard</Link>
                     <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">Draft Auto-Saved</span>
                 </div>
 
@@ -182,15 +193,15 @@ export default function NewSermonPage() {
                         {/* Category Selection */}
                         <div className="space-y-4">
                             <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1: Service Category</label>
-                            <div className="grid grid-cols-2 gap-4">
-                                {["Weekly", "Special"].map((item) => (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {["Weekly", "Monthly", "Special"].map((item) => (
                                     <button
                                         key={item}
                                         type="button"
                                         onClick={() => setCategory(item as any)}
                                         className={`p-6 rounded-2xl border-2 font-bold transition-all ${category === item ? "border-brand-primary bg-brand-primary/5 text-green-950" : "border-gray-100 text-brand-primary"}`}
                                     >
-                                        {item === "Weekly" ? "Weekly / Fixed" : "Special Service"}
+                                        {item === "Weekly" ? "Weekly / Fixed" : item === "Monthly" ? "Monthly Event" : "Special Service"}
                                     </button>
                                 ))}
                             </div>
@@ -263,6 +274,28 @@ export default function NewSermonPage() {
                             </div>
                         )}
 
+                        {/* Monthly Branch */}
+                        {category === "Monthly" && (
+                            <div className="animate-in fade-in bg-slate-50 p-6 rounded-2xl border border-gray-100">
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
+                                <input
+                                    list="monthlyNames"
+                                    placeholder="e.g. Holy Communion, Holy Ghost Service"
+                                    className="w-full p-4 border rounded-xl text-lg font-serif text-brand-primary"
+                                    value={formData.special_service_name || ""}
+                                    onChange={(e) => setFormData({...formData, special_service_name: e.target.value})}
+                                />
+                                <datalist id="monthlyNames">
+                                    {/* Default RCCG Suggestions + Saved ones from DB */}
+                                    <option value="Holy Ghost Service" />
+                                    <option value="Holy Communion" />
+                                    <option value="Anointing Service" />
+                                    <option value="Wind of Change" />
+                                    {savedMonthlyNames.map(n => <option key={n} value={n} />)}
+                                </datalist>
+                            </div>
+                        )}
+
                         {/* SPECIAL BRANCH */}
                         {category === "Special" && (
                             <div className="space-y-6 animate-in fade-in">
@@ -307,7 +340,7 @@ export default function NewSermonPage() {
                         )}
 
                         {/* UNIFIED FIELDS (Title, Preacher, Date, Media) */}
-                        {(weeklyType || category === "Special") && (
+                        {(weeklyType || category === "Monthly" || category === "Special") && (
                             <div className="pt-10 border-t border-gray-100 space-y-6">
                                 <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
     Play, Search, Calendar, User,
-    BookOpen, Headphones, ArrowRight, PlayCircle, Loader2
+    BookOpen, Headphones, ArrowRight, PlayCircle, Loader2, LinkIcon
 } from "lucide-react";
 
 export default function SermonsPage() {
@@ -13,7 +13,12 @@ export default function SermonsPage() {
 
     // Search and Filter State
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterCategory, setFilterCategory] = useState<"All" | "Sunday" | "Tuesday" | "Thursday" | "Special">("All");
+    const [filterCategory, setFilterCategory] = useState<"All" | "Sunday" | "Tuesday" | "Thursday" | "Monthly" | "Special">("All");
+
+    // Sub-filter states
+    const [sundayHostFilter, setSundayHostFilter] = useState<"All" | "Thanksgiving" | "General/Last Sunday" | "Men" | "Women" | "Youth">("All");
+    const [sundayServiceFilter, setSundayServiceFilter] = useState<"All Services" | "First Service" | "Second Service">("All Services");
+    const [monthlyFilter, setMonthlyFilter] = useState<string>("All");
 
     useEffect(() => {
         fetchPublicSermons();
@@ -39,10 +44,16 @@ export default function SermonsPage() {
         }
     }
 
-    // Dynamic filtering based on your database schema
-    // Dynamic filtering based on your database schema
+    // Extract unique monthly service names for the dynamic sub-filter
+    const monthlyServiceNames = useMemo(() => {
+        const names = sermons
+            .filter(s => s.service_category === "Monthly" && s.special_service_name)
+            .map(s => s.special_service_name);
+        return ["All", ...Array.from(new Set(names))];
+    }, [sermons]);
+
+    // Dynamic filtering
     const filteredSermons = sermons.filter(sermon => {
-        // Search Match (Bulletproof against null/empty fields)
         const safeTitle = sermon.title || "";
         const safePreacher = sermon.preacher || "";
 
@@ -52,12 +63,35 @@ export default function SermonsPage() {
 
         // Category Match
         let matchesCategory = true;
+
         if (filterCategory === "Sunday") {
             matchesCategory = sermon.service_category === "Weekly" && sermon.weekly_type === "Sunday";
+
+            if (matchesCategory) {
+                // Tier 1: Host/Thanksgiving Filter
+                if (sundayHostFilter === "Thanksgiving") {
+                    matchesCategory = sermon.is_thanksgiving === true;
+                } else if (sundayHostFilter !== "All") {
+                    // Must NOT be thanksgiving, and host must match
+                    matchesCategory = sermon.is_thanksgiving === false && sermon.host === sundayHostFilter;
+                }
+
+                // Tier 2: Service Number Filter (Only applies if it's not Thanksgiving)
+                if (matchesCategory && sundayHostFilter !== "Thanksgiving" && sundayServiceFilter !== "All Services") {
+                    matchesCategory = sermon.service_number === sundayServiceFilter;
+                }
+            }
         } else if (filterCategory === "Tuesday") {
             matchesCategory = sermon.service_category === "Weekly" && sermon.weekly_type === "Tuesday";
         } else if (filterCategory === "Thursday") {
             matchesCategory = sermon.service_category === "Weekly" && sermon.weekly_type === "Thursday";
+        } else if (filterCategory === "Monthly") {
+            matchesCategory = sermon.service_category === "Monthly";
+
+            // Apply dynamic monthly sub-filter
+            if (matchesCategory && monthlyFilter !== "All") {
+                matchesCategory = sermon.special_service_name === monthlyFilter;
+            }
         } else if (filterCategory === "Special") {
             matchesCategory = sermon.service_category === "Special";
         }
@@ -65,14 +99,12 @@ export default function SermonsPage() {
         return matchesSearch && matchesCategory;
     });
 
-    // The featured sermon is the latest Sunday Service with a YouTube URL
     const featuredSermon = sermons.find(s =>
         s.service_category === "Weekly" &&
         s.weekly_type === "Sunday" &&
         s.youtube_url
     ) || sermons[0];
 
-    // Helper to format the beautiful badges based on your DB logic
     const getSermonBadge = (sermon: any) => {
         if (sermon.service_category === "Weekly") {
             if (sermon.weekly_type === "Sunday") {
@@ -83,23 +115,22 @@ export default function SermonsPage() {
             if (sermon.weekly_type === "Tuesday") return "Digging Deep";
             if (sermon.weekly_type === "Thursday") return "Faith Clinic";
             return sermon.weekly_type;
+        } else if (sermon.service_category === "Monthly") {
+            return sermon.special_service_name || "Monthly Service";
         } else {
             return `Special: ${sermon.special_service_name || "Event"}`;
         }
     };
 
-    // Helper for fallbacks if they didn't upload a banner
     const getThumbnail = (sermon: any) => {
         if (sermon?.banner_url) return sermon.banner_url;
-        // If it's a Youtube link, attempt to extract the high-res Youtube thumbnail
         if (sermon?.youtube_url) {
             const videoIdMatch = sermon.youtube_url.match(/(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
             if (videoIdMatch && videoIdMatch[1]) {
                 return `https://img.youtube.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
             }
         }
-        // Generic Church Fallback
-        return "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=800&auto=format&fit=crop";
+        return "https://hegyctrfwn.ufs.sh/f/iMcVGeeTb1N4go9KLrcAQBW5E03lrCpOqKzJIRZUnG9sLDHa";
     };
 
     return (
@@ -145,7 +176,6 @@ export default function SermonsPage() {
                                         alt={featuredSermon.title}
                                         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                                     />
-                                    {/* Play Button Overlay */}
                                     <div className="absolute inset-0 z-20 flex items-center justify-center">
                                         <div className="w-20 h-20 bg-brand-primary/90 backdrop-blur-md rounded-full flex items-center justify-center text-white group-hover:bg-amber-500 group-hover:scale-110 transition-all shadow-2xl">
                                             <Play size={32} className="ml-2" fill="currentColor" />
@@ -182,14 +212,20 @@ export default function SermonsPage() {
 
                     {/* 3. SEARCH & FILTER BAR */}
                     <section className="max-w-7xl mx-auto px-6 mb-12">
-                        <div className="bg-white p-4 rounded-2xl md:rounded-full shadow-lg border border-gray-100 flex flex-col md:flex-row gap-4 items-center relative z-30">
 
-                            {/* Filter Tabs */}
+                        {/* MAIN FILTER ROW */}
+                        <div className="bg-white p-4 rounded-2xl md:rounded-full shadow-lg border border-gray-100 flex flex-col md:flex-row gap-4 items-center relative z-30">
                             <div className="flex overflow-x-auto no-scrollbar w-full md:w-auto gap-2 md:pl-2">
-                                {["All", "Sunday", "Tuesday", "Thursday", "Special"].map((tab) => (
+                                {["All", "Sunday", "Tuesday", "Thursday", "Monthly", "Special"].map((tab) => (
                                     <button
                                         key={tab}
-                                        onClick={() => setFilterCategory(tab as any)}
+                                        onClick={() => {
+                                            setFilterCategory(tab as any);
+                                            // Reset sub-filters on tab change
+                                            setSundayHostFilter("All");
+                                            setSundayServiceFilter("All Services");
+                                            setMonthlyFilter("All");
+                                        }}
                                         className={`whitespace-nowrap px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
                                             filterCategory === tab
                                                 ? "bg-brand-primary text-white shadow-md"
@@ -215,6 +251,80 @@ export default function SermonsPage() {
                                 />
                             </div>
                         </div>
+
+                        {/* SUB-FILTERS (Rendered OUTSIDE and BELOW the main container) */}
+                        <div className="mt-4 flex flex-col gap-3 min-h-[40px]">
+                            {/* Sunday Sub-filters */}
+                            {filterCategory === "Sunday" && (
+                                <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-2 flex items-center gap-1">
+                                            Sunday Type:
+                                        </span>
+                                        {["All", "Thanksgiving", "General/Last Sunday", "Men", "Women", "Youth"].map((subTab) => (
+                                            <button
+                                                key={subTab}
+                                                onClick={() => {
+                                                    setSundayHostFilter(subTab as any);
+                                                    if (subTab === "Thanksgiving") setSundayServiceFilter("All Services");
+                                                }}
+                                                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${
+                                                    sundayHostFilter === subTab
+                                                        ? "bg-amber-100 text-amber-700"
+                                                        : "bg-white text-gray-500 hover:bg-slate-100 border border-gray-200 shadow-sm"
+                                                }`}
+                                            >
+                                                {subTab === "General/Last Sunday" ? "General Sunday" : subTab}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {sundayHostFilter !== "Thanksgiving" && (
+                                        <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-2 animate-in fade-in">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-2 flex items-center gap-1">
+                                                Service:
+                                            </span>
+                                            {["All Services", "First Service", "Second Service"].map((serviceTab) => (
+                                                <button
+                                                    key={serviceTab}
+                                                    onClick={() => setSundayServiceFilter(serviceTab as any)}
+                                                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${
+                                                        sundayServiceFilter === serviceTab
+                                                            ? "bg-blue-100 text-blue-700"
+                                                            : "bg-white text-gray-500 hover:bg-slate-100 border border-gray-200 shadow-sm"
+                                                    }`}
+                                                >
+                                                    {serviceTab}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Monthly Sub-filters */}
+                            {filterCategory === "Monthly" && monthlyServiceNames.length > 1 && (
+                                <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-2 animate-in fade-in slide-in-from-top-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-2 flex items-center gap-1">
+                                        Monthly Event:
+                                    </span>
+                                    {monthlyServiceNames.map((name) => (
+                                        <button
+                                            key={name}
+                                            onClick={() => setMonthlyFilter(name)}
+                                            className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${
+                                                monthlyFilter === name
+                                                    ? "bg-blue-100 text-blue-700"
+                                                    : "bg-white text-gray-500 hover:bg-slate-100 border border-gray-200 shadow-sm"
+                                            }`}
+                                        >
+                                            {name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                     </section>
 
                     {/* 4. SERMONS GRID */}
@@ -249,9 +359,9 @@ export default function SermonsPage() {
                                         <div className="p-6 flex flex-col flex-grow">
                                             <div className="flex flex-wrap gap-2 mb-3">
                                                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
-                                                    sermon.service_category === "Weekly"
-                                                        ? "bg-purple-50 text-purple-600"
-                                                        : "bg-amber-50 text-amber-600"
+                                                    sermon.service_category === "Weekly" ? "bg-purple-50 text-purple-600" :
+                                                        sermon.service_category === "Monthly" ? "bg-blue-50 text-blue-600" :
+                                                            "bg-amber-50 text-amber-600"
                                                 }`}>
                                                     {getSermonBadge(sermon)}
                                                 </span>
@@ -260,11 +370,43 @@ export default function SermonsPage() {
                                                         {sermon.day_identifier}
                                                     </span>
                                                 )}
+                                                {/* Show specific host if it's not general */}
+                                                {sermon.service_category === "Weekly" && sermon.weekly_type === "Sunday" && sermon.host && sermon.host !== "General/Last Sunday" && (
+                                                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-emerald-50 text-emerald-600">
+                                                        {sermon.host}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <h3 className="text-xl font-serif font-black text-brand-primary mb-3 line-clamp-2 leading-tight group-hover:text-amber-600 transition-colors">
                                                 {sermon.title}
                                             </h3>
+
+                                            {/* Cross-Platform Links rendered dynamically */}
+                                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                                {sermon.link_ig && (
+                                                    <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_ig, '_blank'); }} title="View on Instagram" className="p-1.5 bg-pink-50 text-pink-600 rounded-md hover:bg-pink-100 transition-colors">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                                                    </button>
+                                                )}
+                                                {sermon.link_twitter && (
+                                                    <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_twitter, '_blank'); }} title="View on X" className="p-1.5 bg-slate-100 text-slate-800 rounded-md hover:bg-slate-200 transition-colors">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M4 20L20 4"></path></svg>
+                                                    </button>
+                                                )}
+                                                {sermon.link_facebook && (
+                                                    <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_facebook, '_blank'); }} title="View on Facebook" className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                                                    </button>
+                                                )}
+                                                {(sermon.link_spotify || sermon.link_apple || sermon.link_ytmusic) && (
+                                                    <div className="flex items-center gap-2 ml-1 pl-2 border-l border-gray-100">
+                                                        {sermon.link_spotify && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_spotify, '_blank'); }} className="text-green-500 hover:scale-110 transition-transform" title="Listen on Spotify"><Headphones size={14}/></button>}
+                                                        {sermon.link_apple && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_apple, '_blank'); }} className="text-purple-500 hover:scale-110 transition-transform" title="Listen on Apple Music"><Headphones size={14}/></button>}
+                                                        {sermon.link_ytmusic && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_ytmusic, '_blank'); }} className="text-red-500 hover:scale-110 transition-transform" title="Listen on YT Music"><Headphones size={14}/></button>}
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-500 font-medium">
                                                 <span className="flex items-center gap-1.5"><User size={14} className="text-gray-400"/> {sermon.preacher}</span>
@@ -280,7 +422,13 @@ export default function SermonsPage() {
                                 <h3 className="text-2xl font-bold text-brand-primary mb-2">No messages found</h3>
                                 <p className="text-gray-500">Try adjusting your search or filters to find what you're looking for.</p>
                                 <button
-                                    onClick={() => { setSearchQuery(""); setFilterCategory("All"); }}
+                                    onClick={() => {
+                                        setSearchQuery("");
+                                        setFilterCategory("All");
+                                        setSundayHostFilter("All");
+                                        setSundayServiceFilter("All Services");
+                                        setMonthlyFilter("All");
+                                    }}
                                     className="mt-6 text-sm font-bold text-amber-600 hover:text-amber-700 underline"
                                 >
                                     Clear all filters
