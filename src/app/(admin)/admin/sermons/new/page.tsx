@@ -375,7 +375,7 @@ export default function NewSermonPage() {
                                     />
                                 </div>
 
-                                {(weeklyType || category === "Special") && (
+                                {(weeklyType || category === "Monthly" || category === "Special") && (
                                     <>
                                         <div className='flex flex-col gap-2 mt-2'>
                                             <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4">Step 3: Fill Service Media</label>
