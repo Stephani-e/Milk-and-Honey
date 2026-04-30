@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
             <section className="max-w-4xl mx-auto px-6 -mt-10 relative z-20">
                 <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 p-8 md:p-16">
 
-                    <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-brand-primary transition-colors mb-10">
+                    <Link href="/public" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-brand-primary transition-colors mb-10">
                         <ArrowLeft size={16} /> Back to Home
                     </Link>
 
