@@ -193,6 +193,8 @@ export default function NewSermonPage() {
         }
     };
 
+    const todayObj = new Date();
+    const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
@@ -388,9 +390,16 @@ export default function NewSermonPage() {
                                     />
                                     <input
                                         type="date"
-                                        className="p-3 border rounded-lg text-brand-primary"
+                                        max={localMaxDate}
                                         value={formData.service_date}
-                                        onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                        onChange={(e) => {
+                                            if (e.target.value > localMaxDate) {
+                                                toast.error("You cannot select a future date for a recorded service!");
+                                                setFormData({...formData, service_date: localMaxDate});
+                                            } else {
+                                                setFormData({...formData, service_date: e.target.value});
+                                            }
+                                        }}
                                     />
                                 </div>
 

@@ -37,6 +37,37 @@ export default function EditSermonPage() {
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
     const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
 
+    useEffect(() => {
+        async function getSuggestions() {
+            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
+            if (data) {
+                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
+
+                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
+                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
+
+                setSavedCoHosts(hosts);
+                setSavedSpecialNames(specialNames);
+                setSavedMonthlyNames(monthlyNames);            }
+        }
+        getSuggestions();
+    }, []);
+
+    useEffect(() => {
+        async function getSuggestions() {
+            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
+            if (data) {
+                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
+
+                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
+                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
+
+                setSavedCoHosts(hosts);
+                setSavedSpecialNames(specialNames);
+                setSavedMonthlyNames(monthlyNames);            }
+        }
+        getSuggestions();
+    }, []);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -118,22 +149,6 @@ export default function EditSermonPage() {
         setMediaAction(null);
     };
 
-    useEffect(() => {
-        async function getSuggestions() {
-            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
-            if (data) {
-                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
-
-                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
-                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
-
-                setSavedCoHosts(hosts);
-                setSavedSpecialNames(specialNames);
-                setSavedMonthlyNames(monthlyNames);            }
-        }
-        getSuggestions();
-    }, []);
-
     const handleSubmit = async (targetStatus: "draft" | "published") => {
         setLoading(true);
 
@@ -165,6 +180,9 @@ export default function EditSermonPage() {
             router.refresh();
         }
     };
+
+    const todayObj = new Date();
+    const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
     if (fetching) return <div className="p-20 text-center font-bold text-brand-primary">Loading...</div>;
 
@@ -351,9 +369,17 @@ export default function EditSermonPage() {
                                     />
                                     <input
                                         type="date"
+                                        max={localMaxDate}
                                         className="p-3 border rounded-lg text-brand-primary"
                                         value={formData.service_date}
-                                        onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                        onChange={(e) => {
+                                            if (e.target.value > localMaxDate) {
+                                                toast.error("You cannot select a future date for a recorded service!");
+                                                setFormData({...formData, service_date: localMaxDate});
+                                            } else {
+                                                setFormData({...formData, service_date: e.target.value});
+                                            }
+                                        }}
                                     />
                                 </div>
 
