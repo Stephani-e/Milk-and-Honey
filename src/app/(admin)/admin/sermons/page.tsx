@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/Admin/Admin Guard";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import LoadingState from "@/components/Admin/LoadingPage";
-import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox, Headphones,} from "lucide-react";
+import {Trash2, RotateCcw, Archive, FileText, Clock, Inbox, Headphones, ChevronUp,} from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -691,21 +691,10 @@ export default function SermonsPage() {
             >
                 <button
                     onClick={scrollToTop}
-                    className="p-3 md:p-4 bg-brand-primary text-white rounded-full shadow-xl shadow-brand-primary/30 hover:scale-110 active:scale-95 transition-all"
+                    className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-xl shadow-brand-primary/30 hover:scale-110 active:scale-95 transition-all"
                     aria-label="Back to top"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5 md:w-6 md:h-6"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="m18 15-6-6-6 6" />
-                    </svg>
+                    <ChevronUp size={20} />
                 </button>
 
                 {/* Hidden on mobile to save space, visible on desktop */}

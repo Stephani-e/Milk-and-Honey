@@ -208,20 +208,20 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <FloatingDove />
 
             {/* 5. NEW PUBLIC FOOTER (Expanded Links) */}
-            <footer className="w-full bg-white border-t border-gray-100 pt-16 pb-8 font-sans mt-auto">
+            <footer className="w-full bg-brand-primary border-t border-gray-100 pt-16 pb-8 font-sans mt-auto">
                 {/* Top Section: Directory & Expanded Links */}
                 <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
 
                     {/* Brand Column */}
                     <div className="lg:col-span-2">
-                        <Link href="/" className="font-serif text-2xl font-black text-brand-primary tracking-tight mb-4 block">
+                        <Link href="/" className="font-serif text-2xl font-black text-white tracking-tight mb-4 block">
                             Milk<span className="text-amber-600">&</span>Honey
                         </Link>
-                        <p className="text-sm text-gray-500 leading-relaxed max-w-sm mb-6">
+                        <p className="text-sm text-white leading-relaxed max-w-sm mb-6">
                             A parish of the Redeemed Christian Church of God. Raising a generation of leaders, walking in dominion, and spreading love across Lagos Province 56.
                         </p>
 
-                        <div className="flex items-center gap-4 text-gray-400">
+                        <div className="flex items-center gap-4 text-brand-primary">
                             <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-100 hover:border-pink-200" aria-label="Instagram">
                                 <InstagramIcon size={20} />
                             </a>
@@ -235,12 +235,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                                 <TwitterIcon size={20} />
                             </a>
                         </div>
-
                     </div>
 
                     {/* Quick Links Column 1: About & Connect */}
                     <div>
-                        <h4 className="text-brand-primary font-bold mb-4 uppercase tracking-widest text-xs">About & Connect</h4>
+                        <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">About & Connect</h4>
                         <ul className="space-y-3 text-sm text-gray-500 font-medium">
                             <li><Link href="/about" className="hover:text-amber-600 transition-colors">Our Story</Link></li>
                             <li><Link href="/leadership" className="hover:text-amber-600 transition-colors">Leadership Registry</Link></li>
@@ -252,11 +251,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
                     {/* Quick Links Column 2: Media & Info */}
                     <div>
-                        <h4 className="text-brand-primary font-bold mb-4 uppercase tracking-widest text-xs">Media & Info</h4>
+                        <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Media & Info</h4>
                         <ul className="space-y-3 text-sm text-gray-500 font-medium">
                             <li><Link href="/sermons" className="hover:text-amber-600 transition-colors">Watch Sermons</Link></li>
                             <li><Link href="/gallery" className="hover:text-amber-600 transition-colors">Community Gallery</Link></li>
-                            <li><Link href="/share" className="hover:text-amber-600 transition-colors text-brand-primary flex items-center gap-1">Share Photos</Link></li>
+                            <li><Link href="/share" className="hover:text-amber-600 transition-colors text-white flex items-center gap-1">Share Photos</Link></li>
                             <li><Link href="/events" className="hover:text-amber-600 transition-colors">Upcoming Events</Link></li>
                             <li><Link href="/contact" className="hover:text-amber-600 transition-colors">Contact Us</Link></li>
                         </ul>
@@ -264,7 +263,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
                     {/* Contact Detail Column (UPGRADED WITH ICONS & SMART LINKS) */}
                     <div>
-                        <h4 className="text-brand-primary font-bold mb-4 uppercase tracking-widest text-xs">Contact</h4>
+                        <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Contact</h4>
                         <ul className="space-y-4 text-sm text-gray-500 font-medium">
                             <li>
                                 {/* SMART MAP LINK */}
@@ -274,7 +273,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                                     rel="noopener noreferrer"
                                     className="flex items-start gap-2 hover:text-amber-600 transition-colors group"
                                 >
-                                    <svg className="w-4 h-4 mt-0.5 text-brand-primary group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <svg className="w-4 h-4 mt-0.5 text-white group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
@@ -289,7 +288,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             </li>
                             <li>
                                 <a href={`mailto:${CHURCH_INFO.contact.email}`} className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
-                                    <svg className="w-4 h-4 text-brand-primary group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <svg className="w-4 h-4 text-white group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                     {CHURCH_INFO.contact.email}
@@ -297,7 +296,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             </li>
                             <li>
                                 <a href={`tel:${CHURCH_INFO.contact.phoneLink}`} className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
-                                    <svg className="w-4 h-4 text-brand-primary group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <svg className="w-4 h-4 text-white group-hover:text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                     {CHURCH_INFO.contact.phone}
@@ -311,7 +310,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 <div className="max-w-7xl mx-auto px-6 border-t border-gray-100 pt-8 flex flex-col items-center text-center">
 
                     {/* Secondary Navigation */}
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6 text-[10px] font-bold uppercase tracking-widest text-white ">
                         <a
                             href="https://wa.me/2340000000000?text=Hi, I am reaching out from the Milk & Honey website."
                             target="_blank"
@@ -323,13 +322,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             </svg>
                             WhatsApp Support
                         </a>
-                        <a href={CHURCH_INFO.contact.emailTech} className="hover:text-brand-primary transition-colors">
+                        <a href={CHURCH_INFO.contact.emailTech} className="hover:text-orange-600 transition-colors">
                             Technical Support
                         </a>
-                        <a href="/privacy" className="hover:text-brand-primary transition-colors">
+                        <a href="/privacy" className="hover:text-red-600 transition-colors">
                             Privacy Policy
                         </a>
-                        <a href="https://rccg.org" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors flex items-center gap-1">
+                        <a href="https://rccg.org" target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors flex items-center gap-1">
                             RCCG Global
                             <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                         </a>
@@ -337,11 +336,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
                     {/* Official Badges & CREATOR SIGNATURE */}
                     <div className="space-y-1.5 mb-4">
-                        <p className="text-[9px] md:text-[10px] text-brand-primary uppercase tracking-[0.2em] font-black">
+                        <p className="text-[9px] md:text-[10px] text-white uppercase tracking-[0.2em] font-black">
                             The Redeemed Christian Church of God (RCCG)
                         </p>
-                        <p className="text-[10px] text-gray-500 font-medium">
-                            © 2026 <span className="font-bold text-gray-700">Milk and Honey Center</span> • Lagos Province 56
+                        <p className="text-[10px] text-white font-medium">
+                            © 2026 <span className="font-bold text-gray-950">Milk and Honey Center</span> • Lagos Province 56
                         </p>
 
                         {/* SUBTLE CREATOR LOGO/TEXT */}

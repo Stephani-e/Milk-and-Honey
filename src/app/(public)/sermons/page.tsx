@@ -9,6 +9,7 @@ import {
 export default function SermonsPage() {
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showTopBtn, setShowTopBtn] = useState(false);
 
     // Search and Filter State
     const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +32,26 @@ export default function SermonsPage() {
     useEffect(() => {
         fetchPublicSermons();
     }, []);
+
+    // Scroll to Top Listener
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 400) {
+                setShowTopBtn(true);
+            } else {
+                setShowTopBtn(false);
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    };
 
     async function fetchPublicSermons() {
         setLoading(true);
@@ -158,7 +179,6 @@ export default function SermonsPage() {
     }, [filteredSermons, jumpYear, jumpMonth]);
 
     // Accordion Toggle Handlers
-// Accordion Toggle Handlers (Updated to prevent bubbling)
     const toggleYear = (e: React.MouseEvent, year: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -182,7 +202,7 @@ export default function SermonsPage() {
         return expandedMonths.includes(monthKey);
     };
 
-    const featuredSermon = sermons.find(s => s.service_category === "Weekly" && s.weekly_type === "Sunday" && s.service_category === "Special" ) || sermons[0];
+    const featuredSermon = sermons[0]
 
     const getSermonBadge = (sermon: any) => {
         if (sermon.service_category === "Weekly") {
@@ -211,7 +231,7 @@ export default function SermonsPage() {
     };
 
     return (
-        <div className="flex flex-col bg-slate-50 min-h-screen pb-24">
+        <div className="flex flex-col bg-slate-50 min-h-screen pb-24 relative">
 
             {/* HERO SECTION */}
             <section className="relative py-16 md:py-20 bg-brand-primary overflow-hidden">
@@ -240,7 +260,6 @@ export default function SermonsPage() {
                     {featuredSermon && (
                         <section className="max-w-7xl mx-auto px-4 md:px-6 -mt-8 md:-mt-10 relative z-20 mb-12">
                             <a href={`/sermons/${featuredSermon.id}`} className="bg-white rounded-[20px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row group cursor-pointer block max-w-5xl mx-auto">
-                                {/* Image Container - Reduced max height */}
                                 <div className="w-full lg:w-[55%] h-48 md:h-72 lg:h-80 relative overflow-hidden bg-slate-900 shrink-0">
                                     <div className="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
                                     <img src={getThumbnail(featuredSermon)} alt={featuredSermon.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
@@ -252,7 +271,6 @@ export default function SermonsPage() {
                                     <span className="absolute top-4 left-4 z-20 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md">Latest Message</span>
                                 </div>
 
-                                {/* Text Container - Adjusted padding and centering */}
                                 <div className="w-full lg:w-[45%] p-6 md:p-8 lg:p-10 flex flex-col justify-center my-auto">
                                     <div className="flex items-center gap-2 text-amber-600 mb-2 md:mb-3 text-[10px] md:text-[11px] font-bold uppercase tracking-widest">
                                         <BookOpen size={14} /> {getSermonBadge(featuredSermon)}
@@ -276,59 +294,75 @@ export default function SermonsPage() {
                         </section>
                     )}
 
-                    {/* SEARCH & FILTER BAR */}
-                    <section className="max-w-7xl mx-auto px-4 md:px-6 mb-10">
-                        <div className={`bg-white p-3 md:p-4 shadow-lg border border-gray-100 flex flex-col relative z-30 transition-all duration-300 ${filterCategory === 'Sunday' || filterCategory === 'Monthly' || filterCategory === 'Special'}`}>
+                    {/* SEARCH & FILTER BAR (Responsive Fix) */}
+                    <section className="max-w-7xl mx-auto px-4 md:px-6 mb-10 w-full">
+                        <div className={`bg-white p-3 md:p-4 shadow-lg border border-gray-100 rounded-xl flex flex-col relative z-30 transition-all duration-300 ${filterCategory === 'Sunday' || filterCategory === 'Monthly' || filterCategory === 'Special'}`}>
 
-                            <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center w-full">
-                                <div className="flex overflow-x-auto no-scrollbar w-full md:w-auto gap-2 md:pl-2 pb-1 md:pb-0">
-                                    {["All", "Sunday", "Tuesday", "Thursday", "Monthly", "Special"].map((tab) => (
-                                        <button
-                                            key={tab}
-                                            onClick={() => {
-                                                setFilterCategory(tab as any);
-                                                setSundayHostFilter("All");
-                                                setSundayServiceFilter("All Services");
-                                                setMonthlyFilter("All");
-                                                setSpecialFilter("All");
-                                            }}
-                                            className={`whitespace-nowrap px-4 md:px-6 py-2 md:py-2.5 rounded-full text-[11px] md:text-xs font-bold transition-all shrink-0 ${
-                                                filterCategory === tab ? "bg-brand-primary text-white shadow-md" : "bg-slate-50 text-gray-500 hover:bg-slate-100"
-                                            }`}
-                                        >
-                                            {tab === "Tuesday" ? "Digging Deep" : tab === "Thursday" ? "Faith Clinic" : tab}
-                                        </button>
-                                    ))}
+                            <div className="flex flex-col lg:flex-row gap-3 md:gap-4 items-center w-full">
+                                {/* Scrollable Category Buttons */}
+                                <div className="w-full lg:w-auto overflow-x-auto no-scrollbar">
+                                    <div className="flex gap-2 pb-2 lg:pb-0 px-1">
+                                        {["All", "Sunday", "Tuesday", "Thursday", "Monthly", "Special"].map((tab) => (
+                                            <button
+                                                key={tab}
+                                                onClick={() => {
+                                                    setFilterCategory(tab as any);
+                                                    setSundayHostFilter("All");
+                                                    setSundayServiceFilter("All Services");
+                                                    setMonthlyFilter("All");
+                                                    setSpecialFilter("All");
+                                                }}
+                                                className={`whitespace-nowrap px-4 md:px-6 py-2 md:py-2.5 rounded-full text-[11px] md:text-xs font-bold transition-all shrink-0 ${
+                                                    filterCategory === tab ? "bg-brand-primary text-white shadow-md" : "bg-slate-50 text-gray-500 hover:bg-slate-100"
+                                                }`}
+                                            >
+                                                {tab === "Tuesday" ? "Digging Deep" : tab === "Thursday" ? "Faith Clinic" : tab}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="hidden md:block w-[1px] h-8 bg-gray-200 mx-1"></div>
-                                <div className="flex-1 w-full relative flex items-center">
+
+                                <div className="hidden lg:block w-[1px] h-8 bg-gray-200 mx-1 shrink-0"></div>
+
+                                {/* Search Bar */}
+                                <div className="flex-1 w-full relative flex items-center bg-slate-50 rounded-full overflow-hidden border border-gray-100">
                                     <Search className="absolute left-4 text-gray-400" size={18} />
-                                    <input type="text" placeholder="Search title or preacher..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-2 bg-slate-50 md:bg-transparent rounded-full md:rounded-none border-none focus:ring-0 text-brand-primary font-bold placeholder-gray-400 outline-none text-sm" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search title or preacher..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-2.5 md:py-3 bg-transparent border-none focus:ring-0 text-brand-primary font-bold placeholder-gray-400 outline-none text-xs md:text-sm"
+                                    />
                                 </div>
                             </div>
 
                             {/* SUB-FILTERS */}
-                            <div className="flex flex-col gap-2 mt-1">
+                            <div className="flex flex-col gap-2 mt-2">
 
                                 {/* Sunday Sub-filters */}
                                 {filterCategory === "Sunday" && (
-                                    <div className="flex flex-col gap-2 pt-2 md:pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2">
-                                        <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-1">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Type:</span>
-                                            {["All", "Thanksgiving", "General/Last Sunday", "Men", "Women", "Youth"].map((subTab) => (
-                                                <button key={subTab} onClick={() => { setSundayHostFilter(subTab as any); if (subTab === "Thanksgiving") setSundayServiceFilter("All Services"); }} className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold transition-all ${sundayHostFilter === subTab ? "bg-amber-100 text-amber-700" : "bg-white text-gray-500 border border-gray-200"}`}>
-                                                    {subTab === "General/Last Sunday" ? "General Sunday" : subTab}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {sundayHostFilter !== "Thanksgiving" && (
-                                            <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-1 animate-in fade-in">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Service:</span>
-                                                {["All Services", "First Service", "Second Service"].map((serviceTab) => (
-                                                    <button key={serviceTab} onClick={() => setSundayServiceFilter(serviceTab as any)} className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold transition-all ${sundayServiceFilter === serviceTab ? "bg-blue-100 text-blue-700" : "bg-white text-gray-500 border border-gray-200"}`}>
-                                                        {serviceTab}
+                                    <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 w-full overflow-hidden">
+                                        <div className="w-full overflow-x-auto no-scrollbar">
+                                            <div className="flex items-center gap-2 px-1 pb-1 w-max min-w-full">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Type:</span>
+                                                {["All", "Thanksgiving", "General/Last Sunday", "Men", "Women", "Youth"].map((subTab) => (
+                                                    <button key={subTab} onClick={() => { setSundayHostFilter(subTab as any); if (subTab === "Thanksgiving") setSundayServiceFilter("All Services"); }} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-bold transition-all shrink-0 ${sundayHostFilter === subTab ? "bg-amber-100 text-amber-700" : "bg-white text-gray-500 border border-gray-200"}`}>
+                                                        {subTab === "General/Last Sunday" ? "General Sunday" : subTab}
                                                     </button>
                                                 ))}
+                                            </div>
+                                        </div>
+                                        {sundayHostFilter !== "Thanksgiving" && (
+                                            <div className="w-full overflow-x-auto no-scrollbar animate-in fade-in">
+                                                <div className="flex items-center gap-2 px-1 pb-1 w-max min-w-full">
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Service:</span>
+                                                    {["All Services", "First Service", "Second Service"].map((serviceTab) => (
+                                                        <button key={serviceTab} onClick={() => setSundayServiceFilter(serviceTab as any)} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-bold transition-all shrink-0 ${sundayServiceFilter === serviceTab ? "bg-blue-100 text-blue-700" : "bg-white text-gray-500 border border-gray-200"}`}>
+                                                            {serviceTab}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -336,48 +370,58 @@ export default function SermonsPage() {
 
                                 {/* Monthly Sub-filters */}
                                 {filterCategory === "Monthly" && monthlyServiceNames.length > 1 && (
-                                    <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-1 pt-2 border-t border-gray-100 animate-in fade-in slide-in-from-top-2">
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Event:</span>
-                                        {monthlyServiceNames.map((name) => (
-                                            <button key={name} onClick={() => setMonthlyFilter(name)} className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold transition-all ${monthlyFilter === name ? "bg-blue-100 text-blue-700" : "bg-white text-gray-500 border border-gray-200"}`}>
-                                                {name}
-                                            </button>
-                                        ))}
+                                    <div className="pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 w-full overflow-hidden">
+                                        <div className="w-full overflow-x-auto no-scrollbar">
+                                            <div className="flex items-center gap-2 px-1 pb-1 w-max min-w-full">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Event:</span>
+                                                {monthlyServiceNames.map((name) => (
+                                                    <button key={name} onClick={() => setMonthlyFilter(name)} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-bold transition-all shrink-0 ${monthlyFilter === name ? "bg-blue-100 text-blue-700" : "bg-white text-gray-500 border border-gray-200"}`}>
+                                                        {name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Special Sub-filters */}
                                 {filterCategory === "Special" && specialServiceNames.length > 1 && (
-                                    <div className="flex items-center overflow-x-auto no-scrollbar gap-2 px-1 pt-2 border-t border-gray-100 animate-in fade-in slide-in-from-top-2">
-                                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Event:</span>
-                                        {specialServiceNames.map((name) => (
-                                            <button key={name} onClick={() => setSpecialFilter(name)} className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold transition-all ${specialFilter === name ? "bg-purple-100 text-purple-700" : "bg-white text-gray-500 border border-gray-200"}`}>
-                                                {name}
-                                            </button>
-                                        ))}
+                                    <div className="pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 w-full overflow-hidden">
+                                        <div className="w-full overflow-x-auto no-scrollbar">
+                                            <div className="flex items-center gap-2 px-1 pb-1 w-max min-w-full">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 shrink-0 mr-1">Event:</span>
+                                                {specialServiceNames.map((name) => (
+                                                    <button key={name} onClick={() => setSpecialFilter(name)} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-bold transition-all shrink-0 ${specialFilter === name ? "bg-purple-100 text-purple-700" : "bg-white text-gray-500 border border-gray-200"}`}>
+                                                        {name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
 
                             {/* JUMP FILTERS (Date Selection) */}
-                            <div className="flex items-center gap-3 pt-4 mt-2 border-t border-gray-100 justify-end w-full">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Jump To Date:</span>
-                                <select
-                                    value={jumpMonth}
-                                    onChange={(e) => setJumpMonth(e.target.value)}
-                                    className="bg-slate-50 border border-gray-200 text-brand-primary text-[10px] md:text-xs font-bold rounded-lg px-2 md:px-3 py-1.5 outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
-                                >
-                                    <option value="All">All Months</option>
-                                    {availableMonths.filter(m => m !== "All").map(m => <option key={m} value={m}>{m}</option>)}
-                                </select>
-                                <select
-                                    value={jumpYear}
-                                    onChange={(e) => setJumpYear(e.target.value)}
-                                    className="bg-slate-50 border border-gray-200 text-brand-primary text-[10px] md:text-xs font-bold rounded-lg px-2 md:px-3 py-1.5 outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
-                                >
-                                    <option value="All">All Years</option>
-                                    {availableYears.filter(y => y !== "All").map(y => <option key={y} value={y}>{y}</option>)}
-                                </select>
+                            <div className="flex flex-wrap items-center justify-end gap-2 md:gap-3 pt-4 mt-2 border-t border-gray-100 w-full">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0">Jump To:</span>
+                                <div className="flex gap-2 flex-1 sm:flex-none justify-end">
+                                    <select
+                                        value={jumpMonth}
+                                        onChange={(e) => setJumpMonth(e.target.value)}
+                                        className="bg-slate-50 border border-gray-200 text-brand-primary text-[10px] md:text-xs font-bold rounded-lg px-2 md:px-3 py-1.5 outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer w-1/2 sm:w-auto"
+                                    >
+                                        <option value="All">All Months</option>
+                                        {availableMonths.filter(m => m !== "All").map(m => <option key={m} value={m}>{m}</option>)}
+                                    </select>
+                                    <select
+                                        value={jumpYear}
+                                        onChange={(e) => setJumpYear(e.target.value)}
+                                        className="bg-slate-50 border border-gray-200 text-brand-primary text-[10px] md:text-xs font-bold rounded-lg px-2 md:px-3 py-1.5 outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer w-1/2 sm:w-auto"
+                                    >
+                                        <option value="All">All Years</option>
+                                        {availableYears.filter(y => y !== "All").map(y => <option key={y} value={y}>{y}</option>)}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -388,7 +432,6 @@ export default function SermonsPage() {
                             <div className="space-y-12 md:space-y-16">
                                 {Object.keys(groupedSermons).sort((a, b) => b.localeCompare(a)).map((year) => {
 
-                                    // Calculate total messages in this year for the badge
                                     const totalYearMessages = Object.values(groupedSermons[year]).reduce((total: number, monthArr: any) => total + monthArr.length, 0);
 
                                     return (
@@ -400,7 +443,6 @@ export default function SermonsPage() {
                                                 onClick={(e) => toggleYear(e, year)}
                                                 className="flex items-center justify-between w-full text-left pb-2 mb-6 border-b-[3px] border-brand-primary/20 group hover:border-brand-primary transition-colors cursor-pointer"
                                             >
-                                                {/* Wrapping the text in flex-1 forces it to stay permanently on the left */}
                                                 <div className="flex flex-wrap items-center gap-3 md:gap-4 flex-1">
                                                     <h2 className="text-3xl md:text-5xl font-serif font-black text-brand-primary group-hover:text-amber-600 transition-colors m-0">
                                                         {year}
@@ -417,20 +459,17 @@ export default function SermonsPage() {
                                             {/* MONTHS WITHIN THE YEAR */}
                                             {isYearExpanded(year) && (
                                                 <div className="space-y-8 pl-0 md:pl-4 animate-in slide-in-from-top-4 fade-in duration-300 w-full">
-
-                                                    {/* Maintain chronological sorting for months */}
                                                     {Object.keys(groupedSermons[year])
                                                         .sort((a, b) => {
                                                             const m = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                                                            return m.indexOf(b) - m.indexOf(a); // Sort descending
+                                                            return m.indexOf(b) - m.indexOf(a);
                                                         })
                                                         .map((month) => {
                                                             const monthKey = `${year}-${month}`;
                                                             const monthMessages = groupedSermons[year][month];
 
                                                             return (
-                                                                <div key={monthKey} className="flex flex-col bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-sm w-full">
-
+                                                                <div key={monthKey} className="flex flex-col bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-sm w-full overflow-hidden">
                                                                     {/* MONTH HEADER */}
                                                                     <button
                                                                         type="button"
@@ -450,12 +489,12 @@ export default function SermonsPage() {
                                                                         </div>
                                                                     </button>
 
-                                                                    {/* SERMON CARDS FOR THIS MONTH */}
+                                                                    {/* SERMON CARDS */}
                                                                     {isMonthExpanded(monthKey) && (
                                                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-6 animate-in slide-in-from-top-2 fade-in duration-300 w-full">
                                                                             {monthMessages.map((sermon: any) => (
-                                                                                <a key={sermon.id} href={`/sermons/${sermon.id}`} className="bg-slate-50 rounded-2xl md:rounded-3xl overflow-hidden border border-gray-100 group cursor-pointer hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 flex flex-col hover:shadow-lg">
-                                                                                    <div className="h-40 relative overflow-hidden bg-slate-900">
+                                                                                <a key={sermon.id} href={`/sermons/${sermon.id}`} className="bg-slate-50 rounded-2xl md:rounded-3xl overflow-hidden border border-gray-100 group cursor-pointer hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 flex flex-col hover:shadow-lg w-full">
+                                                                                    <div className="h-40 relative overflow-hidden bg-slate-900 w-full">
                                                                                         <div className="absolute inset-0 bg-brand-primary/20 group-hover:bg-brand-primary/40 transition-colors z-10 duration-300"></div>
                                                                                         <img src={getThumbnail(sermon)} alt={sermon.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-700" />
                                                                                         {sermon.youtube_url && (
@@ -464,42 +503,42 @@ export default function SermonsPage() {
                                                                                             </div>
                                                                                         )}
                                                                                     </div>
-                                                                                    <div className="p-4 md:p-5 flex flex-col flex-grow">
+                                                                                    <div className="p-4 md:p-5 flex flex-col flex-grow w-full overflow-hidden">
                                                                                         <div className="flex flex-wrap gap-1.5 mb-2">
-                                                                                    <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${sermon.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : sermon.service_category === "Monthly" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                                                                                    <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md shrink-0 ${sermon.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : sermon.service_category === "Monthly" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
                                                                                         {getSermonBadge(sermon)}
                                                                                     </span>
                                                                                             {sermon.is_multi_day && sermon.day_identifier && (
-                                                                                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-gray-200 text-gray-600">
+                                                                                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-gray-200 text-gray-600 shrink-0">
                                                                                             {sermon.day_identifier}
                                                                                         </span>
                                                                                             )}
                                                                                             {sermon.service_category === "Weekly" && sermon.weekly_type === "Sunday" && sermon.host && sermon.host !== "General/Last Sunday" && (
-                                                                                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
+                                                                                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 shrink-0">
                                                                                             {sermon.host}
                                                                                         </span>
                                                                                             )}
                                                                                         </div>
-                                                                                        <h3 className="text-base md:text-lg font-serif font-black text-brand-primary mb-2 line-clamp-2 leading-tight group-hover:text-amber-600 transition-colors">
+                                                                                        <h3 className="text-base md:text-lg font-serif font-black text-brand-primary mb-2 line-clamp-2 leading-tight group-hover:text-amber-600 transition-colors break-words">
                                                                                             {sermon.title}
                                                                                         </h3>
 
                                                                                         <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-3">
-                                                                                            {sermon.link_ig && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_ig, '_blank'); }} className="p-1.5 bg-pink-100 text-pink-700 rounded-md hover:bg-pink-200"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></button>}
-                                                                                            {sermon.link_twitter && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_twitter, '_blank'); }} className="p-1.5 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M4 20L20 4"></path></svg></button>}
-                                                                                            {sermon.link_facebook && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_facebook, '_blank'); }} className="p-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></button>}
+                                                                                            {sermon.link_ig && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_ig, '_blank'); }} className="p-1.5 bg-pink-100 text-pink-700 rounded-md hover:bg-pink-200 shrink-0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></button>}
+                                                                                            {sermon.link_twitter && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_twitter, '_blank'); }} className="p-1.5 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300 shrink-0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l16 16"></path><path d="M4 20L20 4"></path></svg></button>}
+                                                                                            {sermon.link_facebook && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_facebook, '_blank'); }} className="p-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 shrink-0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></button>}
                                                                                             {(sermon.link_spotify || sermon.link_apple || sermon.link_ytmusic) && (
                                                                                                 <div className="flex items-center gap-1.5 ml-1 pl-1.5 border-l border-gray-200">
-                                                                                                    {sermon.link_spotify && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_spotify, '_blank'); }} className="text-green-600"><Headphones size={12}/></button>}
-                                                                                                    {sermon.link_apple && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_apple, '_blank'); }} className="text-purple-600"><Headphones size={12}/></button>}
-                                                                                                    {sermon.link_ytmusic && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_ytmusic, '_blank'); }} className="text-red-600"><Headphones size={12}/></button>}
+                                                                                                    {sermon.link_spotify && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_spotify, '_blank'); }} className="text-green-600 shrink-0"><Headphones size={12}/></button>}
+                                                                                                    {sermon.link_apple && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_apple, '_blank'); }} className="text-purple-600 shrink-0"><Headphones size={12}/></button>}
+                                                                                                    {sermon.link_ytmusic && <button onClick={(e) => { e.preventDefault(); window.open(sermon.link_ytmusic, '_blank'); }} className="text-red-600 shrink-0"><Headphones size={12}/></button>}
                                                                                                 </div>
                                                                                             )}
                                                                                         </div>
 
                                                                                         <div className="mt-auto pt-3 border-t border-gray-200 flex items-center justify-between text-[10px] md:text-xs text-gray-500 font-medium">
-                                                                                            <span className="flex items-center gap-1"><User size={12} className="text-gray-400"/> {sermon.preacher}</span>
-                                                                                            <span>{new Date(sermon.service_date).toLocaleDateString('en-GB')}</span>
+                                                                                            <span className="flex items-center gap-1 truncate max-w-[60%]"><User size={12} className="text-gray-400 shrink-0"/> <span className="truncate">{sermon.preacher}</span></span>
+                                                                                            <span className="shrink-0">{new Date(sermon.service_date).toLocaleDateString('en-GB')}</span>
                                                                                         </div>
                                                                                     </div>
                                                                                 </a>
@@ -527,7 +566,6 @@ export default function SermonsPage() {
                     </section>
 
                     {/* AUDIO PROMO */}
-                    {/* AUDIO PROMO */}
                     <section className="max-w-7xl mx-auto px-4 md:px-6">
                         <div className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
                             <Headphones size={150} className="absolute -right-5 -bottom-5 md:-right-10 md:-bottom-10 text-white/5 pointer-events-none md:w-[200px] md:h-[200px]" />
@@ -538,17 +576,12 @@ export default function SermonsPage() {
                             </div>
 
                             <div className="relative z-10 flex flex-col sm:flex-row flex-wrap justify-center lg:justify-end gap-3 md:gap-4 w-full lg:w-auto">
-                                {/* Spotify */}
                                 <a href="https://spotify.com" target="_blank" rel="noreferrer" className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#1DB954] hover:text-white transition-all shadow-lg group">
                                     <Headphones size={18} className="group-hover:scale-110 transition-transform"/> Spotify
                                 </a>
-
-                                {/* Apple Podcasts */}
                                 <a href="https://apple.com/podcasts" target="_blank" rel="noreferrer" className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-white hover:text-purple-600 transition-all backdrop-blur-sm group">
                                     <Headphones size={18} className="group-hover:scale-110 transition-transform"/> Apple Podcasts
                                 </a>
-
-                                {/* YouTube Music */}
                                 <a href="https://spotify.com" target="_blank" rel="noreferrer" className="flex flex-1 sm:flex-none w-full sm:w-auto items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#FF0000] hover:text-white transition-all shadow-lg group">
                                     <PlayCircle size={18} className="group-hover:scale-110 transition-transform"/> YouTube Music
                                 </a>
@@ -557,6 +590,24 @@ export default function SermonsPage() {
                     </section>
                 </>
             )}
+
+            {/* SCROLL TO TOP BUTTON */}
+            <div
+                className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${
+                    showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+                }`}
+            >
+                <button
+                    onClick={scrollToTop}
+                    className="p-3 md:p-4 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
+                    aria-label="Scroll to top"
+                >
+                    <ChevronUp size={20} />
+                </button>
+                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">
+                    Back to Top
+                </span>
+            </div>
         </div>
     );
 }

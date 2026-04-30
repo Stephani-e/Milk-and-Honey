@@ -7,6 +7,10 @@ import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import {Film, LinkIcon} from "lucide-react";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function NewSermonPage() {
     const router = useRouter();
@@ -52,6 +56,21 @@ export default function NewSermonPage() {
         link_ytmusic: "",
         link_apple: ""
     });
+
+    const quillModules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'font': [] }, { 'size': ['small', false, 'medium', 'large', 'huge'] },],
+            ['bold', 'italic', 'underline', 'strike',],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            [{'list': 'ordered'}, {'list': 'bullet'}, {'list': 'unordered'}],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            [{ 'align': [] }],
+            ['blockquote', 'code-block', 'link'],
+            ['clean']
+        ],
+    };
 
     useEffect(() => {
         const savedDraft = localStorage.getItem("sermon_draft");
@@ -530,14 +549,18 @@ export default function NewSermonPage() {
                                     </>
                                 )}
 
-                                <div className='flex flex-col'>
+                                <div className='flex flex-col w-full'>
                                     <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Sermon Note</label>
-                                    <textarea
-                                        placeholder="Sermon Notes..."
-                                        rows={6} className="w-full p-3 border rounded-lg text-brand-primary"
-                                        value={formData.content}
-                                        onChange={(e) => setFormData({...formData, content: e.target.value})}
-                                    />
+                                    <div className="bg-white rounded-lg border border-gray-300 w-full flex flex-col overflow-hidden shadow-sm">
+                                        <ReactQuill
+                                            theme="snow"
+                                            placeholder="Write your sermon notes here... You can use bold, italics, colors, and headers!"
+                                            value={formData.content}
+                                            onChange={(content) => setFormData({...formData, content})}
+                                            modules={quillModules}
+                                            className="flex flex-col text-black h-64 sm:h-72 md:h-96 lg:h-[500px] mb-12 md:mb-16 [&_.ql-toolbar]:flex [&_.ql-toolbar]:flex-wrap [&_.ql-toolbar]:justify-center md:[&_.ql-toolbar]:justify-start [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto [&_.ql-editor]:min-h-full"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className='flex flex-col pt-6'>
