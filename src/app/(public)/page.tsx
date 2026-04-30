@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     ArrowRight,
@@ -10,22 +11,55 @@ import {
     Calendar,
     PlayCircle,
     Megaphone,
-    Camera, User, Film
+    Camera,
+    User,
+    Film,
+    ChevronUp
 } from "lucide-react";
-import {supabase} from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
-export default async function HomePage() {
+export default function HomePage() {
+    const [latestSermon, setLatestSermon] = useState<any>(null);
+    const [showTopBtn, setShowTopBtn] = useState(false);
 
-    const { data: latestSermons } = await supabase
-        .from("sermons")
-        .select("id, title, preacher, banner_url, youtube_url, clip_url")
-        .eq("status", "published")
-        .eq("is_archived", "false")
-        .is("deleted_at", "null")
-        .order("service_date", {ascending: false})
-        .limit(1)
+    // 1. Fetch Latest Sermon securely on the client side
+    useEffect(() => {
+        async function fetchLatestSermon() {
+            const { data } = await supabase
+                .from("sermons")
+                .select("id, title, preacher, banner_url, youtube_url, clip_url")
+                .eq("status", "published")
+                .eq("is_archived", false)
+                .is("deleted_at", null)
+                .order("service_date", { ascending: false })
+                .limit(1);
 
-    const latestSermon = latestSermons?.[0] || null;
+            if (data && data.length > 0) {
+                setLatestSermon(data[0]);
+            }
+        }
+        fetchLatestSermon();
+    }, []);
+
+    // 2. Scroll to Top Listener
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 400) {
+                setShowTopBtn(true);
+            } else {
+                setShowTopBtn(false);
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    };
 
     const getThumbnail = (sermon: any) => {
         if (!sermon) return "";
@@ -42,7 +76,6 @@ export default async function HomePage() {
 
             {/* 1. HERO SECTION */}
             <section className="relative h-[85vh] min-h-[600px] flex items-center justify-center overflow-hidden">
-                {/* Replace with a real photo from the church later */}
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop')] bg-cover bg-center" />
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/90" />
 
@@ -67,7 +100,7 @@ export default async function HomePage() {
                 </div>
             </section>
 
-            {/* 2. PILLARS SECTION (From Reference Image) */}
+            {/* 2. PILLARS SECTION */}
             <section className="py-20 md:py-28 bg-amber-50/30">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
@@ -76,7 +109,6 @@ export default async function HomePage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Card 1 */}
                         <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-amber-900/5 border border-amber-100 hover:-translate-y-2 transition-transform duration-300">
                             <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6">
                                 <Users size={24} />
@@ -87,7 +119,6 @@ export default async function HomePage() {
                             </p>
                         </div>
 
-                        {/* Card 2 */}
                         <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-amber-900/5 border border-amber-100 hover:-translate-y-2 transition-transform duration-300">
                             <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6">
                                 <HandHeart size={24} />
@@ -98,7 +129,6 @@ export default async function HomePage() {
                             </p>
                         </div>
 
-                        {/* Card 3 */}
                         <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-amber-900/5 border border-amber-100 hover:-translate-y-2 transition-transform duration-300">
                             <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6">
                                 <Heart size={24} />
@@ -112,7 +142,7 @@ export default async function HomePage() {
                 </div>
             </section>
 
-            {/* 3. FIND YOUR COMMUNITY (Life Stages Funnel) */}
+            {/* 3. FIND YOUR COMMUNITY */}
             <section className="py-20 md:py-28 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -129,7 +159,6 @@ export default async function HomePage() {
                         {['Youth Church', 'Teens Church', 'Excellent Men', 'Good Women'].map((stage, i) => (
                             <Link href="/life-stages" key={i} className="group relative h-64 md:h-80 rounded-3xl overflow-hidden shadow-md">
                                 <div className="absolute inset-0 bg-slate-200 group-hover:scale-105 transition-transform duration-500">
-                                    {/* Placeholder for real category images later */}
                                 </div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
                                 <div className="absolute bottom-6 left-6 right-6">
@@ -157,20 +186,16 @@ export default async function HomePage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {/* DB Card Placeholder 1: Sermon */}
+                                {/* DYNAMIC LATEST SERMON CARD */}
                                 {latestSermon ? (
                                     <div className="relative p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[250px] overflow-hidden">
 
-                                        {/* Image Background */}
                                         <div className="absolute inset-0 z-0">
                                             <img src={getThumbnail(latestSermon)} alt={latestSermon.title} className="w-full h-full object-cover" />
-                                            {/* Thicker Gradient to ensure the text and video controls pop */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40"></div>
                                         </div>
 
                                         <div className="relative z-10 flex flex-col h-full justify-between">
-
-                                            {/* Display Mini Player if there is a clip, else show Play Icon */}
                                             {latestSermon.clip_url ? (
                                                 <div className="mb-4 rounded-xl overflow-hidden shadow-2xl border border-white/20 bg-black">
                                                     <video
@@ -238,7 +263,6 @@ export default async function HomePage() {
                                 Featured Updates
                             </h2>
 
-                            {/* The specific targeted Ad Slot */}
                             <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl h-[300px] lg:h-[calc(100%-3rem)] flex flex-col items-center justify-center text-gray-400 p-8 text-center shadow-sm">
                                 <Megaphone size={32} className="mb-4 opacity-50" />
                                 <span className="text-xs font-bold uppercase tracking-widest block mb-2 text-brand-primary">
@@ -249,6 +273,7 @@ export default async function HomePage() {
                                 </p>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </section>
@@ -258,7 +283,6 @@ export default async function HomePage() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
-                        {/* Left Side: Upload CTA */}
                         <div className="lg:w-1/3 text-center lg:text-left">
                             <span className="text-amber-600 font-bold tracking-widest uppercase text-[10px] mb-2 block">Our Moments</span>
                             <h2 className="text-3xl md:text-4xl font-serif font-black text-brand-primary mb-6">Experience Milk & Honey</h2>
@@ -277,26 +301,20 @@ export default async function HomePage() {
                             </div>
                         </div>
 
-                        {/* Right Side: Slideshow / Grid Placeholder */}
                         <div className="lg:w-2/3 relative w-full mt-8 lg:mt-0">
-                            {/* Decorative blurred background */}
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full lg:w-[120%] h-full lg:h-[120%] bg-amber-50 rounded-full blur-3xl -z-10" />
 
-                            {/* Staggered Masonry-style Layout Placeholder */}
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {/* Column 1 */}
                                 <div className="flex flex-col gap-4 translate-y-8">
                                     <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm"></div>
                                     <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm"></div>
                                 </div>
-                                {/* Column 2 */}
                                 <div className="flex flex-col gap-4">
                                     <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm flex items-center justify-center text-gray-400 font-bold text-[10px] tracking-widest uppercase text-center p-4">
                                         [Gallery<br/>Slideshow]
                                     </div>
                                     <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm"></div>
                                 </div>
-                                {/* Column 3 (Hidden on mobile for a cleaner fit) */}
                                 <div className="hidden md:flex flex-col gap-4 translate-y-12">
                                     <div className="bg-slate-200 rounded-3xl h-40 w-full shadow-sm"></div>
                                     <div className="bg-slate-200 rounded-3xl h-72 w-full shadow-sm"></div>
@@ -308,7 +326,7 @@ export default async function HomePage() {
                 </div>
             </section>
 
-            {/* 6. JOIN THE WORKFORCE (Departments Funnel) */}
+            {/* 6. JOIN THE WORKFORCE */}
             <section className="py-24 bg-brand-primary text-white relative overflow-hidden">
                 <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4">
                     <Briefcase size={400} />
@@ -325,6 +343,23 @@ export default async function HomePage() {
                     </div>
                 </div>
             </section>
+
+            <div
+                className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${
+                    showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+                }`}
+            >
+                <button
+                    onClick={scrollToTop}
+                    className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
+                    aria-label="Scroll to top"
+                >
+                    <ChevronUp size={20} />
+                </button>
+                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">
+                    Back to Top
+                </span>
+            </div>
         </div>
     );
 }
