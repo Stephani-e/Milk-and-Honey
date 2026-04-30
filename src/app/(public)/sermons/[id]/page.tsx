@@ -92,34 +92,13 @@ export default function SermonDetailPage() {
         });
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
-                <Loader2 size={48} className="animate-spin mb-4" />
-                <p className="font-bold tracking-widest uppercase text-xs">Loading Message...</p>
-            </div>
-        );
-    }
-
-    if (!sermon) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center px-6">
-                <h1 className="text-3xl font-serif font-black text-brand-primary mb-4">Message Not Found</h1>
-                <p className="text-gray-500 mb-8">The sermon you are looking for does not exist or has been removed.</p>
-                <Link href="/sermons" className="bg-brand-primary text-white px-8 py-3 rounded-full font-bold hover:bg-slate-800 transition-colors">
-                    Return to Library
-                </Link>
-            </div>
-        );
-    }
-
     const getYouTubeId = (url: string) => {
         if (!url) return null;
         const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^"&?\/\s]{11})/i);
         return match ? match[1] : null;
     };
 
-    const youtubeId = getYouTubeId(sermon.youtube_url);
+    const youtubeId = getYouTubeId(sermon?.youtube_url);
 
     const getThumbnail = (s: any) => {
         if (s?.banner_url) return s.banner_url;
@@ -139,7 +118,28 @@ export default function SermonDetailPage() {
         return `Special Event`;
     };
 
-    const hasSidebarContent = youtubeId || sermon.clip_url || sermon.link_spotify || sermon.link_apple || sermon.link_ytmusic || sermon.link_ig || sermon.link_facebook || sermon.link_twitter;
+    const hasSidebarContent = youtubeId || sermon?.clip_url || sermon?.link_spotify || sermon?.link_apple || sermon?.link_ytmusic || sermon?.link_ig || sermon?.link_facebook || sermon?.link_twitter;
+
+    if (!sermon) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center px-6">
+                <h1 className="text-3xl font-serif font-black text-brand-primary mb-4">Message Not Found</h1>
+                <p className="text-gray-500 mb-8">The sermon you are looking for does not exist or has been removed.</p>
+                <Link href="/sermons" className="bg-brand-primary text-white px-8 py-3 rounded-full font-bold hover:bg-slate-800 transition-colors">
+                    Return to Library
+                </Link>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
+                <Loader2 size={48} className="animate-spin mb-4" />
+                <p className="font-bold tracking-widest uppercase text-xs">Loading Message...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-slate-50 min-h-screen pb-24 relative">
@@ -216,15 +216,21 @@ export default function SermonDetailPage() {
                         )}
 
                         {/* Sermon Notes Container */}
-                        {/* Sermon Notes Container */}
                         <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2rem] border border-gray-100 shadow-sm">
-                            <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 mb-6 md:mb-8 border-b border-gray-100 pb-4">Message Notes</h3>
+                            <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 mb-6 md:mb-2 border-b border-gray-100 pb-4">Message Notes</h3>
 
                             {sermon.content ? (
-                                /* Added ql-editor here to handle advanced sizing and alignments automatically */
-                                <div className="ql-editor p-0">
+                                /* 1. ql-snow wrapper is required to activate Quill's alignment and color themes */
+                                <div className="ql-snow w-full">
+
                                     <div
-                                        className="text-gray-700 font-serif leading-[1.8] md:leading-loose break-words [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:ml-6 [&_ul]:ml-6 [&_li]:pl-2 [&_p]:mb-4 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold"
+                                        className="ql-editor p-0 text-gray-800 font-serif leading-[1.8] md:leading-loose break-words
+                                        [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-8 [&_ul]:pl-8
+                                        [&_li]:list-item [&_li]:mb-2
+                                        [&_p]:mb-4
+                                        [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4
+                                        [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-4
+                                        [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mb-3"
                                         dangerouslySetInnerHTML={{ __html: sermon.content }}
                                     />
                                 </div>
@@ -330,7 +336,7 @@ export default function SermonDetailPage() {
             >
                 <button
                     onClick={scrollToTop}
-                    className="p-3 md:p-4 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
+                    className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
                     aria-label="Scroll to top"
                 >
                     <ChevronUp size={20} />
@@ -339,7 +345,6 @@ export default function SermonDetailPage() {
                     Back to Top
                 </span>
             </div>
-
         </div>
     );
 }

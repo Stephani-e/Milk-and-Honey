@@ -599,7 +599,7 @@ export default function SermonsPage() {
             >
                 <button
                     onClick={scrollToTop}
-                    className="p-3 md:p-4 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
+                    className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
                     aria-label="Scroll to top"
                 >
                     <ChevronUp size={20} />
