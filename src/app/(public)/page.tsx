@@ -89,12 +89,17 @@ export default function HomePage() {
                     <p className="text-base md:text-lg text-slate-200 mb-10 max-w-2xl mx-auto leading-relaxed">
                         Join us this Sunday as we worship, learn, and grow together. There is a place for you here at Milk & Honey, Lagos Province 56.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 sm:mb-6">
                         <Link href="/about" className="px-8 py-4 bg-amber-400 text-amber-950 font-bold rounded-full hover:bg-amber-300 transition-colors w-full sm:w-auto text-center">
                             I'm New Here
                         </Link>
                         <Link href="/events" className="px-8 py-4 bg-white/10 text-white font-bold rounded-full border border-white/20 hover:bg-white/20 backdrop-blur-sm transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
                             View Service Times <ArrowRight size={18} />
+                        </Link>
+                    </div>
+                    <div className="flex items-center justify-center">
+                        <Link href="/socials" className="text-white/80 text-sm font-bold hover:text-amber-400 transition-colors underline underline-offset-4">
+                            Or connect with us online
                         </Link>
                     </div>
                 </div>

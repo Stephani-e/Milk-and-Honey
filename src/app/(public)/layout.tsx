@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, Camera } from "lucide-react";
+import { Menu, X, ChevronDown, Camera, ArrowRight } from "lucide-react";
 import FloatingDove from "@/components/Public/FloatingDove";
 import {CHURCH_INFO} from "@/lib/constants";
 
@@ -98,6 +98,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                                 <Link href="/sermons" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">Watch Sermons</Link>
                                 <Link href="/gallery" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">Community Gallery</Link>
                                 <div className="mx-4 my-1 border-t border-gray-100"></div>
+                                <Link href="/socials" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">
+                                    Socials
+                                </Link>
                                 <Link href="/share" className="px-5 py-2 text-sm text-brand-primary font-bold hover:bg-slate-50 transition-colors flex items-center justify-between group/share">
                                     Share Photos <Camera size={14} className="text-amber-500 group-hover/share:scale-110 transition-transform" />
                                 </Link>
@@ -221,19 +224,24 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             A parish of the Redeemed Christian Church of God. Raising a generation of leaders, walking in dominion, and spreading love across Lagos Province 56.
                         </p>
 
-                        <div className="flex items-center gap-4 text-brand-primary">
-                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-100 hover:border-pink-200" aria-label="Instagram">
-                                <InstagramIcon size={20} />
-                            </a>
-                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors border border-gray-100 hover:border-blue-200" aria-label="Facebook">
-                                <FacebookIcon size={20} />
-                            </a>
-                            <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-100 hover:border-red-200" aria-label="YouTube">
-                                <YouTubeIcon size={20} />
-                            </a>
-                            <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors border border-gray-100 hover:border-green-200" aria-label="X(Twitter)">
-                                <TwitterIcon size={20} />
-                            </a>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-4 text-brand-primary">
+                                <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-100 hover:border-pink-200" aria-label="Instagram">
+                                    <InstagramIcon size={20} />
+                                </a>
+                                <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors border border-gray-100 hover:border-blue-200" aria-label="Facebook">
+                                    <FacebookIcon size={20} />
+                                </a>
+                                <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-100 hover:border-red-200" aria-label="YouTube">
+                                    <YouTubeIcon size={20} />
+                                </a>
+                                <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors border border-gray-100 hover:border-green-200" aria-label="X(Twitter)">
+                                    <TwitterIcon size={20} />
+                                </a>
+                            </div>
+                            <Link href="/socials" className="text-amber-400 text-sm font-bold hover:underline flex items-center gap-1 mt-2">
+                                View All Platforms <ArrowRight size={14} />
+                            </Link>
                         </div>
                     </div>
 
