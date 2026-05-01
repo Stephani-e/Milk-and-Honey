@@ -96,7 +96,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                             </button>
                             <div className="absolute top-full left-1/2 -translate-x-1/2 w-56 bg-white border border-gray-100 shadow-xl rounded-2xl py-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                                 <Link href="/sermons" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">Watch Sermons</Link>
-                                <Link href="/gallery" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">Community Gallery</Link>
+                                <Link href="/gallery" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">Church Gallery</Link>
                                 <div className="mx-4 my-1 border-t border-gray-100"></div>
                                 <Link href="/socials" className="block px-5 py-2 text-sm text-gray-600 hover:text-brand-primary hover:bg-slate-50 transition-colors">
                                     Socials
@@ -168,7 +168,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                                 <span className="text-gray-400 text-[10px] uppercase tracking-widest mb-2 block">Media</span>
                                 <div className="flex flex-col gap-3 pl-4 border-l-2 border-brand-primary/20">
                                     <Link href="/sermons" onClick={() => setMobileMenuOpen(false)}>Watch Sermons</Link>
-                                    <Link href="/gallery" onClick={() => setMobileMenuOpen(false)}>Community Gallery</Link>
+                                    <Link href="/gallery" onClick={() => setMobileMenuOpen(false)}>Church Gallery</Link>
                                     <Link href="/share" onClick={() => setMobileMenuOpen(false)} className="text-brand-primary flex items-center gap-2">
                                         Share Photos <Camera size={14} className="text-amber-500" />
                                     </Link>
@@ -262,7 +262,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                         <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Media & Info</h4>
                         <ul className="space-y-3 text-sm text-gray-500 font-medium">
                             <li><Link href="/sermons" className="hover:text-amber-600 transition-colors">Watch Sermons</Link></li>
-                            <li><Link href="/gallery" className="hover:text-amber-600 transition-colors">Community Gallery</Link></li>
+                            <li><Link href="/gallery" className="hover:text-amber-600 transition-colors">Church Gallery</Link></li>
                             <li><Link href="/share" className="hover:text-amber-600 transition-colors text-white flex items-center gap-1">Share Photos</Link></li>
                             <li><Link href="/events" className="hover:text-amber-600 transition-colors">Upcoming Events</Link></li>
                             <li><Link href="/contact" className="hover:text-amber-600 transition-colors">Contact Us</Link></li>

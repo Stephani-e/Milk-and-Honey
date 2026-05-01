@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useAuth } from "@/components/Admin/Admin Guard";
@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
-import { Trash2, RotateCcw, Archive, FileText, Clock, Inbox, Image as ImageIcon, Film } from "lucide-react";
+import { Trash2, RotateCcw, Archive, FileText, Clock, Inbox, Image as ImageIcon, Film, LinkIcon } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -34,6 +34,11 @@ export default function GalleryPage() {
 
     const [modalType, setModalType] = useState<"delete" | "archive" | "restore" | null>(null);
     const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
+
+    // FIX 3: Reset Pagination whenever the tab, search, or sort changes!
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [view, search, sortBy]);
 
     useEffect(() => {
         fetchGalleryEntries();
@@ -81,7 +86,6 @@ export default function GalleryPage() {
         setLoading(false);
     }
 
-    // Calculate Days Remaining (For Trash Tab)
     const getDaysLeft = (deletedAt: string) => {
         const deleteDate = new Date(deletedAt);
         const expiryDate = new Date(deleteDate);
@@ -92,7 +96,6 @@ export default function GalleryPage() {
         return diffDays > 0 ? diffDays : 0;
     };
 
-    // Quick Publish from Drafts
     const handleQuickPublish = async (entry: any) => {
         const { error } = await supabase.from("media_gallery").update({ status: 'published' }).eq("id", entry.id);
         if (error) toast.error("Failed to publish: " + error.message);
@@ -102,13 +105,10 @@ export default function GalleryPage() {
         }
     };
 
-    // View Live Placeholder
     const handleViewLive = (id: string) => {
-        toast.info("Opening public preview...");
-        // window.open(`/gallery/${id}`, '_blank');
+        window.open(`/gallery/${id}`, '_blank');
     };
 
-    // The "Restore To Where?" Logic
     const handleRestoreFromTrashOrArchive = async (destination: 'active' | 'draft') => {
         const payload = destination === 'active'
             ? { is_archived: false, status: 'published', deleted_at: null }
@@ -149,7 +149,7 @@ export default function GalleryPage() {
     };
 
     return (
-        <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+        <div className="min-h-screen bg-brand-surface p-4 sm:p-6 md:p-12">
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 md:mb-8">
                     <Link href="/admin" className="text-xs md:text-sm text-brand-secondary font-bold hover:underline">
@@ -157,21 +157,20 @@ export default function GalleryPage() {
                     </Link>
                 </div>
 
-                {/* Tabs & Description */}
                 <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8'>
                     <div className="w-full md:w-auto overflow-x-auto no-scrollbar">
                         <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-max md:w-fit min-w-full md:min-w-0">
-                            <button onClick={() => setView("active")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "active" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}>
+                            <button onClick={() => setView("active")} className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "active" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}>
                                 All Galleries
                             </button>
-                            <button onClick={() => setView("archive")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}>
+                            <button onClick={() => setView("archive")} className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}>
                                 Archive
                             </button>
-                            <button onClick={() => setView("draft")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "draft" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-blue-700"}`}>
+                            <button onClick={() => setView("draft")} className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "draft" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-blue-700"}`}>
                                 Drafts
                             </button>
                             {role !== 'viewer' && (
-                                <button onClick={() => setView("trash")} className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}>
+                                <button onClick={() => setView("trash")} className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}>
                                     Trash <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[8px]">30 Days</span>
                                 </button>
                             )}
@@ -186,7 +185,6 @@ export default function GalleryPage() {
                     </p>
                 </div>
 
-                {/* H1 and New Button */}
                 <div className="flex flex-row justify-between items-center mb-8 md:mb-10 gap-4">
                     <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">Media Gallery</h1>
                     {(view === 'active' || view === 'draft') && role !== 'viewer' && (
@@ -198,13 +196,11 @@ export default function GalleryPage() {
 
                 <AdminFilter searchValue={searchTerm} onSearchChange={setSearchTerm} sortValue={sortBy} onSortChange={setSortBy} sortOptions={[{ label: "Latest First", value: "latest" }, { label: "Oldest First", value: "oldest" }, { label: "Title (A-Z)", value: "alphabetical" }]} />
 
-                {/* Grid View for Media */}
-                {/* TIGHTER GRID VIEW FOR MEDIA */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 mt-8">
+                {/* FIX 4: CHANGED TO grid-cols-2 ON MOBILE to make cards significantly smaller */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5 mt-8">
                     {entries.map((entry) => (
                         <div key={entry.id} className={`bg-white rounded-2xl border border-brand-accent overflow-hidden shadow-sm flex flex-col ${entry.is_archived && view !== "trash" ? "opacity-70 grayscale hover:grayscale-0 transition-all" : ""}`}>
 
-                            {/* Thumbnail Preview - Reduced Height */}
                             <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden flex-shrink-0">
                                 {entry.media_urls?.[0] ? (
                                     entry.media_urls[0].type === 'image' ? (
@@ -216,87 +212,79 @@ export default function GalleryPage() {
                                     <div className="flex items-center justify-center h-full text-gray-300"><ImageIcon size={32} /></div>
                                 )}
 
-                                {/* Smaller Badge */}
-                                <div className="absolute top-3 left-3 flex gap-2">
-                                    <span className="bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[9px] font-black text-brand-primary uppercase shadow-sm">
+                                <div className="absolute top-2 left-2 md:top-3 md:left-3 flex gap-2">
+                                    <span className="bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-black text-brand-primary uppercase shadow-sm">
                                         {entry.media_urls?.length || 0} Items
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Card Body - Tighter Padding */}
-                            <div className="p-4 md:p-5 flex flex-col flex-grow">
+                            {/* FIX 4: Slimmer internal padding */}
+                            <div className="p-3 md:p-5 flex flex-col flex-grow">
 
-                                {/* Badges - More Compact */}
-                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                <div className="flex flex-wrap gap-1 mb-2">
                                     {entry.service_category === "Weekly" ? (
-                                        <span className="bg-purple-100 text-purple-700 text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
+                                        <span className="bg-purple-100 text-purple-700 text-[7px] md:text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
                                             {entry.weekly_type}
                                         </span>
+                                    ) : entry.service_category === "Monthly" ? (
+                                        <span className="bg-blue-100 text-blue-700 text-[7px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                                            {entry.special_service_name || "Monthly Service"}
+                                        </span>
                                     ) : (
-                                        <span className="bg-amber-100 text-amber-700 text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
+                                        <span className="bg-amber-100 text-amber-700 text-[7px] md:text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
                                             Special: {entry.special_service_name}
                                         </span>
                                     )}
-                                    {entry.is_multi_day && <span className="text-[8px] font-bold text-gray-400">({entry.day_identifier})</span>}
-                                    {entry.service_category === "Weekly" && entry.weekly_type === "Sunday" && entry.service_number && (
-                                        <span className="text-[8px] font-bold text-gray-400">• {entry.service_number}</span>
-                                    )}
                                 </div>
 
-                                {/* Title & Date - Smaller Font */}
-                                <h3 className="font-serif font-bold text-brand-primary text-base md:text-lg mb-1 leading-tight line-clamp-2">{entry.title}</h3>
+                                {/* FIX 4: Scaled down Title & Details text */}
+                                <h3 className="font-serif font-bold text-brand-primary text-xs sm:text-sm md:text-lg mb-1 leading-tight line-clamp-2">{entry.title}</h3>
 
-                                <div className="text-[9px] text-brand-secondary font-bold mb-3 uppercase tracking-tight line-clamp-1">
+                                <div className="text-[8px] md:text-[9px] text-brand-secondary font-bold mb-3 uppercase tracking-tight line-clamp-1">
                                     {new Date(entry.service_date).toLocaleDateString('en-GB')}
-                                    {entry.host && entry.host !== "General" && entry.host !== "" && (
-                                        <span className="ml-1 text-purple-600">
-                                            | {entry.host} {entry.co_host && <span className="text-brand-secondary"> x ({entry.co_host})</span>}
-                                        </span>
-                                    )}
                                 </div>
 
-                                {/* Footer Actions - Reduced spacing */}
-                                <div className="mt-auto pt-3 border-t border-gray-50 flex justify-between items-center">
+                                <div className="mt-auto pt-2 md:pt-3 border-t border-gray-50 flex justify-between items-center">
 
                                     {view === "trash" ? (
-                                        <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[8px] font-bold border border-amber-100">
-                                            <Clock size={10} /> <span>{getDaysLeft(entry.deleted_at)}D LEFT</span>
+                                        <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1 py-0.5 rounded text-[7px] font-bold border border-amber-100">
+                                            <Clock size={8} /> <span>{getDaysLeft(entry.deleted_at)}D LEFT</span>
                                         </div>
                                     ) : (
-                                        <div className="flex gap-1.5">
-                                            {
-                                                entry.media_urls?.some((m: any) => m.type === 'image') &&
-                                                <div className='group flex flex-col items-center gap-1'>
-                                                    <ImageIcon size={12} className="text-gray-400" />
-                                                    <span className="text-[7px] font-bold uppercase text-gray-400">Picture</span>
+                                        <div className="flex gap-1 md:gap-2">
+                                            {entry.media_urls?.some((m: any) => m.type === 'image') && (
+                                                <div className='group flex flex-col items-center gap-0.5'>
+                                                    <ImageIcon size={10} className="text-gray-400" />
+                                                    <span className="text-[6px] font-bold uppercase text-gray-400">Pic</span>
                                                 </div>
-                                            }
-                                            {
-                                                entry.media_urls?.some((m: any) => m.type === 'video') &&
-                                                <div className='group flex flex-col items-center gap-1'>
-                                                    <Film size={12} className="text-gray-400" />
-                                                    <span className="text-[7px] font-bold uppercase text-gray-400">Video</span>
+                                            )}
+                                            {entry.media_urls?.some((m: any) => m.type === 'video') && (
+                                                <div className='group flex flex-col items-center gap-0.5'>
+                                                    <Film size={10} className="text-gray-400" />
+                                                    <span className="text-[6px] font-bold uppercase text-gray-400">Vid</span>
                                                 </div>
-                                            }
+                                            )}
+                                            {(entry.youtube_url || entry.link_ig || entry.link_twitter || entry.link_facebook || entry.link_spotify || entry.link_apple || entry.link_ytmusic) && (
+                                                <div className='group flex flex-col items-center gap-0.5'>
+                                                    <LinkIcon size={10} className="text-gray-400" />
+                                                    <span className="text-[6px] font-bold uppercase text-gray-400">Link</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
-                                    <div className="flex gap-3 items-center">
+                                    <div className="flex gap-2 items-center">
                                         {view === "trash" && (
                                             <>
                                                 {role !== 'viewer' && (
                                                     <button onClick={() => { setSelectedEntry(entry); setModalType("restore"); }} title="Restore" className="text-emerald-600 group flex flex-col items-center gap-1">
-                                                        <RotateCcw size={14} className="transition-transform group-hover:rotate-[-45deg]" />
-                                                        <span className="text-[7px] font-bold uppercase text-emerald-300">Restore</span>
+                                                        <RotateCcw size={12} className="transition-transform group-hover:rotate-[-45deg]" />
                                                     </button>
                                                 )}
-
-                                                {/* RBAC: Only Super Admin can Purge */}
                                                 {role === 'super-admin' && (
                                                     <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Purge" className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1">
-                                                        <Trash2 size={14} />
-                                                        <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
+                                                        <Trash2 size={12} />
                                                     </button>
                                                 )}
                                             </>
@@ -304,17 +292,10 @@ export default function GalleryPage() {
 
                                         {view === "archive" && (
                                             <>
-                                                {/* RBAC: Editors and Super Admins only */}
                                                 {role !== 'viewer' && (
                                                     <>
-                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("restore"); }} title="Restore" className="text-emerald-600 flex flex-col items-center gap-1">
-                                                            <RotateCcw size={14}/>
-                                                            <span className="text-[7px] font-bold uppercase text-emerald-300">Restore</span>
-                                                        </button>
-                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-400 flex flex-col items-center gap-1">
-                                                            <Trash2 size={14}/>
-                                                            <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                        </button>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("restore"); }} title="Restore" className="text-emerald-600 flex flex-col items-center gap-1"><RotateCcw size={12}/></button>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-400 flex flex-col items-center gap-1"><Trash2 size={12}/></button>
                                                     </>
                                                 )}
                                             </>
@@ -323,25 +304,14 @@ export default function GalleryPage() {
                                         {view === "draft" && (
                                             <>
                                                 <button onClick={() => handleViewLive(entry.id)} title="Preview" className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-                                                    <span className="text-[7px] font-bold uppercase text-brand-primary">Pre-View</span>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                                                 </button>
 
-                                                {/* RBAC: Editors and Super Admins only */}
                                                 {role !== 'viewer' && (
                                                     <>
-                                                        <button onClick={() => handleQuickPublish(entry)} title="Publish" className="text-brand-primary flex flex-col items-center gap-1">
-                                                            <Inbox size={14} />
-                                                            <span className="text-[7px] font-bold uppercase text-brand-primary">Publish</span>
-                                                        </button>
-                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1">
-                                                            <FileText size={14} />
-                                                            <span className="text-[7px] font-bold uppercase text-slate-400">Edit</span>
-                                                        </Link>
-                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
-                                                            <Trash2 size={14} />
-                                                            <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                        </button>
+                                                        <button onClick={() => handleQuickPublish(entry)} title="Publish" className="text-brand-primary flex flex-col items-center gap-1"><Inbox size={12} /></button>
+                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit" className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1"><FileText size={12} /></Link>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1"><Trash2 size={12} /></button>
                                                     </>
                                                 )}
                                             </>
@@ -350,25 +320,14 @@ export default function GalleryPage() {
                                         {view === "active" && (
                                             <>
                                                 <button onClick={() => handleViewLive(entry.id)} title="View Live" className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-                                                    <span className="text-[7px] font-bold uppercase text-brand-primary">View</span>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                                                 </button>
 
-                                                {/* RBAC: Editors and Super Admins only */}
                                                 {role !== 'viewer' && (
                                                     <>
-                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("archive"); }} title="Archive" className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1">
-                                                            <Archive size={14} />
-                                                            <span className="text-[7px] font-bold uppercase text-brand-primary">Archive</span>
-                                                        </button>
-                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1">
-                                                            <FileText size={14} />
-                                                            <span className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
-                                                        </Link>
-                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
-                                                            <Trash2 size={14} />
-                                                            <span className="text-[7px] font-bold uppercase text-red-300">Trash</span>
-                                                        </button>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("archive"); }} title="Archive" className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1"><Archive size={12} /></button>
+                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit" className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1"><FileText size={12} /></Link>
+                                                        <button onClick={() => { setSelectedEntry(entry); setModalType("delete"); }} title="Trash" className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1"><Trash2 size={12} /></button>
                                                     </>
                                                 )}
                                             </>
@@ -385,39 +344,45 @@ export default function GalleryPage() {
                         No media entries found in {view}.
                     </div>
                 )}
+
+
+                {/* --- PAGINATION CONTROLS --- */}
+                <div className="mt-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-brand-accent pt-8">
+                    <div className="text-xs font-bold text-brand-secondary uppercase tracking-widest">
+                        Showing <span className="text-brand-primary">{entries.length}</span> of {totalCount} Gallery Entries
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button disabled={currentPage === 1 || loading} onClick={() => setCurrentPage(prev => prev - 1)} className="p-3 rounded-xl border border-brand-accent bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                            <span className="bg-brand-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md shadow-brand-primary/20">{currentPage}</span>
+                            <span className="text-gray-400 px-2 font-bold text-sm">/</span>
+                            <span className="text-brand-primary font-bold text-sm">{Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}</span>
+                        </div>
+
+                        <button disabled={currentPage >= Math.ceil(totalCount / PAGE_SIZE) || loading} onClick={() => setCurrentPage(prev => prev + 1)} className="p-3 rounded-xl border border-brand-accent bg-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <ConfirmModal
-                isOpen={modalType === "delete" || modalType === "archive"}
-                title={modalType === "delete" ? (view === "trash" ? "Permanently Delete?" : "Move to Trash?") : (selectedEntry?.is_archived ? "Restore Gallery?" : "Archive Gallery?")}
-                message={modalType === "delete" ? (view === "trash" ? "This action is truly permanent. This gallery and its data will be gone forever." : "This will move the gallery to the trash. You can still restore it for the next 30 days.") : (selectedEntry?.is_archived ? "This will make the gallery visible to the public again." : "This will hide the gallery from the public site, but you can restore it anytime.")}
-                variant={modalType === "delete" ? "danger" : "primary"}
-                onClose={() => setModalType(null)}
-                onConfirm={handleConfirmAction}
-            />
+            <ConfirmModal isOpen={modalType === "delete" || modalType === "archive"} title={modalType === "delete" ? (view === "trash" ? "Permanently Delete?" : "Move to Trash?") : (selectedEntry?.is_archived ? "Restore Gallery?" : "Archive Gallery?")} message={modalType === "delete" ? (view === "trash" ? "This action is truly permanent. This gallery and its data will be gone forever." : "This will move the gallery to the trash. You can still restore it for the next 30 days.") : (selectedEntry?.is_archived ? "This will make the gallery visible to the public again." : "This will hide the gallery from the public site, but you can restore it anytime.")} variant={modalType === "delete" ? "danger" : "primary"} onClose={() => setModalType(null)} onConfirm={handleConfirmAction} />
 
-            {/* The "Restore To Where?" Modal Component */}
             {modalType === "restore" && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
                     <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-brand-accent">
                         <h2 className="text-2xl font-serif font-bold text-brand-primary mb-2">Restore Gallery</h2>
                         <p className="text-gray-500 text-sm mb-8">Where would you like to restore <span className="font-bold text-brand-primary">"{selectedEntry?.title}"</span>?</p>
-
                         <div className="grid grid-cols-1 gap-4">
                             <button onClick={() => handleRestoreFromTrashOrArchive('active')} className="flex items-center justify-between p-4 rounded-2xl border-2 border-brand-accent hover:border-brand-primary hover:bg-brand-surface transition-all group">
-                                <div className="text-left">
-                                    <div className="font-bold text-brand-primary">All Galleries</div>
-                                    <div className="text-[10px] text-gray-400 uppercase font-bold">Make public immediately</div>
-                                </div>
-                                <Inbox className="text-brand-primary group-hover:scale-110 transition-transform" />
+                                <div className="text-left"><div className="font-bold text-brand-primary">All Galleries</div><div className="text-[10px] text-gray-400 uppercase font-bold">Make public immediately</div></div><Inbox className="text-brand-primary group-hover:scale-110 transition-transform" />
                             </button>
-
                             <button onClick={() => handleRestoreFromTrashOrArchive('draft')} className="flex items-center justify-between p-4 rounded-2xl border-2 border-brand-accent hover:border-brand-primary hover:bg-brand-surface transition-all group">
-                                <div className="text-left">
-                                    <div className="font-bold text-brand-primary">Drafts</div>
-                                    <div className="text-[10px] text-gray-400 uppercase font-bold">Keep hidden for editing</div>
-                                </div>
-                                <FileText className="text-brand-primary group-hover:scale-110 transition-transform" />
+                                <div className="text-left"><div className="font-bold text-brand-primary">Drafts</div><div className="text-[10px] text-gray-400 uppercase font-bold">Keep hidden for editing</div></div><FileText className="text-brand-primary group-hover:scale-110 transition-transform" />
                             </button>
                         </div>
                         <button onClick={() => setModalType(null)} className="w-full mt-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-primary transition-colors">Cancel</button>
