@@ -42,7 +42,9 @@ export default function SocialsPage() {
 
             {/* 1. HERO SECTION */}
             <section className="relative pt-20 pb-16 md:pt-28 md:pb-20 bg-brand-primary overflow-hidden">
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+                <div className="absolute inset-0 bg-[url('https://unsplash.com/photos/a-group-of-different-social-media-logos-HBkpnDVc_Ic')] bg-cover bg-center"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/90" />
+
                 <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
                     <div className="w-16 h-16 bg-amber-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
                         <Smartphone size={32} />

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { X, Type, Film } from "lucide-react";
+import { X, Film } from "lucide-react";
 
 interface MediaItem {
     url: string;
@@ -19,15 +19,16 @@ export default function NewGalleryPage() {
     const [loading, setLoading] = useState(false);
     const [initialFetchDone, setInitialFetchDone] = useState(false);
 
-    // Branching Logic State
-    const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
+    // Branching Logic State (Added "Monthly")
+    const [category, setCategory] = useState<"Weekly" | "Monthly" | "Special" | "">("");
     const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
 
-    // Suggestions
+    // Suggestions (Added Monthly Names)
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
+    const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -64,13 +65,14 @@ export default function NewGalleryPage() {
         }
     }, [formData, category, weeklyType, isThanksgiving, isMultiDay, mediaItems, initialFetchDone]);
 
-    // Load suggestions on mount
+    // Load suggestions on mount (Updated to separate Monthly and Special)
     useEffect(() => {
         async function getSuggestions() {
-            const { data } = await supabase.from("media_gallery").select("co_host, special_service_name");
+            const { data } = await supabase.from("media_gallery").select("service_category, co_host, special_service_name");
             if (data) {
                 setSavedCoHosts(Array.from(new Set(data.map(i => i.co_host).filter(Boolean))));
-                setSavedSpecialNames(Array.from(new Set(data.map(i => i.special_service_name).filter(Boolean))));
+                setSavedSpecialNames(Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean))));
+                setSavedMonthlyNames(Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean))));
             }
         }
         getSuggestions();
@@ -90,7 +92,7 @@ export default function NewGalleryPage() {
         if (mediaItems.length === 0) return toast.error("Please upload at least one image or video");
         setLoading(true);
 
-        const submission = {
+        const submission: any = {
             ...formData,
             status: targetStatus,
             service_category: category,
@@ -101,7 +103,7 @@ export default function NewGalleryPage() {
             is_archived: false
         };
 
-        // Clean up data based on branches
+        // Clean up data based on branches to prevent ghost data
         if (category === "Weekly") {
             submission.special_service_name = "";
             submission.day_identifier = "";
@@ -109,7 +111,13 @@ export default function NewGalleryPage() {
                 submission.host = "";
                 submission.service_number = "";
             }
-        } else {
+        } else if (category === "Monthly") {
+            submission.weekly_type = "";
+            submission.host = "";
+            submission.service_number = "";
+            submission.day_identifier = "";
+            submission.co_host = "";
+        } else if (category === "Special") {
             submission.weekly_type = "";
             submission.host = "";
             submission.service_number = "";
@@ -131,12 +139,14 @@ export default function NewGalleryPage() {
         }
     };
 
+    const todayObj = new Date();
+    const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-5xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <Link href="/admin/gallery" className="text-sm font-bold text-brand-secondary block hover:underline">← Back to Gallery Dashboard</Link>
-                    {/* Visual indicator that Auto-Save is working */}
                     {mediaItems.length > 0 && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">Draft Auto-Saved</span>}
                 </div>
 
@@ -147,14 +157,15 @@ export default function NewGalleryPage() {
                         {/* Step 1: Category */}
                         <div className="space-y-4">
                             <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1: Service Category</label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {["Weekly", "Special"].map((item) => (
+                            {/* Changed to sm:grid-cols-3 to fit the 3 options */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {["Weekly", "Monthly", "Special"].map((item) => (
                                     <button
                                         key={item}
                                         onClick={() => setCategory(item as any)}
                                         className={`p-4 md:p-6 rounded-2xl border-2 font-bold transition-all ${category === item ? "border-brand-primary bg-brand-primary/5 text-green-950" : "border-gray-100 text-brand-primary"}`}
                                     >
-                                        {item === "Weekly" ? "Weekly / Fixed" : "Special Service"}
+                                        {item === "Weekly" ? "Weekly / Fixed" : item === "Monthly" ? "Monthly Event" : "Special Service"}
                                     </button>
                                 ))}
                             </div>
@@ -216,6 +227,27 @@ export default function NewGalleryPage() {
                             </div>
                         )}
 
+                        {/* NEW: Monthly Branch */}
+                        {category === "Monthly" && (
+                            <div className="animate-in fade-in bg-slate-50 p-4 md:p-6 rounded-2xl border border-gray-100">
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
+                                <input
+                                    list="monthlyNames"
+                                    placeholder="e.g. Holy Communion, Holy Ghost Service"
+                                    className="w-full p-4 border rounded-xl text-base md:text-lg font-serif text-brand-primary"
+                                    value={formData.special_service_name || ""}
+                                    onChange={(e) => setFormData({...formData, special_service_name: e.target.value})}
+                                />
+                                <datalist id="monthlyNames">
+                                    <option value="Holy Ghost Service" />
+                                    <option value="Holy Communion" />
+                                    <option value="Anointing Service" />
+                                    <option value="Wind of Change" />
+                                    {savedMonthlyNames.map(n => <option key={n} value={n} />)}
+                                </datalist>
+                            </div>
+                        )}
+
                         {/* Special Branch */}
                         {category === "Special" && (
                             <div className="space-y-4 md:space-y-6 animate-in fade-in">
@@ -246,7 +278,7 @@ export default function NewGalleryPage() {
                         )}
 
                         {/* Step 2: Upload Media */}
-                        {(weeklyType || category === "Special") && (
+                        {(weeklyType || category === "Monthly" || category === "Special") && (
                             <div className='flex flex-col gap-2'>
                                 <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 3: Upload All Media (Pictures & Videos)</label>
                                 <div className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center animate-in fade-in">
@@ -265,7 +297,6 @@ export default function NewGalleryPage() {
                                         }}
                                         onClientUploadComplete={(res) => {
                                             const newItems: MediaItem[] = res.map(file => {
-                                                // Look at the original file name to determine if it's a video
                                                 const fileName = (file.name || "").toLowerCase();
                                                 const isVideo = fileName.endsWith('.mp4') ||
                                                     fileName.endsWith('.mov') ||
@@ -332,7 +363,6 @@ export default function NewGalleryPage() {
                                                     </div>
                                                 </div>
                                             }
-                                            {/* Larger hit area for mobile close button */}
                                             <button
                                                 onClick={() => removeItem(index)}
                                                 className="absolute top-2 right-2 sm:top-1 sm:right-1 p-2 sm:p-1 bg-red-500 text-white rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
@@ -355,7 +385,7 @@ export default function NewGalleryPage() {
                         )}
 
                         {/* Final Details & Submit */}
-                        {(weeklyType || category === "Special") && (
+                        {(weeklyType || category === "Monthly" || category === "Special") && (
                             <div className="space-y-6 pt-8 border-t border-gray-100">
                                 <div>
                                     <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 5: Edit Final Info (Title and Date)</label>
@@ -366,22 +396,30 @@ export default function NewGalleryPage() {
                                             value={formData.title}
                                             onChange={(e) => setFormData({...formData, title: e.target.value})}
                                         />
+
                                         <input
                                             type="date"
                                             className="p-3 border rounded-lg text-brand-primary w-full"
+                                            max={localMaxDate}
                                             value={formData.service_date}
-                                            onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                            onChange={(e) => {
+                                                if (e.target.value > localMaxDate) {
+                                                    toast.error("You cannot select a future date for an event that hasn't happened!");
+                                                    setFormData({...formData, service_date: localMaxDate});
+                                                } else {
+                                                    setFormData({...formData, service_date: e.target.value});
+                                                }
+                                            }}
                                         />
                                     </div>
                                 </div>
 
                                 <div className='flex flex-col gap-2'>
-                                    <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 6: Publish Sermon or Save As Draft</label>
+                                    <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step 6: Publish Gallery or Save As Draft</label>
                                     <div className="flex flex-col sm:flex-row gap-4">
                                         <button onClick={() => handleSubmit('draft')} className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold">Save Draft</button>
                                         <button onClick={() => handleSubmit('published')} className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold">Publish Gallery</button>
                                     </div>
-
                                 </div>
                             </div>
                         )}

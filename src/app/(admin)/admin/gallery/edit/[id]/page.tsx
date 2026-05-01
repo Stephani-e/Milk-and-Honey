@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import { X, Type, Film, Lock } from "lucide-react";
+import { X, Film, Lock } from "lucide-react";
 
 interface MediaItem {
     url: string;
@@ -21,15 +21,16 @@ export default function EditGalleryPage() {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
 
-    // Branching Logic State
-    const [category, setCategory] = useState<"Weekly" | "Special" | "">("");
+    // Branching Logic State (Added "Monthly")
+    const [category, setCategory] = useState<"Weekly" | "Monthly" | "Special" | "">("");
     const [weeklyType, setWeeklyType] = useState<"Sunday" | "Tuesday" | "Thursday" | "">("");
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
 
-    // Suggestions
+    // Suggestions (Added Monthly Names)
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
+    const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -79,13 +80,14 @@ export default function EditGalleryPage() {
         if (id) loadGallery();
     }, [id]);
 
-    // Load suggestions on mount
+    // Load suggestions on mount (Separated Monthly and Special)
     useEffect(() => {
         async function getSuggestions() {
-            const { data } = await supabase.from("media_gallery").select("co_host, special_service_name");
+            const { data } = await supabase.from("media_gallery").select("service_category, co_host, special_service_name");
             if (data) {
                 setSavedCoHosts(Array.from(new Set(data.map(i => i.co_host).filter(Boolean))));
-                setSavedSpecialNames(Array.from(new Set(data.map(i => i.special_service_name).filter(Boolean))));
+                setSavedSpecialNames(Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean))));
+                setSavedMonthlyNames(Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean))));
             }
         }
         getSuggestions();
@@ -107,7 +109,7 @@ export default function EditGalleryPage() {
 
         setLoading(true);
 
-        const submission = {
+        const submission: any = {
             ...formData,
             status: targetStatus,
             service_category: category,
@@ -117,7 +119,7 @@ export default function EditGalleryPage() {
             media_urls: mediaItems, // Save the updated array
         };
 
-        // Clean up data based on branches
+        // Clean up data based on branches to prevent ghost data
         if (category === "Weekly") {
             submission.special_service_name = "";
             submission.day_identifier = "";
@@ -125,7 +127,13 @@ export default function EditGalleryPage() {
                 submission.host = "";
                 submission.service_number = "";
             }
-        } else {
+        } else if (category === "Monthly") {
+            submission.weekly_type = "";
+            submission.host = "";
+            submission.service_number = "";
+            submission.day_identifier = "";
+            submission.co_host = "";
+        } else if (category === "Special") {
             submission.weekly_type = "";
             submission.host = "";
             submission.service_number = "";
@@ -145,6 +153,9 @@ export default function EditGalleryPage() {
         }
     };
 
+    const todayObj = new Date();
+    const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
     if (fetching) return <div className="p-20 text-center font-bold text-brand-primary min-h-screen bg-brand-surface">Loading Gallery Data...</div>;
 
     return (
@@ -163,13 +174,13 @@ export default function EditGalleryPage() {
                                 <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1: Service Category</label>
                                 <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1"><Lock size={10}/> Locked</span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-75">
-                                {["Weekly", "Special"].map((item) => (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 opacity-75">
+                                {["Weekly", "Monthly", "Special"].map((item) => (
                                     <div
                                         key={item}
                                         className={`p-4 md:p-6 rounded-2xl border-2 font-bold cursor-not-allowed ${category === item ? "border-brand-primary bg-brand-primary/5 text-brand-primary" : "border-gray-100 bg-gray-50 text-gray-300"}`}
                                     >
-                                        {item === "Weekly" ? "Weekly / Fixed" : "Special Service"}
+                                        {item === "Weekly" ? "Weekly / Fixed" : item === "Monthly" ? "Monthly Event" : "Special Service"}
                                     </div>
                                 ))}
                             </div>
@@ -230,6 +241,27 @@ export default function EditGalleryPage() {
                                         )}
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* NEW: Monthly Branch - Editable Content */}
+                        {category === "Monthly" && (
+                            <div className="animate-in fade-in bg-slate-50 p-4 md:p-6 rounded-2xl border border-gray-100">
+                                <label className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Edit/Change Service Information</label>
+                                <input
+                                    list="monthlyNames"
+                                    placeholder="e.g. Holy Communion, Holy Ghost Service"
+                                    className="w-full p-4 border rounded-xl text-base md:text-lg font-serif text-brand-primary"
+                                    value={formData.special_service_name || ""}
+                                    onChange={(e) => setFormData({...formData, special_service_name: e.target.value})}
+                                />
+                                <datalist id="monthlyNames">
+                                    <option value="Holy Ghost Service" />
+                                    <option value="Holy Communion" />
+                                    <option value="Anointing Service" />
+                                    <option value="Wind of Change" />
+                                    {savedMonthlyNames.map(n => <option key={n} value={n} />)}
+                                </datalist>
                             </div>
                         )}
 
@@ -377,8 +409,16 @@ export default function EditGalleryPage() {
                                     <input
                                         type="date"
                                         className="p-3 border rounded-lg text-brand-primary w-full"
+                                        max={localMaxDate}
                                         value={formData.service_date}
-                                        onChange={(e) => setFormData({...formData, service_date: e.target.value})}
+                                        onChange={(e) => {
+                                            if (e.target.value > localMaxDate) {
+                                                toast.error("You cannot select a future date for an event that hasn't happened!");
+                                                setFormData({...formData, service_date: localMaxDate});
+                                            } else {
+                                                setFormData({...formData, service_date: e.target.value});
+                                            }
+                                        }}
                                     />
                                 </div>
                             </div>
