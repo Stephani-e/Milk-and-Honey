@@ -1,14 +1,14 @@
 "use client";
 import React, { useState, useEffect} from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import {Film, LinkIcon} from "lucide-react";
-import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
+import dynamic from "next/dynamic";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -40,6 +40,7 @@ export default function NewSermonPage() {
         preacher: "",
         bible_text: "",
         content: "",
+        prayer_points: "",
         service_date: new Date().toISOString().split('T')[0],
         host: "",
         co_host: "",
@@ -88,6 +89,24 @@ export default function NewSermonPage() {
     }, []);
 
     useEffect(() => {
+        async function getSuggestions() {
+            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
+            if (data) {
+                // Use Set to get unique values only (no duplicates)
+                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
+
+                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
+                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
+
+                setSavedCoHosts(hosts);
+                setSavedSpecialNames(specialNames);
+                setSavedMonthlyNames(monthlyNames);
+            }
+        }
+        getSuggestions();
+    }, []);
+
+    useEffect(() => {
         if (initialFetchDone) {
             const draft = { formData, category, weeklyType, isThanksgiving, isMultiDay };
             localStorage.setItem("sermon_draft", JSON.stringify(draft));
@@ -117,24 +136,6 @@ export default function NewSermonPage() {
         setShowDeleteModal(false);
         setMediaAction(null);
     };
-
-    useEffect(() => {
-        async function getSuggestions() {
-            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
-            if (data) {
-                // Use Set to get unique values only (no duplicates)
-                const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
-
-                const specialNames = Array.from(new Set(data.filter(i => i.service_category === "Special").map(i => i.special_service_name).filter(Boolean)));
-                const monthlyNames = Array.from(new Set(data.filter(i => i.service_category === "Monthly").map(i => i.special_service_name).filter(Boolean)));
-
-                setSavedCoHosts(hosts);
-                setSavedSpecialNames(specialNames);
-                setSavedMonthlyNames(monthlyNames);
-            }
-        }
-        getSuggestions();
-    }, []);
 
     const handleSubmit = async (targetStatus: 'draft' | 'published') => {
         setLoading(true);
@@ -391,6 +392,7 @@ export default function NewSermonPage() {
                                     <input
                                         type="date"
                                         max={localMaxDate}
+                                        className='p-3 border rounded-lg text-brand-primary'
                                         value={formData.service_date}
                                         onChange={(e) => {
                                             if (e.target.value > localMaxDate) {
@@ -559,17 +561,37 @@ export default function NewSermonPage() {
                                 )}
 
                                 <div className='flex flex-col w-full'>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Sermon Note</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Sermon Notes</label>
+                                    {/*<div className="bg-purple-50 border border-purple-100 rounded-xl p-3 mb-3 text-[10px] md:text-xs text-purple-800">*/}
+                                    {/*    <span className="font-bold">💡 Pro Tips:</span>*/}
+                                    {/*    <ul className="list-disc pl-4 mt-1 space-y-0.5 opacity-90">*/}
+                                    {/*        <li>Press <b>Enter once</b> for a new line, and <b>twice</b> for a blank paragraph gap.</li>*/}
+                                    {/*        <li>When pasting from Word or WhatsApp, use <b>Ctrl + Shift + V</b> (or Cmd + Shift + V on Mac) to paste clean text without hidden formatting.</li>*/}
+                                    {/*    </ul>*/}
+                                    {/*</div>*/}
                                     <div className="bg-white rounded-lg border border-gray-300 w-full flex flex-col overflow-hidden shadow-sm">
                                         <ReactQuill
                                             theme="snow"
-                                            placeholder="Write your sermon notes here... You can use bold, italics, colors, and headers!"
                                             value={formData.content}
                                             onChange={(content) => setFormData({...formData, content})}
                                             modules={quillModules}
-                                            className="flex flex-col text-black h-64 sm:h-72 md:h-96 lg:h-[500px] mb-12 md:mb-16 [&_.ql-toolbar]:flex [&_.ql-toolbar]:flex-wrap [&_.ql-toolbar]:justify-center md:[&_.ql-toolbar]:justify-start [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto [&_.ql-editor]:min-h-full"
+                                            className="flex flex-col text-black h-64 sm:h-96 [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto"
                                         />
                                     </div>
+                                </div>
+
+                                {/* NEW: PRAYER POINTS SECTION */}
+                                <div className='flex flex-col w-full pt-4'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2">Step 6: Prayer Points (Optional)</label>
+                                    <div className="bg-blue-50 rounded-2xl border border-blue-200 p-2 shadow-inner">
+                                        <textarea
+                                            placeholder="1. Father, thank you for the gift of life...&#10;2. Lord, empower me to overcome every obstacle..."
+                                            value={formData.prayer_points}
+                                            onChange={(e) => setFormData({...formData, prayer_points: e.target.value})}
+                                            className="w-full p-4 bg-transparent text-blue-900 border-none h-48 focus:ring-0 outline-none resize-y placeholder-blue-300/80 font-medium leading-loose"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 mt-2 italic">Format them exactly how you want them to appear (e.g., number them manually and press Enter for a new line).</p>
                                 </div>
 
                                 <div className='flex flex-col pt-6'>

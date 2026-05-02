@@ -6,9 +6,9 @@ import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
-import {Film, LinkIcon, Lock} from "lucide-react"; // Import the Lock icon
-import dynamic from "next/dynamic";
+import {Film, LinkIcon, Lock} from "lucide-react";
 import "react-quill-new/dist/quill.snow.css";
+import dynamic from "next/dynamic";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -74,6 +74,7 @@ export default function EditSermonPage() {
         preacher: "",
         bible_text: "",
         content: "",
+        prayer_points: "",
         service_date: "",
         host: "",
         co_host: "",
@@ -536,22 +537,50 @@ export default function EditSermonPage() {
                                     </div>
                                 </div>
 
-                                <div className='flex flex-col w-full'>
-                                    <label className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">
-                                        Step 5: Edit/Change Sermon Note
-                                    </label>
+                                {/*<div className='flex flex-col w-full'>*/}
+                                {/*    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Sermon Notes</label>*/}
+                                {/*    <textarea*/}
+                                {/*        placeholder="Write your sermon notes here...&#10;&#10;Use the Enter key to create new paragraphs."*/}
+                                {/*        value={formData.content}*/}
+                                {/*        onChange={(e) => setFormData({...formData, content: e.target.value})}*/}
+                                {/*        className="w-full p-6 text-brand-primary border border-gray-300 rounded-2xl h-64 sm:h-96 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none resize-y shadow-sm font-serif leading-relaxed"*/}
+                                {/*    />*/}
+                                {/*</div>*/}
 
+                                <div className='flex flex-col w-full'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Sermon Notes</label>
+                                    {/*<div className="bg-purple-50 border border-purple-100 rounded-xl p-3 mb-3 text-[10px] md:text-xs text-purple-800">*/}
+                                    {/*    <span className="font-bold">💡 Pro Tips:</span>*/}
+                                    {/*    <ul className="list-disc pl-4 mt-1 space-y-0.5 opacity-90">*/}
+                                    {/*        <li>Press <b>Enter once</b> for a new line, and <b>twice</b> for a blank paragraph gap.</li>*/}
+                                    {/*        <li>When pasting from Word or WhatsApp, use <b>Ctrl + Shift + V</b> (or Cmd + Shift + V on Mac) to paste clean text without hidden formatting.</li>*/}
+                                    {/*    </ul>*/}
+                                    {/*</div>*/}
                                     <div className="bg-white rounded-lg border border-gray-300 w-full flex flex-col overflow-hidden shadow-sm">
                                         <ReactQuill
                                             theme="snow"
-                                            placeholder="Write your sermon notes here... You can use bold, italics, colors, and headers!"
                                             value={formData.content}
                                             onChange={(content) => setFormData({...formData, content})}
                                             modules={quillModules}
-                                            className="flex flex-col text-black h-64 sm:h-72 md:h-96 lg:h-[500px] mb-12 md:mb-16 [&_.ql-toolbar]:flex [&_.ql-toolbar]:flex-wrap [&_.ql-toolbar]:justify-center md:[&_.ql-toolbar]:justify-start [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto [&_.ql-editor]:min-h-full"
+                                            className="flex flex-col text-black h-64 sm:h-96 [&_.ql-container]:flex-1 [&_.ql-container]:overflow-y-auto"
                                         />
                                     </div>
                                 </div>
+
+                                {/* NEW: PRAYER POINTS SECTION */}
+                                <div className='flex flex-col w-full pt-4'>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2">Step 6: Prayer Points (Optional)</label>
+                                    <div className="bg-blue-50 rounded-2xl border border-blue-200 p-2 shadow-inner">
+                                        <textarea
+                                            placeholder="1. Father, thank you for the gift of life...&#10;2. Lord, empower me to overcome every obstacle..."
+                                            value={formData.prayer_points}
+                                            onChange={(e) => setFormData({...formData, prayer_points: e.target.value})}
+                                            className="w-full p-4 bg-transparent text-blue-900 border-none h-48 focus:ring-0 outline-none resize-y placeholder-blue-300/80 font-medium leading-loose"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 mt-2 italic">Format them exactly how you want them to appear (e.g., number them manually and press Enter for a new line).</p>
+                                </div>
+
                                 <div className='flex flex-col pt-6'>
                                     <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 6: Publish Sermon or Save As Draft</label>
                                     <div className="flex flex-col md:flex-row gap-4 pt-1">

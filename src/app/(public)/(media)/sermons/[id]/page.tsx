@@ -44,7 +44,7 @@ export default function SermonDetailPage() {
         // @ts-ignore
         window.refTagger = {
             settings: {
-                bibleVersion: "NKJV", // Hardcoded to single version
+                bibleVersion: "NKJV", // Hardcoded to a single version
                 roundCorners: true,
                 tagChapters: true,
                 customStyle: {
@@ -218,26 +218,35 @@ export default function SermonDetailPage() {
                         {/* Sermon Notes Container */}
                         <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2rem] border border-gray-100 shadow-sm">
                             <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-gray-400 mb-6 md:mb-2 border-b border-gray-100 pb-4">Message Notes</h3>
-
                             {sermon.content ? (
-                                /* 1. ql-snow wrapper is required to activate Quill's alignment and color themes */
-                                <div className="ql-snow w-full">
-
-                                    <div
-                                        className="ql-editor p-0 text-gray-800 font-serif leading-[1.8] md:leading-loose break-words
-                                        [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-8 [&_ul]:pl-8
-                                        [&_li]:list-item [&_li]:mb-2
-                                        [&_p]:mb-4
-                                        [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4
-                                        [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-4
-                                        [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mb-3"
-                                        dangerouslySetInnerHTML={{ __html: sermon.content }}
-                                    />
-                                </div>
+                                <div
+                                    className="text-gray-800 font-serif leading-[1.8] md:leading-loose whitespace-pre-wrap word-break break-words
+                                    [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg
+                                    [&_b]:font-bold [&_strong]:font-bold
+                                    [&_i]:italic [&_em]:italic
+                                    [&_u]:underline
+                                    [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
+                                    [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4
+                                    [&_p]:mb-0 [&_p]:min-h-[1.8em] md:[&_p]:min-h-[2em]
+                                    [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl
+                                    [&_h2]:font-bold"
+                                    dangerouslySetInnerHTML={{ __html: sermon.content.replace(/&nbsp;/g, ' ').replace(/\u00A0/g, ' ') }}
+                                />
                             ) : (
                                 <p className="text-gray-400 italic text-center py-8 bg-gray-50 rounded-2xl">No written notes were provided for this message.</p>
                             )}
                         </div>
+
+                        {sermon.prayer_points && (
+                            <div className="mt-12 bg-blue-50/50 p-6 md:p-10 rounded-[2rem] border border-blue-100 shadow-sm relative overflow-hidden">
+                                <h3 className="text-[10px] md:text-xs font-black uppercase tracking-widest text-blue-500 mb-6 border-b border-blue-100 pb-4">
+                                    Prayer Points
+                                </h3>
+                                <div className="text-blue-900 font-medium leading-loose whitespace-pre-wrap">
+                                    {sermon.prayer_points}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* RIGHT COLUMN: Sticky Sidebar with Media & Links */}
