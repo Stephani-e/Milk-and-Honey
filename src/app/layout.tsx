@@ -3,6 +3,7 @@ import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 import React from "react";
 import { Toaster } from "sonner";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const lora = Lora({
   variable: "--font-lora",
@@ -76,6 +77,7 @@ export default function RootLayout({
       <main className='flex-1 relative z-10'>
           {children}
       </main>
+      <SpeedInsights />
       </body>
       </html>
   );
