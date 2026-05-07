@@ -2,74 +2,22 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-    ArrowRight,
-    Heart,
-    Users,
-    HandHeart,
-    MapPin,
-    Briefcase,
-    Calendar,
-    PlayCircle,
-    Megaphone,
-    Camera,
-    User,
-    Film,
-    ChevronUp
+    ArrowRight, Heart, Users, HandHeart, Calendar,
+    Megaphone, Camera, ChevronUp, Briefcase
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import LatestSermon from "@/components/Home/LatestSermon";
+import LatestGallery from "@/components/Home/LatestGallery";
 
 export default function HomePage() {
-    const [latestSermon, setLatestSermon] = useState<any>(null);
     const [showTopBtn, setShowTopBtn] = useState(false);
 
-    // 1. Fetch Latest Sermon securely on the client side
     useEffect(() => {
-        async function fetchLatestSermon() {
-            const { data } = await supabase
-                .from("sermons")
-                .select("id, title, preacher, banner_url, youtube_url, clip_url")
-                .eq("status", "published")
-                .eq("is_archived", false)
-                .is("deleted_at", null)
-                .order("service_date", { ascending: false })
-                .limit(1);
-
-            if (data && data.length > 0) {
-                setLatestSermon(data[0]);
-            }
-        }
-        fetchLatestSermon();
-    }, []);
-
-    // 2. Scroll to Top Listener
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 400) {
-                setShowTopBtn(true);
-            } else {
-                setShowTopBtn(false);
-            }
-        };
+        const handleScroll = () => setShowTopBtn(window.scrollY > 400);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-    };
-
-    const getThumbnail = (sermon: any) => {
-        if (!sermon) return "";
-        if (sermon.banner_url) return sermon.banner_url;
-        if (sermon.youtube_url) {
-            const videoIdMatch = sermon.youtube_url.match(/(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
-            if (videoIdMatch && videoIdMatch[1]) return `https://img.youtube.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
-        }
-        return "https://hegyctrfwn.ufs.sh/f/iMcVGeeTb1N4go9KLrcAQBW5E03lrCpOqKzJIRZUnG9sLDHa";
-    };
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
     return (
         <div className="flex flex-col bg-white">
@@ -80,9 +28,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/90" />
 
                 <div className="relative z-10 text-center px-6 max-w-4xl mx-auto mt-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
-                        Welcome Home
-                    </span>
+                    <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">Welcome Home</span>
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-black text-white leading-tight mb-6">
                         Become a part of <br className="hidden md:block"/> our community
                     </h1>
@@ -90,17 +36,11 @@ export default function HomePage() {
                         Join us this Sunday as we worship, learn, and grow together. There is a place for you here at Milk & Honey, Lagos Province 56.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 sm:mb-6">
-                        <Link href="/about" className="px-8 py-4 bg-amber-400 text-amber-950 font-bold rounded-full hover:bg-amber-300 transition-colors w-full sm:w-auto text-center">
-                            I'm New Here
-                        </Link>
-                        <Link href="/events" className="px-8 py-4 bg-white/10 text-white font-bold rounded-full border border-white/20 hover:bg-white/20 backdrop-blur-sm transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
-                            View Service Times <ArrowRight size={18} />
-                        </Link>
+                        <Link href="/about" className="px-8 py-4 bg-amber-400 text-amber-950 font-bold rounded-full hover:bg-amber-300 transition-colors w-full sm:w-auto text-center">I'm New Here</Link>
+                        <Link href="/events" className="px-8 py-4 bg-white/10 text-white font-bold rounded-full border border-white/20 hover:bg-white/20 backdrop-blur-sm transition-colors w-full sm:w-auto flex items-center justify-center gap-2">View Service Times <ArrowRight size={18} /></Link>
                     </div>
                     <div className="flex items-center justify-center">
-                        <Link href="/socials" className="text-white/80 text-sm font-bold hover:text-amber-400 transition-colors underline underline-offset-4">
-                            Or connect with us online
-                        </Link>
+                        <Link href="/socials" className="text-white/80 text-sm font-bold hover:text-amber-400 transition-colors underline underline-offset-4">Or connect with us online</Link>
                     </div>
                 </div>
             </section>
@@ -115,33 +55,19 @@ export default function HomePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-amber-900/5 border border-amber-100 hover:-translate-y-2 transition-transform duration-300">
-                            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6">
-                                <Users size={24} />
-                            </div>
+                            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6"><Users size={24} /></div>
                             <h3 className="text-xl font-bold text-brand-primary mb-3">About Us</h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                                We are a vibrant parish dedicated to raising leaders and transforming our community through the love of Christ.
-                            </p>
+                            <p className="text-sm text-gray-500 leading-relaxed">We are a vibrant parish dedicated to raising leaders and transforming our community through the love of Christ.</p>
                         </div>
-
                         <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-amber-900/5 border border-amber-100 hover:-translate-y-2 transition-transform duration-300">
-                            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6">
-                                <HandHeart size={24} />
-                            </div>
+                            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6"><HandHeart size={24} /></div>
                             <h3 className="text-xl font-bold text-brand-primary mb-3">Get Involved</h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                                From the choir to the ushering unit, discover how your unique gifts can serve the church and the world.
-                            </p>
+                            <p className="text-sm text-gray-500 leading-relaxed">From the choir to the ushering unit, discover how your unique gifts can serve the church and the world.</p>
                         </div>
-
                         <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-amber-900/5 border border-amber-100 hover:-translate-y-2 transition-transform duration-300">
-                            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6">
-                                <Heart size={24} />
-                            </div>
+                            <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 mb-6"><Heart size={24} /></div>
                             <h3 className="text-xl font-bold text-brand-primary mb-3">Giving Back</h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                                Your tithes, offerings, and donations empower our outreach programs and provincial missions.
-                            </p>
+                            <p className="text-sm text-gray-500 leading-relaxed">Your tithes, offerings, and donations empower our outreach programs and provincial missions.</p>
                         </div>
                     </div>
                 </div>
@@ -155,22 +81,16 @@ export default function HomePage() {
                             <span className="text-amber-600 font-bold tracking-widest uppercase text-[10px] mb-2 block">Fellowships</span>
                             <h2 className="text-3xl md:text-4xl font-serif font-black text-brand-primary">Find Your Community</h2>
                         </div>
-                        <Link href="/life-stages" className="text-sm font-bold text-amber-600 hover:text-amber-700 flex items-center gap-2">
-                            View All Fellowships <ArrowRight size={16} />
-                        </Link>
+                        <Link href="/life-stages" className="text-sm font-bold text-amber-600 hover:text-amber-700 flex items-center gap-2">View All Fellowships <ArrowRight size={16} /></Link>
                     </div>
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         {['Youth Church', 'Teens Church', 'Excellent Men', 'Good Women'].map((stage, i) => (
                             <Link href="/life-stages" key={i} className="group relative h-64 md:h-80 rounded-3xl overflow-hidden shadow-md">
-                                <div className="absolute inset-0 bg-slate-200 group-hover:scale-105 transition-transform duration-500">
-                                </div>
+                                <div className="absolute inset-0 bg-slate-200 group-hover:scale-105 transition-transform duration-500"></div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
                                 <div className="absolute bottom-6 left-6 right-6">
                                     <h3 className="text-white font-bold text-lg md:text-xl">{stage}</h3>
-                                    <span className="text-amber-400 text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-2">
-                                        Explore <ArrowRight size={12} />
-                                    </span>
+                                    <span className="text-amber-400 text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-2">Explore <ArrowRight size={12} /></span>
                                 </div>
                             </Link>
                         ))}
@@ -183,7 +103,6 @@ export default function HomePage() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col lg:flex-row gap-12">
 
-                        {/* Left Side: Upcoming Events / Sermons */}
                         <div className="lg:w-2/3">
                             <div className="mb-8">
                                 <span className="text-amber-600 font-bold tracking-widest uppercase text-[10px] mb-2 block">Stay Updated</span>
@@ -191,62 +110,7 @@ export default function HomePage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {/* DYNAMIC LATEST SERMON CARD */}
-                                {latestSermon ? (
-                                    <div className="relative p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[250px] overflow-hidden">
-
-                                        <div className="absolute inset-0 z-0">
-                                            <img src={getThumbnail(latestSermon)} alt={latestSermon.title} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40"></div>
-                                        </div>
-
-                                        <div className="relative z-10 flex flex-col h-full justify-between">
-                                            {latestSermon.clip_url ? (
-                                                <div className="mb-4 rounded-xl overflow-hidden shadow-2xl border border-white/20 bg-black">
-                                                    <video
-                                                        src={latestSermon.clip_url}
-                                                        controls
-                                                        className="w-full h-32 md:h-40 object-cover"
-                                                        poster={getThumbnail(latestSermon)}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="w-10 h-10 bg-amber-500/20 backdrop-blur-md text-amber-400 rounded-full flex items-center justify-center mb-4 border border-amber-500/30">
-                                                    <PlayCircle size={20} />
-                                                </div>
-                                            )}
-
-                                            <div>
-                                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1 mb-2 drop-shadow-md">
-                                                    {latestSermon.clip_url ? <Film size={12}/> : null} Latest Message
-                                                </span>
-                                                <h3 className="font-serif font-bold text-white text-xl mb-3 line-clamp-2 drop-shadow-md">
-                                                    {latestSermon.title}
-                                                </h3>
-
-                                                <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10">
-                                                    <p className="text-xs text-gray-300 flex items-center gap-1.5 font-medium drop-shadow-md truncate pr-2">
-                                                        <User size={12} className="shrink-0"/> {latestSermon.preacher}
-                                                    </p>
-                                                    <Link href={`/sermons/${latestSermon.id}`} className="text-[10px] font-bold uppercase tracking-widest text-amber-400 hover:text-amber-300 flex items-center gap-1 bg-black/30 px-4 py-2 rounded-full backdrop-blur-md transition-colors border border-white/10 shrink-0">
-                                                        Full Sermon <ArrowRight size={12}/>
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[250px]">
-                                        <div className="w-10 h-10 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
-                                            <PlayCircle size={20} />
-                                        </div>
-                                        <div>
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Latest Sermon</span>
-                                            <h3 className="font-serif font-bold text-gray-400 text-xl mb-2">Check back soon</h3>
-                                            <p className="text-xs text-gray-400">No sermons have been uploaded yet.</p>
-                                        </div>
-                                    </div>
-                                )}
+                                <LatestSermon />
 
                                 {/* DB Card Placeholder 2: Event */}
                                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[250px]">
@@ -264,21 +128,13 @@ export default function HomePage() {
 
                         {/* Right Side: SIDEBAR AD PLACEMENT */}
                         <div className="lg:w-1/3">
-                            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 hidden lg:block border-b border-gray-200 pb-2">
-                                Featured Updates
-                            </h2>
-
+                            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 hidden lg:block border-b border-gray-200 pb-2">Featured Updates</h2>
                             <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl h-[300px] lg:h-[calc(100%-3rem)] flex flex-col items-center justify-center text-gray-400 p-8 text-center shadow-sm">
                                 <Megaphone size={32} className="mb-4 opacity-50" />
-                                <span className="text-xs font-bold uppercase tracking-widest block mb-2 text-brand-primary">
-                                    [Sidebar Ad Slot]
-                                </span>
-                                <p className="text-[10px] leading-relaxed max-w-xs">
-                                    When an Ad Campaign is set to "Global Sidebar", it will automatically render here instead of this placeholder.
-                                </p>
+                                <span className="text-xs font-bold uppercase tracking-widest block mb-2 text-brand-primary">[Sidebar Ad Slot]</span>
+                                <p className="text-[10px] leading-relaxed max-w-xs">When an Ad Campaign is set to "Global Sidebar", it will automatically render here instead of this placeholder.</p>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>
@@ -292,14 +148,11 @@ export default function HomePage() {
                             <span className="text-amber-600 font-bold tracking-widest uppercase text-[10px] mb-2 block">Our Moments</span>
                             <h2 className="text-3xl md:text-4xl font-serif font-black text-brand-primary mb-6">Experience Milk & Honey</h2>
                             <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                                Relive the powerful moments from our recent services, conferences, and community outreaches.
-                                <br/><br/>
+                                Relive the powerful moments from our recent services, conferences, and community outreaches.<br/><br/>
                                 <strong className="text-brand-primary">Were you at a recent event?</strong> Share your own photos and videos to be featured in our community gallery!
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                <Link href="/gallery" className="px-8 py-3.5 bg-brand-primary text-white font-bold rounded-full hover:bg-slate-800 transition-colors shadow-lg">
-                                    View Gallery
-                                </Link>
+                                <Link href="/gallery" className="px-8 py-3.5 bg-brand-primary text-white font-bold rounded-full hover:bg-slate-800 transition-colors shadow-lg">View Gallery</Link>
                                 <Link href="/share" className="px-8 py-3.5 bg-amber-100 text-amber-900 font-bold rounded-full hover:bg-amber-200 transition-colors flex items-center justify-center gap-2">
                                     <Camera size={18} /> Share Photos
                                 </Link>
@@ -308,23 +161,7 @@ export default function HomePage() {
 
                         <div className="lg:w-2/3 relative w-full mt-8 lg:mt-0">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full lg:w-[120%] h-full lg:h-[120%] bg-amber-50 rounded-full blur-3xl -z-10" />
-
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div className="flex flex-col gap-4 translate-y-8">
-                                    <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm"></div>
-                                    <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm"></div>
-                                </div>
-                                <div className="flex flex-col gap-4">
-                                    <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm flex items-center justify-center text-gray-400 font-bold text-[10px] tracking-widest uppercase text-center p-4">
-                                        [Gallery<br/>Slideshow]
-                                    </div>
-                                    <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm"></div>
-                                </div>
-                                <div className="hidden md:flex flex-col gap-4 translate-y-12">
-                                    <div className="bg-slate-200 rounded-3xl h-40 w-full shadow-sm"></div>
-                                    <div className="bg-slate-200 rounded-3xl h-72 w-full shadow-sm"></div>
-                                </div>
-                            </div>
+                            <LatestGallery />
                         </div>
 
                     </div>
@@ -333,37 +170,22 @@ export default function HomePage() {
 
             {/* 6. JOIN THE WORKFORCE */}
             <section className="py-24 bg-brand-primary text-white relative overflow-hidden">
-                <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4">
-                    <Briefcase size={400} />
-                </div>
+                <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-1/4 translate-y-1/4"><Briefcase size={400} /></div>
                 <div className="max-w-7xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
                     <div className="max-w-xl text-center md:text-left">
                         <h2 className="text-3xl md:text-5xl font-serif font-black mb-6 leading-tight">Ready to Serve?</h2>
                         <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8">
                             God has equipped you with unique talents. Whether it's playing an instrument, managing technical gear, or welcoming guests, there is a department waiting for you.
                         </p>
-                        <Link href="/departments" className="inline-block px-8 py-4 bg-white text-brand-primary font-bold rounded-full hover:bg-amber-100 transition-colors">
-                            Explore Workforce Units
-                        </Link>
+                        <Link href="/departments" className="inline-block px-8 py-4 bg-white text-brand-primary font-bold rounded-full hover:bg-amber-100 transition-colors">Explore Workforce Units</Link>
                     </div>
                 </div>
             </section>
 
-            <div
-                className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${
-                    showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
-                }`}
-            >
-                <button
-                    onClick={scrollToTop}
-                    className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"
-                    aria-label="Scroll to top"
-                >
-                    <ChevronUp size={20} />
-                </button>
-                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">
-                    Back to Top
-                </span>
+            {/* SCROLL TO TOP */}
+            <div className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
+                <button onClick={scrollToTop} className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"><ChevronUp size={20} /></button>
+                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">Back to Top</span>
             </div>
         </div>
     );

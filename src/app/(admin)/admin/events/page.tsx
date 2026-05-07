@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
-import { Calendar, Trash2, Edit3, Clock, Plus, RefreshCw, Star, Layers, AlertCircle, ChevronDown, ChevronUp, User } from "lucide-react";
+import { Calendar, Trash2, Edit3, Clock, Plus, RefreshCw, Star, AlertCircle, ChevronDown, ChevronUp, User } from "lucide-react";
 
 export default function EventsDashboardPage() {
     const router = useRouter();
@@ -27,12 +27,26 @@ export default function EventsDashboardPage() {
     const [modalType, setModalType] = useState<"delete" | "restore" | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
 
-    // --- NEW: EXPAND STATE ---
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchEvents();
     }, [viewTrash]);
+
+    useEffect(() => {
+        async function fetchTheme() {
+            const { data } = await supabase.from('monthly_themes').select('*').eq('id', 1).single();
+            if (data) {
+                setThemeData({
+                    month: data.month_year || new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
+                    theme: data.theme_title || "",
+                    scripture: data.scripture || "",
+                    savingTheme: false
+                });
+            }
+        }
+        fetchTheme();
+    }, []);
 
     async function fetchEvents() {
         setLoading(true);
@@ -50,10 +64,22 @@ export default function EventsDashboardPage() {
 
     const handleSaveTheme = async () => {
         setThemeData(prev => ({...prev, savingTheme: true}));
-        setTimeout(() => {
+
+        const { error } = await supabase
+            .from('monthly_themes')
+            .upsert({
+                month_year: themeData.month,
+                theme_title: themeData.theme,
+                scripture: themeData.scripture
+            }, { onConflict: 'month_year' });
+
+        if (error) {
+            toast.error("Error saving theme: " + error.message);
+        } else {
             toast.success("Monthly Theme Updated Successfully!");
-            setThemeData(prev => ({...prev, savingTheme: false}));
-        }, 800);
+        }
+
+        setThemeData(prev => ({...prev, savingTheme: false}));
     };
 
     const handleConfirmAction = async () => {
@@ -77,7 +103,18 @@ export default function EventsDashboardPage() {
     const recurringEvents = events.filter(e => e.event_type === 'recurring');
     const specialEvents = events.filter(e => e.event_type === 'single_day' || e.event_type === 'multi_day');
 
-    // --- NEW: HELPER TO RENDER SCHEDULE DETAILS ---
+    const translateRule = (ruleString: string) => {
+        if (!ruleString) return "";
+        const translations: Record<string, string> = {
+            "first_sunday": "First Sunday of the Month",
+            "first_thursday": "First Thursday of the Month",
+            "first_friday": "First Friday of the Month",
+            "thursday_before_first_friday": "Thursday before the First Friday (Holy Communion)", // <--- Handled here!
+            "last_friday": "Last Friday of the Month",
+        };
+        return translations[ruleString] || ruleString.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
     const renderExpandedDetails = (event: any) => {
         return (
             <div className="mt-4 pt-4 border-t border-gray-100 text-sm space-y-3 animate-in fade-in slide-in-from-top-2">
@@ -88,7 +125,6 @@ export default function EventsDashboardPage() {
                 )}
                 {event.theme && <p><span className="font-bold text-gray-500 uppercase text-[10px] tracking-wider block">Theme</span>{event.theme}</p>}
 
-                {/* Parse the Logic */}
                 <div>
                     <span className="font-bold text-gray-500 uppercase text-[10px] tracking-wider block mb-1">Schedule Details</span>
 
@@ -97,18 +133,23 @@ export default function EventsDashboardPage() {
                             {event.recurrence_rules.pattern_type === 'weekly' && event.recurrence_rules.day && (
                                 <p>Every <span className="capitalize font-bold text-brand-primary">{event.recurrence_rules.day}</span></p>
                             )}
+
+                            {/* Updated Monthly Rule Display */}
+                            {event.recurrence_rules.pattern_type === 'monthly' && (
+                                <p className="mt-1 font-bold text-brand-primary bg-brand-primary/5 p-1.5 rounded inline-block">
+                                    Rule: {translateRule(event.recurrence_rules.rule)}
+                                </p>
+                            )}
+
                             {event.recurrence_rules.sessions ? (
-                                <ul className="mt-1 space-y-1 list-disc list-inside">
+                                <ul className="mt-2 space-y-1 list-disc list-inside">
                                     {event.recurrence_rules.sessions.map((s: any, i: number) => (
                                         <li key={i}>{s.name}: {s.start_time} - {s.end_time}</li>
                                     ))}
                                 </ul>
                             ) : event.recurrence_rules.start_time ? (
-                                <p className="mt-1">{event.recurrence_rules.start_time} - {event.recurrence_rules.end_time}</p>
+                                <p className="mt-2">{event.recurrence_rules.start_time} - {event.recurrence_rules.end_time}</p>
                             ) : null}
-                            {event.recurrence_rules.pattern_type === 'monthly' && (
-                                <p className="mt-1 capitalize">Rule: {event.recurrence_rules.rule?.replace('_', ' ')}</p>
-                            )}
                         </div>
                     )}
 
@@ -180,7 +221,6 @@ export default function EventsDashboardPage() {
                                     <>
                                         <button onClick={() => { setSelectedEvent(event); setModalType("restore"); }} title="Restore" className="text-emerald-600 hover:scale-110 transition-transform"><RefreshCw size={14}/></button>
 
-                                        {/* RBAC: ONLY Super Admins can purge */}
                                         {role === 'super-admin' && (
                                             <button onClick={() => { setSelectedEvent(event); setModalType("delete"); }} title="Purge" className="text-red-400 hover:text-red-600 transition-colors"><Trash2 size={14}/></button>
                                         )}
@@ -196,7 +236,6 @@ export default function EventsDashboardPage() {
                     </div>
                 </div>
 
-                {/* THE EXPANDED CONTENT */}
                 {isExpanded && renderExpandedDetails(event)}
             </div>
         );
@@ -280,7 +319,6 @@ export default function EventsDashboardPage() {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-
                     {/* LEFT CARD: RECURRING SCHEDULE */}
                     <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-accent flex flex-col h-full">
                         <div className="flex items-center gap-3 mb-2">

@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { UploadButton } from "@/utils/uploadthing";
 import { toast } from "sonner";
-import {ArrowLeft, RefreshCw, Star, Layers, Calendar, Lock, Plus, Trash2, ImageIcon, MapPin} from "lucide-react";
+import { ArrowLeft, RefreshCw, Star, Layers, Calendar, Lock, Plus, Trash2, ImageIcon, MapPin, Users } from "lucide-react";
 
 export default function EditEventPage() {
     const router = useRouter();
@@ -36,8 +36,23 @@ export default function EditEventPage() {
     const [startTime, setStartTime] = useState("18:00");
     const [endTime, setEndTime] = useState("20:00");
 
+    // --- NEW: DYNAMIC SUNDAY CONFIGURATION STATE ---
+    const [sundayFactions, setSundayFactions] = useState({
+        second_sunday: "Excellent Men",
+        third_sunday: "The Lord's Garnet",
+        fourth_sunday: "Good Women",
+        fifth_sunday: "Joint Anointing Service"
+    });
+
+    const [thanksgivingSession, setThanksgivingSession] = useState<any>({
+        name: "Thanksgiving Service (1st Sunday)",
+        start_time: "07:30",
+        end_time: "11:00",
+        flyer_url: ""
+    });
+
     const [standardSessions, setStandardSessions] = useState<any[]>([]);
-    const [thanksgivingSession, setThanksgivingSession] = useState<any>(null);
+    // ------------------------------------------------
 
     const [singleDate, setSingleDate] = useState("");
     const [multiDays, setMultiDays] = useState<any[]>([]);
@@ -88,10 +103,14 @@ export default function EditEventPage() {
                 setStartTime(rules.start_time || "18:00");
                 setEndTime(rules.end_time || "20:00");
 
+                // Populate Dynamic Arrays
                 if (rules.standard_sessions) setStandardSessions(rules.standard_sessions);
                 else if (rules.sessions) setStandardSessions(rules.sessions);
-
                 if (rules.thanksgiving_session) setThanksgivingSession(rules.thanksgiving_session);
+
+                // NEW: Load existing Factions if available!
+                if (rules.factions) setSundayFactions(rules.factions);
+
             } else if (data.event_type === "single_day") {
                 if (data.start_datetime) {
                     const startDate = new Date(data.start_datetime);
@@ -110,6 +129,9 @@ export default function EditEventPage() {
 
     const handleAddMultiDay = () => setMultiDays([...multiDays, { date: "", start_time: "18:00", end_time: "21:00", label: `Day ${multiDays.length + 1}` }]);
     const handleRemoveMultiDay = (index: number) => setMultiDays(multiDays.filter((_, i) => i !== index));
+
+    const handleAddSession = () => setStandardSessions([...standardSessions, { name: `Service ${standardSessions.length + 1}`, start_time: "11:30", end_time: "13:30", flyer_url: "" }]);
+    const handleRemoveSession = (index: number) => setStandardSessions(standardSessions.filter((_, i) => i !== index));
 
     const updateSessionFlyer = (index: number, url: string) => {
         const newSessions = [...standardSessions];
@@ -137,19 +159,20 @@ export default function EditEventPage() {
             if (recurringPattern === "weekly") rules.day = recurringDay;
             else rules.rule = recurringDay;
 
-            if (standardSessions.length > 0) rules.standard_sessions = standardSessions;
-            if (thanksgivingSession) rules.thanksgiving_session = thanksgivingSession;
-            if (standardSessions.length === 0 && !thanksgivingSession) {
-                rules.start_time = startTime;
-                rules.end_time = endTime;
+            // 🔴 APPLY DYNAMIC SUNDAY LOGIC 🔴
+            if (recurringPattern === 'weekly' && recurringDay === 'sunday' && title.toLowerCase().includes('sunday')) {
+                rules.factions = sundayFactions;
+                rules.thanksgiving_session = thanksgivingSession;
+                rules.standard_sessions = standardSessions;
+            } else {
+                if (standardSessions.length > 0) rules.standard_sessions = standardSessions;
+                if (thanksgivingSession) rules.thanksgiving_session = thanksgivingSession;
+                if (standardSessions.length === 0 && !thanksgivingSession) {
+                    rules.start_time = startTime;
+                    rules.end_time = endTime;
+                }
             }
 
-            if (recurringDay === 'sunday' && title === 'Sunday Service') {
-                rules.factions = {
-                    second_sunday: "Excellent Men", third_sunday: "The Lord's Garnet",
-                    fourth_sunday: "Good Women", fifth_sunday: "Joint Anointing Service"
-                };
-            }
             payload.recurrence_rules = rules;
 
         } else if (eventType === "single_day") {
@@ -241,12 +264,12 @@ export default function EditEventPage() {
                             </div>
                         </div>
 
-                        {/* 2. FLYERS & MEDIA (DYNAMIC) */}
+                        {/* 2. FLYERS & MEDIA */}
                         <div className="space-y-6">
                             <label className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">Step 2: Edit/Change Event Flyer(s)</label>
 
                             {/* ONLY DO MULTIPLE FLYERS IF IT IS SUNDAY SERVICE */}
-                            {eventType === 'recurring' && recurringDay === 'sunday' && title === 'Sunday Service' ? (
+                            {eventType === 'recurring' && recurringDay === 'sunday' && title.toLowerCase().includes('sunday') ? (
                                 <div className="space-y-6">
                                     <p className="text-sm text-gray-500">Sunday Services require specific flyers for Thanksgiving and standard sessions.</p>
 
@@ -299,7 +322,7 @@ export default function EditEventPage() {
                                     )}
                                 </div>
                             ) : (
-                                /* STANDARD SINGLE FLYER UPLOAD (For Wednesday, Tuesday, Single Day, Multi Day, etc.) */
+                                /* STANDARD SINGLE FLYER UPLOAD */
                                 <div className="p-4 border border-brand-accent rounded-2xl bg-slate-50">
                                     <h4 className="font-bold text-slate-700 mb-4 text-sm flex items-center gap-2">
                                         ✨ {title || "Event Details"} <span className="text-gray-400 font-normal">({startTime} {endTime ? `- ${endTime}` : ''})</span>
@@ -319,8 +342,8 @@ export default function EditEventPage() {
                                         </div>
                                     </div>
 
-                                    {/* For Wednesday Hours of Mercy: Show the hours listed below the uploader! */}
-                                    {standardSessions.length > 0 && title !== 'Sunday Service' && (
+                                    {/* Multi-Session display info for other recurring events (e.g., Wednesday) */}
+                                    {standardSessions.length > 0 && !title.toLowerCase().includes('sunday') && (
                                         <div className="mt-6 pt-6 border-t border-gray-200">
                                             <p className="text-xs font-bold text-brand-primary uppercase mb-3">Event Sessions</p>
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -346,27 +369,118 @@ export default function EditEventPage() {
                                 )}
                                 <h3 className="text-xs font-bold text-brand-primary uppercase tracking-widest flex items-center gap-2"><Calendar size={16}/> Scheduling Rules</h3>
 
-                                {eventType === 'recurring' && standardSessions.length === 0 && !thanksgivingSession && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="opacity-75"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Pattern</label><input disabled value={recurringPattern} className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 capitalize cursor-not-allowed" /></div>
-                                        <div className="opacity-75"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Rule</label><input disabled value={recurringDay.replace('_', ' ')} className="w-full p-4 border rounded-xl bg-gray-100 text-gray-500 capitalize cursor-not-allowed" /></div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label>
-                                            <input type="time" disabled={userRole !== 'super-admin'} value={startTime} onChange={e => setStartTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} />
+                                {/* RECURRING */}
+                                {eventType === 'recurring' && (
+                                    <div className="space-y-6 animate-in fade-in">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className={userRole !== 'super-admin' ? "opacity-75" : ""}>
+                                                <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Pattern</label>
+                                                <select
+                                                    disabled={userRole !== 'super-admin'}
+                                                    value={recurringPattern}
+                                                    onChange={e => setRecurringPattern(e.target.value)}
+                                                    className={`w-full p-4 border rounded-xl text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-800' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`}
+                                                >
+                                                    <option value="weekly">Weekly</option>
+                                                    <option value="monthly">Monthly</option>
+                                                </select>
+                                            </div>
+
+                                            <div className={userRole !== 'super-admin' ? "opacity-75" : ""}>
+                                                <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Rule / Day</label>
+                                                {recurringPattern === 'weekly' ? (
+                                                    <select
+                                                        disabled={userRole !== 'super-admin'}
+                                                        value={recurringDay}
+                                                        onChange={e => setRecurringDay(e.target.value)}
+                                                        className={`w-full p-4 border rounded-xl text-brand-primary capitalize ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-800' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`}
+                                                    >
+                                                        <option value="sunday">Sunday</option>
+                                                        <option value="monday">Monday</option>
+                                                        <option value="tuesday">Tuesday</option>
+                                                        <option value="wednesday">Wednesday</option>
+                                                        <option value="thursday">Thursday</option>
+                                                        <option value="friday">Friday</option>
+                                                        <option value="saturday">Saturday</option>
+                                                    </select>
+                                                ) : (
+                                                    <select
+                                                        disabled={userRole !== 'super-admin'}
+                                                        value={recurringDay}
+                                                        onChange={e => setRecurringDay(e.target.value)}
+                                                        className={`w-full p-4 border rounded-xl text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-800' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`}
+                                                    >
+                                                        <option value="first_sunday">First Sunday</option>
+                                                        <option value="first_thursday">First Thursday</option>
+                                                        <option value="first_friday">First Friday</option>
+                                                        <option value="last_friday">Last Friday</option>
+                                                        <option value="thursday_before_first_friday">Thursday before First Friday</option>
+                                                    </select>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label>
-                                            <input type="time" disabled={userRole !== 'super-admin'} value={endTime} onChange={e => setEndTime(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} />
-                                        </div>
+
+                                        {/* 🔴 DYNAMIC SUNDAY CONFIGURATOR (PULLED FROM CREATION PAGE) 🔴 */}
+                                        {recurringPattern === 'weekly' && recurringDay === 'sunday' && title.toLowerCase().includes('sunday') ? (
+                                            <div className="mt-8 pt-8 border-t border-gray-200 animate-in fade-in slide-in-from-top-4">
+                                                <div className="flex items-center gap-2 mb-6">
+                                                    <Users size={20} className="text-brand-primary" />
+                                                    <h4 className="text-lg font-bold text-brand-primary font-serif">Sunday Configuration Matrix</h4>
+                                                </div>
+
+                                                {/* Factions */}
+                                                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
+                                                    <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Monthly Themes (Factions)</h5>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div><label className="text-xs font-bold text-gray-800 block mb-1">2nd Sunday</label><input disabled={userRole !== 'super-admin'} value={sundayFactions.second_sunday} onChange={e => setSundayFactions({...sundayFactions, second_sunday: e.target.value})} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                        <div><label className="text-xs font-bold text-gray-800 block mb-1">3rd Sunday</label><input disabled={userRole !== 'super-admin'} value={sundayFactions.third_sunday} onChange={e => setSundayFactions({...sundayFactions, third_sunday: e.target.value})} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                        <div><label className="text-xs font-bold text-gray-800 block mb-1">4th Sunday</label><input disabled={userRole !== 'super-admin'} value={sundayFactions.fourth_sunday} onChange={e => setSundayFactions({...sundayFactions, fourth_sunday: e.target.value})} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                        <div><label className="text-xs font-bold text-gray-800 block mb-1">5th Sunday</label><input disabled={userRole !== 'super-admin'} value={sundayFactions.fifth_sunday} onChange={e => setSundayFactions({...sundayFactions, fifth_sunday: e.target.value})} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Times: Thanksgiving */}
+                                                <div className="bg-amber-50/50 p-6 rounded-2xl border border-amber-100 mb-6">
+                                                    <h5 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-4">1st Sunday: Thanksgiving Timing</h5>
+                                                    <div className="flex flex-col sm:flex-row gap-4">
+                                                        <div className="flex-1"><label className="text-xs font-bold text-amber-900 block mb-1">Label</label><input disabled={userRole !== 'super-admin'} value={thanksgivingSession?.name || ""} onChange={e => setThanksgivingSession({...thanksgivingSession, name: e.target.value})} className={`w-full p-3 border border-amber-200 text-brand-primary rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} /></div>
+                                                        <div className="w-full sm:w-32"><label className="text-xs font-bold text-amber-900 block mb-1">Start</label><input type="time" disabled={userRole !== 'super-admin'} value={thanksgivingSession?.start_time || ""} onChange={e => setThanksgivingSession({...thanksgivingSession, start_time: e.target.value})} className={`w-full p-3 border border-amber-200 text-brand-primary rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} /></div>
+                                                        <div className="w-full sm:w-32"><label className="text-xs font-bold text-amber-900 block mb-1">End</label><input type="time" disabled={userRole !== 'super-admin'} value={thanksgivingSession?.end_time || ""} onChange={e => setThanksgivingSession({...thanksgivingSession, end_time: e.target.value})} className={`w-full p-3 border border-amber-200 text-brand-primary rounded-lg ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} /></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Times: Standard Sessions */}
+                                                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                                    <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">2nd-5th Sundays: Standard Services</h5>
+                                                    <div className="space-y-4">
+                                                        {standardSessions.map((session, index) => (
+                                                            <div key={index} className="flex flex-col sm:flex-row gap-4">
+                                                                <div className="flex-1"><label className="text-xs font-bold text-gray-600 block mb-1">Service Name</label><input disabled={userRole !== 'super-admin'} value={session.name} onChange={e => {const s = [...standardSessions]; s[index].name = e.target.value; setStandardSessions(s);}} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                                <div className="w-full sm:w-32"><label className="text-xs font-bold text-gray-600 block mb-1">Start Time</label><input type="time" disabled={userRole !== 'super-admin'} value={session.start_time} onChange={e => {const s = [...standardSessions]; s[index].start_time = e.target.value; setStandardSessions(s);}} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                                <div className="w-full sm:w-32"><label className="text-xs font-bold text-gray-600 block mb-1">End Time</label><input type="time" disabled={userRole !== 'super-admin'} value={session.end_time} onChange={e => {const s = [...standardSessions]; s[index].end_time = e.target.value; setStandardSessions(s);}} className={`w-full p-3 border rounded-lg text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed' : 'bg-slate-50'}`} /></div>
+                                                                {standardSessions.length > 1 && userRole === 'super-admin' && (
+                                                                    <button type="button" onClick={() => handleRemoveSession(index)} className="mt-6 p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                        {userRole === 'super-admin' && (
+                                                            <button type="button" onClick={handleAddSession} className="text-xs font-bold text-brand-primary hover:text-amber-600 flex items-center gap-1 mt-2">
+                                                                <Plus size={14}/> Add Another Service
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 border-t border-gray-200 pt-6">
+                                                <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Start Time</label><input type="time" disabled={userRole !== 'super-admin'} value={startTime} onChange={e => setStartTime(e.target.value)} className={`w-full p-4 border rounded-xl text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-800' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} /></div>
+                                                <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">End Time</label><input type="time" disabled={userRole !== 'super-admin'} value={endTime} onChange={e => setEndTime(e.target.value)} className={`w-full p-4 border rounded-xl text-brand-primary ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-800' : 'bg-white focus:ring-2 focus:ring-brand-primary outline-none'}`} /></div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
-                                {eventType === 'recurring' && standardSessions.length > 0 && (
-                                    <div className="p-4 border border-brand-primary/20 bg-brand-primary/5 rounded-xl text-sm text-brand-primary font-bold">
-                                        Notice: Times for multi-session events are locked globally to preserve schedule integrity.
-                                    </div>
-                                )}
-
+                                {/* SINGLE DAY */}
                                 {eventType === 'single_day' && (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Date</label><input type="date" disabled={userRole !== 'super-admin'} required value={singleDate} onChange={e => setSingleDate(e.target.value)} className={`w-full p-4 border rounded-xl ${userRole !== 'super-admin' ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-brand-primary'}`} /></div>
@@ -375,6 +489,7 @@ export default function EditEventPage() {
                                     </div>
                                 )}
 
+                                {/* MULTI DAY */}
                                 {eventType === 'multi_day' && (
                                     <div className="space-y-4">
                                         {multiDays.map((day, index) => (
@@ -399,7 +514,7 @@ export default function EditEventPage() {
                             </div>
                         </div>
 
-                        {/* 4. OPTIONAL OVERRIDES (Point #4 - Only shows for Non-Recurring) */}
+                        {/* 4. OPTIONAL OVERRIDES */}
                         {eventType !== 'recurring' && (
                             <div className="space-y-6">
                                 <label className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-3">Step 4: Edit/Change Additional Event Info</label>

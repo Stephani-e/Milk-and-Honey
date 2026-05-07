@@ -8,6 +8,7 @@ import {
 
 export default function SermonsPage() {
     const [sermons, setSermons] = useState<any[]>([]);
+    const [monthlyThemes, setMonthlyThemes] = useState<Record<string, any>>({}); // NEW STATE FOR THEMES
     const [loading, setLoading] = useState(true);
     const [showTopBtn, setShowTopBtn] = useState(false);
 
@@ -30,33 +31,28 @@ export default function SermonsPage() {
     const [jumpMonth, setJumpMonth] = useState<string>("All");
 
     useEffect(() => {
-        fetchPublicSermons();
+        fetchPublicSermonsAndThemes();
     }, []);
 
     // Scroll to Top Listener
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 400) {
-                setShowTopBtn(true);
-            } else {
-                setShowTopBtn(false);
-            }
+            if (window.scrollY > 400) setShowTopBtn(true);
+            else setShowTopBtn(false);
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    async function fetchPublicSermons() {
+    async function fetchPublicSermonsAndThemes() {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            // 1. Fetch Sermons
+            const { data: sermonData, error: sermonError } = await supabase
                 .from("sermons")
                 .select("*")
                 .eq("status", "published")
@@ -64,23 +60,33 @@ export default function SermonsPage() {
                 .is("deleted_at", null)
                 .order("service_date", { ascending: false });
 
-            if (error) throw error;
-            if (data) {
-                setSermons(data);
-                // Auto-expand the most recent year and month by default
-                if (data.length > 0) {
-                    const firstDate = new Date(data[0].service_date);
+            if (sermonError) throw sermonError;
+
+            if (sermonData) {
+                setSermons(sermonData);
+                if (sermonData.length > 0) {
+                    const firstDate = new Date(sermonData[0].service_date);
                     if (!isNaN(firstDate.getTime())) {
                         const firstYear = firstDate.getFullYear().toString();
                         const firstMonthKey = `${firstYear}-${firstDate.toLocaleString('default', { month: 'long' })}`;
-
                         setExpandedYears([firstYear]);
                         setExpandedMonths([firstMonthKey]);
                     }
                 }
             }
+
+            // 2. Fetch Monthly Themes
+            const { data: themeData } = await supabase.from("monthly_themes").select("*");
+            if (themeData) {
+                const themesMap: Record<string, any> = {};
+                themeData.forEach(t => {
+                    if (t.month_year) themesMap[t.month_year] = t; // e.g., "May 2026"
+                });
+                setMonthlyThemes(themesMap);
+            }
+
         } catch (error) {
-            console.error("Error fetching public sermons:", error);
+            console.error("Error fetching data:", error);
         } finally {
             setLoading(false);
         }
@@ -165,7 +171,7 @@ export default function SermonsPage() {
 
         return toGroup.reduce((acc: any, sermon: any) => {
             const date = new Date(sermon.service_date);
-            if (isNaN(date.getTime())) return acc; // Skip invalid dates
+            if (isNaN(date.getTime())) return acc;
 
             const year = date.getFullYear().toString();
             const month = date.toLocaleString('default', { month: 'long' });
@@ -191,7 +197,6 @@ export default function SermonsPage() {
         setExpandedMonths(prev => prev.includes(monthKey) ? prev.filter(m => m !== monthKey) : [...prev, monthKey]);
     };
 
-    // If there is an active search or jump filter, force expand to reveal findings
     const isYearExpanded = (year: string) => {
         if (searchQuery.trim() !== "" || jumpYear !== "All" || filterCategory !== "All") return true;
         return expandedYears.includes(year);
@@ -259,7 +264,7 @@ export default function SermonsPage() {
                     {/* FEATURED MESSAGE */}
                     {featuredSermon && (
                         <section className="max-w-7xl mx-auto px-4 md:px-6 -mt-8 md:-mt-10 relative z-20 mb-12">
-                            <a href={`/sermons/${featuredSermon.id}`} className="bg-white rounded-[20px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row group cursor-pointer block max-w-5xl mx-auto">
+                            <a href={`/sermons/${featuredSermon.id}`} className="bg-white rounded-[20px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row group cursor-pointer max-w-5xl mx-auto">
                                 <div className="w-full lg:w-[55%] h-48 md:h-72 lg:h-80 relative overflow-hidden bg-slate-900 shrink-0">
                                     <div className="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
                                     <img src={getThumbnail(featuredSermon)} alt={featuredSermon.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
@@ -294,12 +299,11 @@ export default function SermonsPage() {
                         </section>
                     )}
 
-                    {/* SEARCH & FILTER BAR (Responsive Fix) */}
+                    {/* SEARCH & FILTER BAR */}
                     <section className="max-w-7xl mx-auto px-4 md:px-6 mb-10 w-full">
                         <div className={`bg-white p-3 md:p-4 shadow-lg border border-gray-100 rounded-xl flex flex-col relative z-30 transition-all duration-300 ${filterCategory === 'Sunday' || filterCategory === 'Monthly' || filterCategory === 'Special'}`}>
 
                             <div className="flex flex-col lg:flex-row gap-3 md:gap-4 items-center w-full">
-                                {/* Scrollable Category Buttons */}
                                 <div className="w-full lg:w-auto overflow-x-auto no-scrollbar">
                                     <div className="flex gap-2 pb-2 lg:pb-0 px-1">
                                         {["All", "Sunday", "Tuesday", "Thursday", "Monthly", "Special"].map((tab) => (
@@ -324,7 +328,6 @@ export default function SermonsPage() {
 
                                 <div className="hidden lg:block w-[1px] h-8 bg-gray-200 mx-1 shrink-0"></div>
 
-                                {/* Search Bar */}
                                 <div className="flex-1 w-full relative flex items-center bg-slate-50 rounded-full overflow-hidden border border-gray-100">
                                     <Search className="absolute left-4 text-gray-400" size={18} />
                                     <input
@@ -339,8 +342,6 @@ export default function SermonsPage() {
 
                             {/* SUB-FILTERS */}
                             <div className="flex flex-col gap-2 mt-2">
-
-                                {/* Sunday Sub-filters */}
                                 {filterCategory === "Sunday" && (
                                     <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 w-full overflow-hidden">
                                         <div className="w-full overflow-x-auto no-scrollbar">
@@ -368,7 +369,6 @@ export default function SermonsPage() {
                                     </div>
                                 )}
 
-                                {/* Monthly Sub-filters */}
                                 {filterCategory === "Monthly" && monthlyServiceNames.length > 1 && (
                                     <div className="pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 w-full overflow-hidden">
                                         <div className="w-full overflow-x-auto no-scrollbar">
@@ -384,7 +384,6 @@ export default function SermonsPage() {
                                     </div>
                                 )}
 
-                                {/* Special Sub-filters */}
                                 {filterCategory === "Special" && specialServiceNames.length > 1 && (
                                     <div className="pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 w-full overflow-hidden">
                                         <div className="w-full overflow-x-auto no-scrollbar">
@@ -401,7 +400,7 @@ export default function SermonsPage() {
                                 )}
                             </div>
 
-                            {/* JUMP FILTERS (Date Selection) */}
+                            {/* JUMP FILTERS */}
                             <div className="flex flex-wrap items-center justify-end gap-2 md:gap-3 pt-4 mt-2 border-t border-gray-100 w-full">
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 shrink-0">Jump To:</span>
                                 <div className="flex gap-2 flex-1 sm:flex-none justify-end">
@@ -448,8 +447,8 @@ export default function SermonsPage() {
                                                         {year}
                                                     </h2>
                                                     <span className="bg-brand-primary/10 text-brand-primary text-[10px] md:text-xs px-3 py-1 rounded-full font-bold font-sans tracking-widest uppercase mt-1 md:mt-2">
-                                                    {totalYearMessages} {totalYearMessages === 1 ? 'Message' : 'Messages'}
-                                                </span>
+                                                        {totalYearMessages} {totalYearMessages === 1 ? 'Message' : 'Messages'}
+                                                    </span>
                                                 </div>
                                                 <div className="w-10 h-10 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all shrink-0 ml-4">
                                                     {isYearExpanded(year) ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
@@ -468,22 +467,47 @@ export default function SermonsPage() {
                                                             const monthKey = `${year}-${month}`;
                                                             const monthMessages = groupedSermons[year][month];
 
+                                                            // Check if we have a theme for this exact Month + Year (e.g. "May 2026")
+                                                            const themeLookupKey = `${month} ${year}`;
+                                                            const activeTheme = monthlyThemes[themeLookupKey];
+
                                                             return (
                                                                 <div key={monthKey} className="flex flex-col bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-sm w-full overflow-hidden">
-                                                                    {/* MONTH HEADER */}
+
+                                                                    {/* MONTH HEADER + THEME DISPLAY */}
                                                                     <button
                                                                         type="button"
                                                                         onClick={(e) => toggleMonth(e, monthKey)}
                                                                         className="flex items-center justify-between w-full text-left pb-4 border-b border-gray-100 group cursor-pointer"
                                                                     >
-                                                                        <div className="flex items-center gap-3 flex-1">
-                                                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800 group-hover:text-brand-primary transition-colors m-0">
-                                                                                {month}
-                                                                            </h3>
-                                                                            <span className="bg-gray-100 text-gray-500 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold font-sans self-center mt-1">
-                                                                        {monthMessages.length}
-                                                                    </span>
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-1">
+                                                                            <div className="flex items-center gap-3">
+                                                                                <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800 group-hover:text-brand-primary transition-colors m-0">
+                                                                                    {month}
+                                                                                </h3>
+                                                                                <span className="bg-gray-100 text-gray-500 text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold font-sans self-center mt-1">
+                                                                                    {monthMessages.length}
+                                                                                </span>
+                                                                            </div>
+
+                                                                            {activeTheme && (
+                                                                                <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                                                                            )}
+
+                                                                            {activeTheme && (
+                                                                                <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                                                                                    <span className="text-xs md:text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-lg">
+                                                                                        THEME: "{activeTheme.theme_title}"
+                                                                                    </span>
+                                                                                    {activeTheme.scripture && (
+                                                                                        <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest hidden md:inline-block">
+                                                                                            {activeTheme.scripture}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
+
                                                                         <div className="text-gray-400 group-hover:text-brand-primary transition-colors shrink-0 ml-4">
                                                                             {isMonthExpanded(monthKey) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                                                         </div>
@@ -505,18 +529,18 @@ export default function SermonsPage() {
                                                                                     </div>
                                                                                     <div className="p-4 md:p-5 flex flex-col flex-grow w-full overflow-hidden">
                                                                                         <div className="flex flex-wrap gap-1.5 mb-2">
-                                                                                    <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md shrink-0 ${sermon.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : sermon.service_category === "Monthly" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-                                                                                        {getSermonBadge(sermon)}
-                                                                                    </span>
+                                                                                            <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md shrink-0 ${sermon.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : sermon.service_category === "Monthly" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                                                                                                {getSermonBadge(sermon)}
+                                                                                            </span>
                                                                                             {sermon.is_multi_day && sermon.day_identifier && (
                                                                                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-gray-200 text-gray-600 shrink-0">
-                                                                                            {sermon.day_identifier}
-                                                                                        </span>
+                                                                                                    {sermon.day_identifier}
+                                                                                                </span>
                                                                                             )}
                                                                                             {sermon.service_category === "Weekly" && sermon.weekly_type === "Sunday" && sermon.host && sermon.host !== "General/Last Sunday" && (
                                                                                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 shrink-0">
-                                                                                            {sermon.host}
-                                                                                        </span>
+                                                                                                    {sermon.host}
+                                                                                                </span>
                                                                                             )}
                                                                                         </div>
                                                                                         <h3 className="text-base md:text-lg font-serif font-black text-brand-primary mb-2 line-clamp-2 leading-tight group-hover:text-amber-600 transition-colors break-words">
