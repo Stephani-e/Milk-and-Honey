@@ -494,6 +494,7 @@ export default function SermonsPage() {
                                                                                 <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-gray-300"></div>
                                                                             )}
 
+
                                                                             {activeTheme && (
                                                                                 <div className="flex items-center gap-2 mt-1 sm:mt-0">
                                                                                     <span className="text-xs md:text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-lg">
