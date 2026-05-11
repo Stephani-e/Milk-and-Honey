@@ -19,11 +19,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Milk and Honey • RCCG • Lagos Province 56",
   description: "Administrative Portal for Digital Ministry",
-  icons: {
-      icon: "/Church-Logo.png",
-      shortcut: "/Church-Logo.png",
-      apple: "/Church-Logo.png",
-  }
 };
 
 export default function RootLayout({
@@ -45,9 +40,6 @@ export default function RootLayout({
           toastOptions={{
             unstyled: true, 
             classNames: {
-              // 1. Smaller width (340px)
-              // 2. Subtle diagonal gradient
-              // 3. Tighter padding (p-3)
               toast: `
                 group flex w-full relative items-center justify-between overflow-hidden 
                 rounded-2xl border border-white/[0.08] 

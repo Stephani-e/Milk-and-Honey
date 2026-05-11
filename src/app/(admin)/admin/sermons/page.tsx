@@ -136,14 +136,41 @@ export default function SermonsPage() {
 
         dataQuery = dataQuery.range(from, to);
 
+
         const { data, error } = await dataQuery;
 
         if (error) {
             toast.error("Error fetching sermons: " + error.message);
         } else {
-            setSermons(data || []);
-        }
+            let fetchedSermons = data || [];
 
+            if (sortBy === "latest" || sortBy === "oldest") {
+                fetchedSermons = fetchedSermons.sort((a, b) => {
+                    const dateA = new Date(a.service_date).getTime();
+                    const dateB = new Date(b.service_date).getTime();
+                    
+                    // If dates are different, reinforce the primary date sort
+                    if (dateA !== dateB) {
+                        return sortBy === "oldest" ? dateA - dateB : dateB - dateA;
+                    }
+                    
+                    // TIE-BREAKER LOGIC for identical dates
+                    const orderMap: Record<string, number> = {
+                        "First Service": 1, 
+                        "Second Service": 2,
+                    };
+                    
+                    const valA = orderMap[a.service_number] || 0;
+                    const valB = orderMap[b.service_number] || 0;
+                    
+                    // If 'latest', Second Service (2) comes before First Service (1)
+                    // If 'oldest', First Service (1) comes before Second Service (2)
+                    return sortBy === "oldest" ? valA - valB : valB - valA;
+                });
+            }
+            setSermons(fetchedSermons);
+        }
+        
         setLoading(false);
         setIsInitialLoad(false);
     }
@@ -726,8 +753,11 @@ function ActionButtons({
 
     // Function to handle the "View Live" click
     const handleViewLive = (id: string) => {
-        // We will attach the actual URL logic later
-        // Example: window.open(`/sermons/${id}`, '_blank');
+        if (view === "draft") {
+            window.open(`/sermons/${id}?preview=true`, '_blank');
+        } else {
+            window.open(`/sermons/${id}`, '_blank');
+        }
         toast.info("Opening public preview...");
     };
 

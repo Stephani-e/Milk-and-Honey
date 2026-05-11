@@ -276,6 +276,7 @@ export default function NewSermonPage() {
                                                     value={formData.service_number}
                                                     onChange={(e) => setFormData({...formData, service_number: e.target.value})}
                                                 >
+                                                    <option>Pick a Service Type</option>
                                                     <option>First Service</option>
                                                     <option>Second Service</option>
                                                 </select>

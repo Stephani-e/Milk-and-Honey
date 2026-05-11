@@ -1,16 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
     ArrowLeft, Calendar, User, BookOpen,
-    PlayCircle, Headphones, Loader2, Quote, Video, ChevronUp
+    PlayCircle, Headphones, Loader2, Quote, Video, ChevronUp,
+    Eye
 } from "lucide-react";
 import "react-quill-new/dist/quill.snow.css";
 
 export default function SermonDetailPage() {
     const { id } = useParams();
+    const searchParams = useSearchParams();
+    const isPreview = searchParams.get('preview') === 'true';
     const [sermon, setSermon] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showTopBtn, setShowTopBtn] = useState(false);
@@ -19,12 +22,18 @@ export default function SermonDetailPage() {
     useEffect(() => {
         async function fetchSermon() {
             setLoading(true);
+
             try {
-                const { data, error } = await supabase
+                let query = supabase
                     .from("sermons")
                     .select("*")
                     .eq("id", id)
-                    .single();
+
+                if (!isPreview) {
+                    query = query.eq("status", "published").eq("is_archived", false);
+                }
+
+                const { data, error } = await query.single();
 
                 if (error) throw error;
                 setSermon(data);
@@ -145,10 +154,17 @@ export default function SermonDetailPage() {
         <div className="bg-slate-50 min-h-screen pb-24 relative">
 
             {/* TOP NAVIGATION */}
-            <div className="w-full max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-4">
+            <div className="w-full max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-4 flex items-center justify-between">
                 <Link href="/sermons" className="inline-flex items-center gap-2 text-brand-primary hover:text-amber-600 transition-colors text-xs font-bold uppercase tracking-widest bg-white py-2 px-4 rounded-full shadow-sm border border-gray-100">
                     <ArrowLeft size={14} /> Back to Sermons Library
                 </Link>
+
+                {isPreview && (
+                    <div className="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full border border-blue-200 shadow-sm animate-pulse">
+                        <Eye size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Preview Mode (Draft)</span>
+                    </div>
+                )}
             </div>
 
             {/* 1. HERO HEADER */}

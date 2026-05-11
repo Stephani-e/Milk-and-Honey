@@ -63,9 +63,28 @@ export default function SermonsPage() {
             if (sermonError) throw sermonError;
 
             if (sermonData) {
-                setSermons(sermonData);
-                if (sermonData.length > 0) {
-                    const firstDate = new Date(sermonData[0].service_date);
+
+                const sortedSermons = sermonData.sort((a, b) => {
+                    const dateA = new Date(a.service_date).getTime();
+                    const dateB = new Date(b.service_date).getTime();
+
+                    if (dateA !== dateB) return dateB - dateA;
+
+                    const orderMap: Record<string, number> = {
+                        "First Service": 1,
+                        "Second Service": 2,
+                    };
+
+                    const valA = orderMap[a.service_number] || 0;
+                    const valB = orderMap[b.service_number] || 0;
+
+                    return valB - valA;
+                })
+
+                setSermons(sortedSermons);
+
+                if (sortedSermons.length > 0) {
+                    const firstDate = new Date(sortedSermons[0].service_date);
                     if (!isNaN(firstDate.getTime())) {
                         const firstYear = firstDate.getFullYear().toString();
                         const firstMonthKey = `${firstYear}-${firstDate.toLocaleString('default', { month: 'long' })}`;
