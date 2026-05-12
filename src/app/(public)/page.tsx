@@ -8,6 +8,7 @@ import {
 import LatestSermon from "@/components/Home/LatestSermon";
 import LatestGallery from "@/components/Home/LatestGallery";
 import NextEvent from "@/components/Home/NextEvent";
+import SidebarAd from "@/components/Home/SidebarAd";
 
 export default function HomePage() {
     const [showTopBtn, setShowTopBtn] = useState(false);
@@ -120,11 +121,7 @@ export default function HomePage() {
                         {/* Right Side: SIDEBAR AD PLACEMENT */}
                         <div className="lg:w-1/3">
                             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 hidden lg:block border-b border-gray-200 pb-2">Featured Updates</h2>
-                            <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl h-[300px] lg:h-[calc(100%-3rem)] flex flex-col items-center justify-center text-gray-400 p-8 text-center shadow-sm">
-                                <Megaphone size={32} className="mb-4 opacity-50" />
-                                <span className="text-xs font-bold uppercase tracking-widest block mb-2 text-brand-primary">[Sidebar Ad Slot]</span>
-                                <p className="text-[10px] leading-relaxed max-w-xs">When an Ad Campaign is set to "Global Sidebar", it will automatically render here instead of this placeholder.</p>
-                            </div>
+                            <SidebarAd />
                         </div>
                     </div>
                 </div>
@@ -154,7 +151,6 @@ export default function HomePage() {
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full lg:w-[120%] h-full lg:h-[120%] bg-amber-50 rounded-full blur-3xl -z-10" />
                             <LatestGallery />
                         </div>
-
                     </div>
                 </div>
             </section>

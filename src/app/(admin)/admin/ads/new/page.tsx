@@ -41,7 +41,7 @@ export default function NewAdPage() {
     const [fallbackImageUrl, setFallbackImageUrl] = useState("");
 
     // 4. Placement & Expiry
-    const [placement, setPlacement] = useState("homepage");
+    const [placement, setPlacement] = useState("global_top");
     const [expiryDate, setExpiryDate] = useState("");
     const [expiryTime, setExpiryTime] = useState("23:59");
 
@@ -212,7 +212,7 @@ export default function NewAdPage() {
                                             mediaType === 'image' ? (
                                                 <img src={mediaUrl} alt="Ad Creative" className="w-full h-full object-cover" />
                                             ) : (
-                                                <video src={`${mediaUrl}#t=0.1`} className="w-full h-full object-cover" controls preload="metadata" />
+                                                <video key={mediaUrl} src={`${mediaUrl}#t=0.1`} className="w-full h-full object-cover" controls preload="metadata" />
                                             )
                                         ) : (
                                             <div className="text-gray-300 flex flex-col items-center">
@@ -280,18 +280,18 @@ export default function NewAdPage() {
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Site Placement *</label>
                                     <select required value={placement} onChange={e => setPlacement(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none font-bold text-brand-primary">
-                                        <option value="homepage">Homepage Banner</option>
-                                        <option value="sidebar">Global Sidebar</option>
-                                        <option value="global">Everywhere (Global)</option>
+                                        <option value='' disabled>Pick a Display Position</option>
+                                        <option value="global_top">Global Top Banner</option>
+                                        <option value="global_sidebar">Global Sidebar</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire Date (Optional)</label>
-                                    <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none" />
+                                    <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire Time</label>
-                                    <input type="time" disabled={!expiryDate} value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={`w-full p-4 border rounded-xl outline-none ${!expiryDate ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-pink-500'}`} />
+                                    <input type="time" disabled={!expiryDate} value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={`w-full p-4 border rounded-xl outline-none ${!expiryDate ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white text-brand-primary focus:ring-2 focus:ring-pink-500'}`} />
                                 </div>
                             </div>
                         </div>

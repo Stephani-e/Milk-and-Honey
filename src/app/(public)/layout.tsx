@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Menu, X, ChevronDown, Camera, ArrowRight } from "lucide-react";
 import FloatingDove from "@/components/Public/FloatingDove";
 import {CHURCH_INFO} from "@/lib/constants";
+import GlobalTopAd from "@/components/Home/GlobalTopAd";
 
 const FacebookIcon = ({ size = 20, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -48,10 +49,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <div className="min-h-screen flex flex-col font-sans bg-amber-50/30 relative">
 
             {/* 1. GLOBAL AD PLACEMENT */}
-            <div className="w-full bg-brand-primary text-white text-center py-2 px-4 text-[10px] md:text-xs font-bold tracking-widest uppercase flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 z-50 relative">
-                <span>[Global Ad Slot] Join us for the Provincial Convention 2026!</span>
-                <Link href="#" className="underline decoration-white/50 hover:text-amber-200 transition-colors">Register Now</Link>
-            </div>
+            <GlobalTopAd />
 
             {/* 2. PUBLIC NAVBAR */}
             <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">

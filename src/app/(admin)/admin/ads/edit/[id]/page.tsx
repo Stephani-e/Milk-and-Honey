@@ -39,7 +39,7 @@ export default function EditAdPage() {
     const [fallbackImageUrl, setFallbackImageUrl] = useState(""); // NEW: Fallback State
 
     // 4. Placement, Expiry, & Status
-    const [placement, setPlacement] = useState("homepage");
+    const [placement, setPlacement] = useState("global_top");
     const [expiryDate, setExpiryDate] = useState("");
     const [expiryTime, setExpiryTime] = useState("23:59");
     const [status, setStatus] = useState("active");
@@ -65,7 +65,7 @@ export default function EditAdPage() {
             setButtonText(data.button_text || "Learn More");
             setMediaType(data.media_type || "image");
             setMediaUrl(data.media_url || "");
-            setPlacement(data.placement || "homepage");
+            setPlacement(data.placement || "global_top");
             setStatus(data.status || "active");
             setFallbackImageUrl(data.fallback_image_url || "")
 
@@ -212,7 +212,7 @@ export default function EditAdPage() {
                                             mediaType === 'image' ? (
                                                 <img src={mediaUrl} alt="Ad Creative" className="w-full h-full object-cover" />
                                             ) : (
-                                                <video src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop />
+                                                <video key={mediaUrl} src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop />
                                             )
                                         ) : (
                                             <div className="text-gray-300 flex flex-col items-center">
@@ -288,18 +288,18 @@ export default function EditAdPage() {
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Site Placement</label>
                                         <select required value={placement} onChange={e => setPlacement(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none font-bold text-brand-primary">
-                                            <option value="homepage">Homepage Banner</option>
-                                            <option value="sidebar">Global Sidebar</option>
-                                            <option value="global">Everywhere (Global)</option>
+                                            <option value="" disabled>Pick a Display Position</option>
+                                            <option value="global_top">Global Top Banner</option>
+                                            <option value="global_sidebar">Global Sidebar</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire Date</label>
-                                        <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none" />
+                                        <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire Time</label>
-                                        <input type="time" disabled={!expiryDate} value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={`w-full p-4 border rounded-xl outline-none ${!expiryDate ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-pink-500'}`} />
+                                        <input type="time" disabled={!expiryDate} value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={`w-full p-4 border rounded-xl outline-none ${!expiryDate ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white text-brand-primary focus:ring-2 focus:ring-pink-500'}`} />
                                     </div>
                                 </div>
                             </div>
