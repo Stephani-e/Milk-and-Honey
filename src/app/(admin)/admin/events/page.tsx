@@ -6,7 +6,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
-import { Calendar, Trash2, Edit3, Clock, Plus, RefreshCw, Star, AlertCircle, ChevronDown, ChevronUp, User } from "lucide-react";
+import {
+    Calendar,
+    Trash2,
+    Edit3,
+    Clock,
+    Plus,
+    RefreshCw,
+    Star,
+    AlertCircle,
+    ChevronDown,
+    ChevronUp,
+    User,
+    Radio,
+    Flame,
+    LinkIcon, MapPin, MapPinX, ImageIcon, Info
+} from "lucide-react";
+import { UploadButton } from "@uploadthing/react";
 
 export default function EventsDashboardPage() {
     const router = useRouter();
@@ -16,37 +32,91 @@ export default function EventsDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [viewTrash, setViewTrash] = useState(false);
 
-    // Monthly Theme State
+    const [noticeMonthInput, setNoticeMonthInput] = useState(() => {
+        const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+    const formattedNoticeMonth = React.useMemo(() => {
+        const [y, m] = noticeMonthInput.split('-');
+        return new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+    }, [noticeMonthInput]);
+
+    const [noticeText, setNoticeText] = useState("");
+    const [savingNotice, setSavingNotice] = useState(false);
+
+    const [themeMonthInput, setThemeMonthInput] = useState(() => {
+        const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+    const formattedThemeMonth = React.useMemo(() => {
+        const [y, m] = themeMonthInput.split('-');
+        return new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+    }, [themeMonthInput]);
+
+    // Monthly Theme & Global Toggles State
     const [themeData, setThemeData] = useState({
         month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
         theme: "Walking in Dominion",
         scripture: "Genesis 1:26-28",
-        savingTheme: false
+        is_convention_active: false,
+        is_congress_active: false,
+        theme_banner_url: "",
+        takeover_title: "",
+        takeover_theme: "",
+        takeover_location: "Main Auditorium (Viewing Center)",
+        takeover_start_date: "",
+        takeover_end_date: "",
+        takeover_official_location: "Redemption City of God",
+        takeover_flyer_url: "",
+        takeover_link: "",
+        savingTheme: false,
     });
 
     const [modalType, setModalType] = useState<"delete" | "restore" | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
+    useEffect(() => {fetchEvents(); }, [viewTrash]);
+
     useEffect(() => {
-        fetchEvents();
-    }, [viewTrash]);
+        async function fetchNotice() {
+            const { data } = await supabase.from('monthly_themes').select('special_notice').eq('month_year', formattedNoticeMonth).maybeSingle();
+            setNoticeText(data?.special_notice || "");
+        }
+        fetchNotice();
+    }, [formattedNoticeMonth]);
 
     useEffect(() => {
         async function fetchTheme() {
-            const { data } = await supabase.from('monthly_themes').select('*').eq('id', 1).single();
+            const { data } = await supabase.from('monthly_themes').select('*').eq('month_year', formattedThemeMonth).maybeSingle();
             if (data) {
                 setThemeData({
                     month: data.month_year || new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
                     theme: data.theme_title || "",
                     scripture: data.scripture || "",
+                    is_convention_active: data.is_convention_active || false,
+                    is_congress_active: data.is_congress_active || false,
+                    theme_banner_url: data.theme_banner_url || false,
+                    takeover_title: data.takeover_title || "",
+                    takeover_theme: data.takeover_theme || "",
+                    takeover_start_date: data.takeover_start_date || "",
+                    takeover_end_date: data.takeover_end_date || "",
+                    takeover_official_location: data.takeover_official_location || "Redemption City of God",
+                    takeover_location: data.takeover_location || "Main Auditorium (Viewing Center)",
+                    takeover_flyer_url: data.takeover_flyer_url || "",
+                    takeover_link: data.takeover_link || "",
                     savingTheme: false
+                });
+            } else {
+                setThemeData({
+                    theme: "", scripture: "", theme_banner_url: "", is_convention_active: false, is_congress_active: false,
+                    takeover_title: "", takeover_theme: "", takeover_location: "Main Auditorium (Viewing Center)",
+                    month: formattedThemeMonth,
+                    takeover_start_date: "", takeover_end_date: "", takeover_official_location: "Redemption City of God",
+                    takeover_flyer_url: "", takeover_link: "", savingTheme: false
                 });
             }
         }
         fetchTheme();
-    }, []);
+    }, [formattedThemeMonth]);
 
     async function fetchEvents() {
         setLoading(true);
@@ -62,22 +132,65 @@ export default function EventsDashboardPage() {
         setLoading(false);
     }
 
+    const handleSaveNotice = async () => {
+        setSavingNotice(true);
+        const { data: existingRow } = await supabase.from('monthly_themes').select('id').eq('month_year', formattedNoticeMonth).maybeSingle();
+
+        let error;
+        if (existingRow) {
+            // Update existing row
+            const res = await supabase.from('monthly_themes').update({ special_notice: noticeText }).eq('id', existingRow.id);
+            error = res.error;
+        } else {
+            const { data: maxData } = await supabase.from('monthly_themes').select('id').order('id', { ascending: false }).limit(1).maybeSingle();
+            const nextId = (maxData?.id || 0) + 1;
+
+            const res = await supabase.from('monthly_themes').insert({ id: nextId, month_year: formattedNoticeMonth, special_notice: noticeText });
+            error = res.error;
+        }
+
+        if (error) toast.error("Error saving notice: " + error.message);
+        else toast.success(`Notice saved for ${formattedNoticeMonth}!`);
+        setSavingNotice(false);
+    };
+
     const handleSaveTheme = async () => {
         setThemeData(prev => ({...prev, savingTheme: true}));
+        const { data: existingRow } = await supabase.from('monthly_themes').select('id').eq('month_year', formattedThemeMonth).maybeSingle();
 
-        const { error } = await supabase
-            .from('monthly_themes')
-            .upsert({
-                month_year: themeData.month,
-                theme_title: themeData.theme,
-                scripture: themeData.scripture
-            }, { onConflict: 'month_year' });
+        const payload = {
+            month_year: formattedThemeMonth,
+            theme_title: themeData.theme,
+            scripture: themeData.scripture,
+            theme_banner_url: themeData.theme_banner_url,
+            is_convention_active: themeData.is_convention_active,
+            is_congress_active: themeData.is_congress_active,
+            takeover_title: themeData.takeover_title,
+            takeover_theme: themeData.takeover_theme,
+            takeover_start_date: themeData.takeover_start_date,
+            takeover_end_date: themeData.takeover_end_date,
+            takeover_official_location: themeData.takeover_official_location,
+            takeover_location: themeData.takeover_location,
+            takeover_flyer_url: themeData.takeover_flyer_url,
+            takeover_link: themeData.takeover_link
+        };
 
-        if (error) {
-            toast.error("Error saving theme: " + error.message);
+        let error;
+        if (existingRow) {
+            // Update existing
+            const res = await supabase.from('monthly_themes').update(payload).eq('id', existingRow.id);
+            error = res.error;
         } else {
-            toast.success("Monthly Theme Updated Successfully!");
+            // FIX: Manually get the highest ID so we don't violate the primary key constraint!
+            const { data: maxData } = await supabase.from('monthly_themes').select('id').order('id', { ascending: false }).limit(1).maybeSingle();
+            const nextId = (maxData?.id || 0) + 1;
+
+            const res = await supabase.from('monthly_themes').insert({ id: nextId, ...payload });
+            error = res.error;
         }
+
+        if (error) toast.error("Error saving settings: " + error.message);
+        else toast.success(`Settings saved for ${formattedThemeMonth}!`);
 
         setThemeData(prev => ({...prev, savingTheme: false}));
     };
@@ -109,7 +222,7 @@ export default function EventsDashboardPage() {
             "first_sunday": "First Sunday of the Month",
             "first_thursday": "First Thursday of the Month",
             "first_friday": "First Friday of the Month",
-            "thursday_before_first_friday": "Thursday before the First Friday (Holy Communion)", // <--- Handled here!
+            "thursday_before_first_friday": "Thursday before the First Friday (Holy Communion)",
             "last_friday": "Last Friday of the Month",
         };
         return translations[ruleString] || ruleString.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -134,7 +247,6 @@ export default function EventsDashboardPage() {
                                 <p>Every <span className="capitalize font-bold text-brand-primary">{event.recurrence_rules.day}</span></p>
                             )}
 
-                            {/* Updated Monthly Rule Display */}
                             {event.recurrence_rules.pattern_type === 'monthly' && (
                                 <p className="mt-1 font-bold text-brand-primary bg-brand-primary/5 p-1.5 rounded inline-block">
                                     Rule: {translateRule(event.recurrence_rules.rule)}
@@ -241,6 +353,11 @@ export default function EventsDashboardPage() {
         );
     };
 
+    const updateTakeover = (key: string, value: any) => {
+        setThemeData(prev => ({ ...prev, [key]: value }));
+    };
+
+    // @ts-ignore
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-6xl mx-auto">
@@ -274,48 +391,220 @@ export default function EventsDashboardPage() {
                 </div>
 
                 {!viewTrash && (
-                    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-accent mb-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-full -z-0"></div>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 relative z-10">
-                            <div>
-                                <h2 className="text-xl font-serif font-bold text-brand-primary">Global Monthly Theme</h2>
-                                <p className="text-xs text-gray-500">Updates the main banner on the public events page.</p>
+                    <>
+                        <div className="bg-amber-50/50 p-6 md:p-8 rounded-3xl border border-amber-200 mb-8 shadow-sm">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-amber-100 text-amber-600 rounded-lg"><Info size={20} /></div>
+                                    <div>
+                                        <h3 className="text-lg font-serif font-bold text-amber-800">Schedule Notices</h3>
+                                        <p className="text-[10px] text-amber-700/70 uppercase tracking-widest">Add temporary schedule changes or cancellation notices.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                                    <label className="text-[10px] font-bold text-amber-600 uppercase tracking-widest pl-2">Select Month:</label>
+                                    <input type="month" value={noticeMonthInput} onChange={(e) => setNoticeMonthInput(e.target.value)} className="bg-amber-100 text-amber-900 px-4 py-2 rounded-lg font-bold text-sm text-center outline-none cursor-pointer" />
+                                </div>
                             </div>
-                            <div className="bg-brand-primary text-white px-4 py-2 rounded-xl font-bold text-sm text-center shadow-md">
-                                {themeData.month}
+
+                            <textarea
+                                value={noticeText} onChange={(e) => setNoticeText(e.target.value)} disabled={role === 'viewer'} rows={3}
+                                className="w-full p-4 border border-amber-200 rounded-xl text-amber-900 font-medium focus:ring-2 focus:ring-amber-400 outline-none resize-none bg-white shadow-sm"
+                                placeholder={`Type any schedule updates for ${formattedNoticeMonth} here... (e.g., "First Day Prayers moved to the 4th")`}
+                            />
+
+                            <div className="mt-4 flex justify-end">
+                                <button onClick={handleSaveNotice} disabled={savingNotice || role === 'viewer'} className="bg-amber-500 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition-colors disabled:opacity-50">
+                                    {savingNotice ? "Saving..." : `Save Notice for ${formattedNoticeMonth}`}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-accent mb-8 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-full -z-0 pointer-events-none"></div>
+
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 relative z-10">
+                                <div>
+                                    <h2 className="text-xl font-serif font-bold text-brand-primary">Global Configuration</h2>
+                                    <p className="text-xs text-gray-500">Update the theme and control active public calendar modes.</p>
+                                </div>
+                                <div className="bg-brand-primary text-white px-4 py-2 rounded-xl font-bold text-sm text-center shadow-md">
+                                    {themeData.month}
+                                </div>
+                            </div>
+
+                            {/* SECTION A: Monthly Theme Inputs */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10 mb-8">
+                                <div className="md:col-span-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Theme Title</label>
+                                    <input
+                                        value={themeData.theme}
+                                        onChange={(e) => setThemeData({...themeData, theme: e.target.value})}
+                                        disabled={role === 'viewer'}
+                                        className={`w-full p-3 border rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none ${role === 'viewer' ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-brand-primary'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Anchor Scripture</label>
+                                    <input
+                                        value={themeData.scripture}
+                                        onChange={(e) => setThemeData({...themeData, scripture: e.target.value})}
+                                        disabled={role === 'viewer'}
+                                        className={`w-full p-3 border rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none ${role === 'viewer' ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-brand-primary'}`}
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Background Banner (Optional)</label>
+                                    <div className="w-full h-full min-h-[120px] bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center overflow-hidden relative group">
+                                        {themeData.theme_banner_url ? (
+                                            <>
+                                                <img src={themeData.theme_banner_url} alt="Theme Banner" className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => setThemeData({...themeData, theme_banner_url: ""})}
+                                                    className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold"
+                                                >
+                                                    Remove Banner
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="flex flex-col items-center p-4">
+                                                <ImageIcon size={24} className="text-gray-300 mb-2"/>
+                                                {/* @ts-ignore - Bypassing UploadThing Generic Requirement */}
+                                                <UploadButton
+                                                    endpoint="imageUploader"
+                                                    appearance={{ button: "bg-brand-primary text-white text-[10px] px-3 py-1.5 rounded-lg" }}
+                                                    onClientUploadComplete={(res: any) => setThemeData({...themeData, theme_banner_url: res[0].url})}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* SECTION B: Takeover Toggles */}
+                            <div className="border-t border-gray-100 pt-6 relative z-10">
+                                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-4">Calendar Takeover Modes</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                    <div className={`flex items-start gap-4 p-4 rounded-2xl border transition-colors ${themeData.is_convention_active ? 'border-amber-400 bg-amber-50/50' : 'border-gray-100 bg-slate-50'}`}>
+                                        <button
+                                            type="button" disabled={role === 'viewer'}
+                                            onClick={() => setThemeData({...themeData, is_convention_active: !themeData.is_convention_active, is_congress_active: false})}
+                                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 ${themeData.is_convention_active ? 'bg-amber-500' : 'bg-gray-300'}`}
+                                        >
+                                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${themeData.is_convention_active ? 'translate-x-5' : 'translate-x-0'}`} />
+                                        </button>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-brand-primary flex items-center gap-1.5">
+                                                <Radio size={14} className={themeData.is_convention_active ? "text-amber-500" : "text-gray-400"} /> Annual Convention
+                                            </h4>
+                                            <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">Overrides the public calendar. Turn on during the week of the convention.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className={`flex items-start gap-4 p-4 rounded-2xl border transition-colors ${themeData.is_congress_active ? 'border-blue-400 bg-blue-50/50' : 'border-gray-100 bg-slate-50'}`}>
+                                        <button
+                                            type="button" disabled={role === 'viewer'}
+                                            onClick={() => setThemeData({...themeData, is_congress_active: !themeData.is_congress_active, is_convention_active: false})}
+                                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 ${themeData.is_congress_active ? 'bg-blue-500' : 'bg-gray-300'}`}
+                                        >
+                                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${themeData.is_congress_active ? 'translate-x-5' : 'translate-x-0'}`} />
+                                        </button>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-brand-primary flex items-center gap-1.5">
+                                                <Flame size={14} className={themeData.is_congress_active ? "text-blue-500" : "text-gray-400"} /> Holy Ghost Congress
+                                            </h4>
+                                            <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">Overrides the public calendar for the December Holy Ghost Congress.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* SECTION C: TAKEOVER EVENT DETAILS (Now with Dates & Dual Locations!) */}
+                            {(themeData.is_convention_active || themeData.is_congress_active) && (
+                                <div className={`mt-6 p-6 rounded-2xl border ${themeData.is_convention_active ? 'border-amber-200 bg-amber-50/30' : 'border-blue-200 bg-blue-50/30'} animate-in fade-in slide-in-from-top-4`}>
+                                    <h3 className={`text-sm font-bold uppercase tracking-widest mb-4 ${themeData.is_convention_active ? 'text-amber-600' : 'text-blue-600'}`}>
+                                        {themeData.is_convention_active ? 'Convention' : 'Congress'} Details
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1">Official Event Title *</label>
+                                                <input value={themeData.takeover_title} onChange={(e) => updateTakeover('takeover_title', e.target.value)} placeholder="e.g. RCCG 74th Annual Convention" className="w-full p-3 border border-white rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none text-gray-900" />
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1">Theme (Optional)</label>
+                                                <input value={themeData.takeover_theme} onChange={(e) => updateTakeover('takeover_theme', e.target.value)} placeholder="e.g. Heaven" className="w-full p-3 border border-white rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none text-gray-900" />
+                                            </div>
+
+                                            <div className="flex gap-4">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1"><Calendar size={10} className="inline mr-1"/>Start Date</label>
+                                                    <input type="date" value={themeData.takeover_start_date} onChange={(e) => updateTakeover('takeover_start_date', e.target.value)} className="w-full p-3 border border-white rounded-xl bg-white outline-none text-gray-900" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1"><Calendar size={10} className="inline mr-1"/>End Date</label>
+                                                    <input type="date" value={themeData.takeover_end_date} onChange={(e) => updateTakeover('takeover_end_date', e.target.value)} className="w-full p-3 border border-white rounded-xl bg-white outline-none text-gray-900" />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-4">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1"><MapPinX size={10} className="inline mr-1"/>Official Location</label>
+                                                    <input value={themeData.takeover_official_location} onChange={(e) => updateTakeover('takeover_official_location', e.target.value)} placeholder="e.g. Redemption Camp" className="w-full p-3 border border-white rounded-xl bg-white outline-none text-gray-900" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1"><MapPin size={10} className="inline mr-1"/>Viewing Center</label>
+                                                    <input value={themeData.takeover_location} onChange={(e) => updateTakeover('takeover_location', e.target.value)} placeholder="Viewing Center" className="w-full p-3 border border-white rounded-xl bg-white outline-none text-gray-900" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-900 uppercase tracking-widest block mb-1"><LinkIcon size={10} className="inline mr-1"/>Info Link</label>
+                                                <input value={themeData.takeover_link} onChange={(e) => updateTakeover('takeover_link', e.target.value)} placeholder="e.g. https://rccg.org" className="w-full p-3 border border-white rounded-xl bg-white outline-none text-gray-700" />
+                                            </div>
+                                        </div>
+
+                                        {/* Upload Banner Column */}
+                                        <div className="flex flex-col">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Event Banner / Flyer</label>
+                                            <div className="w-full aspect-video bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center overflow-hidden relative">
+                                                {themeData.takeover_flyer_url ? (
+                                                    <>
+                                                        <img src={themeData.takeover_flyer_url} alt="Takeover Banner" className="w-full h-full object-cover" />
+                                                        <button onClick={() => updateTakeover('takeover_flyer_url', '')} className="absolute bottom-2 right-2 bg-red-500 text-white p-2 rounded-lg text-xs font-bold shadow-md hover:bg-red-600">Remove</button>
+                                                    </>
+                                                ) : (
+                                                    <div className="flex flex-col items-center p-4">
+                                                        <ImageIcon size={32} className="text-gray-300 mb-2"/>
+                                                        {/* @ts-ignore - Bypassing UploadThing Generic Requirement */}
+                                                        <UploadButton
+                                                            endpoint="imageUploader"
+                                                            appearance={{ button: "bg-brand-primary text-white text-[10px] px-4 py-2 rounded-lg" }}
+                                                            onClientUploadComplete={(res: any) => updateTakeover('takeover_flyer_url', res[0].url)}
+                                                            onUploadError={(error: any) => { toast.error(`Upload Failed: ${error.message}`); }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mt-8 flex justify-end relative z-10 border-t border-gray-100 pt-6">
+                                <button
+                                    onClick={handleSaveTheme}
+                                    disabled={themeData.savingTheme || role === 'viewer'}
+                                    className="bg-brand-primary text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+                                >
+                                    {themeData.savingTheme ? "Saving..." : "Save Global Settings"}
+                                </button>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
-                            <div className="md:col-span-2">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Theme Title</label>
-                                <input
-                                    value={themeData.theme}
-                                    onChange={(e) => setThemeData({...themeData, theme: e.target.value})}
-                                    disabled={role === 'viewer'}
-                                    className={`w-full p-3 border rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none ${role === 'viewer' ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-brand-primary'}`}
-                                />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Anchor Scripture</label>
-                                <input
-                                    value={themeData.scripture}
-                                    onChange={(e) => setThemeData({...themeData, scripture: e.target.value})}
-                                    disabled={role === 'viewer'}
-                                    className={`w-full p-3 border rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none ${role === 'viewer' ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'focus:ring-2 focus:ring-brand-primary'}`}
-                                />
-                            </div>
-                        </div>
-                        <div className="mt-4 flex justify-end relative z-10">
-                            <button
-                                onClick={handleSaveTheme}
-                                disabled={themeData.savingTheme}
-                                className="bg-white border-2 border-brand-primary text-brand-primary px-6 py-2 rounded-xl text-sm font-bold hover:bg-brand-primary/5 transition-colors disabled:opacity-50"
-                            >
-                                {themeData.savingTheme ? "Saving..." : "Update Live Theme"}
-                            </button>
-                        </div>
-                    </div>
+                    </>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">

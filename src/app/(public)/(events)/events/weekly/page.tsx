@@ -2,9 +2,19 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { ArrowLeft, Clock, MapPin, Loader2, PlayCircle, Calendar, Users } from "lucide-react";
+import {ArrowLeft, Clock, MapPin, Loader2, PlayCircle, Calendar, CheckCircle2, ChevronUp} from "lucide-react";
 
-// 1. Strict TypeScript definition to fix the "possibly undefined" errors
+// 1. Strict TypeScript definition
+type SessionStatus = {
+    name: string;
+    start_time: string;
+    end_time: string;
+    state: 'LIVE' | 'ENDED' | 'UPCOMING';
+    countdown: string;
+    targetDate: Date;
+    diffMs: number;
+};
+
 type ServiceStatus = {
     state: 'LIVE' | 'ENDED' | 'UPCOMING';
     message?: string;
@@ -14,12 +24,21 @@ type ServiceStatus = {
     specificTheme: string | null;
     displayStartTime: string;
     displayEndTime: string;
+    sessions?: SessionStatus[]; // NEW: Holds the individual session data!
 };
 
 export default function LiveWeeklyPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [now, setNow] = useState(new Date());
+
+    const [showTopBtn, setShowTopBtn] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setShowTopBtn(window.scrollY > 400);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     useEffect(() => {
         async function fetchEvents() {
@@ -45,14 +64,15 @@ export default function LiveWeeklyPage() {
         return () => clearInterval(timer);
     }, []);
 
-    // --- 🧮 HELPER: GET DYNAMIC TIMES & THEMES FROM SUPABASE 🧮 ---
+    // --- HELPER: GET DYNAMIC TIMES, THEMES, AND SESSIONS ---
     const getOccurrenceDetails = (event: any, dayName: string, nthOccurrence: number) => {
         let startTime = event.recurrence_rules?.start_time || "00:00";
         let endTime = event.recurrence_rules?.end_time || "23:59";
         let theme = null;
+        let sessionsList: any[] | null = null;
 
         // If it's Sunday Service, check the factions/thanksgiving DB logic
-        if (dayName === 'sunday' && event.title?.toLowerCase() === 'sunday service') {
+        if (dayName === 'sunday' && event.title?.toLowerCase().includes('sunday')) {
             const factionsMap = ["", "first_sunday", "second_sunday", "third_sunday", "fourth_sunday", "fifth_sunday"];
             const factionKey = factionsMap[nthOccurrence];
 
@@ -61,11 +81,17 @@ export default function LiveWeeklyPage() {
                 startTime = event.recurrence_rules.thanksgiving_session.start_time;
                 endTime = event.recurrence_rules.thanksgiving_session.end_time;
                 theme = event.recurrence_rules.thanksgiving_session.name;
+                sessionsList = [event.recurrence_rules.thanksgiving_session];
             } else {
                 // 2nd-5th Sundays use the standard multi-sessions time
                 if (event.recurrence_rules?.standard_sessions?.length > 0) {
-                    startTime = event.recurrence_rules.standard_sessions[0].start_time;
-                    endTime = event.recurrence_rules.standard_sessions[event.recurrence_rules.standard_sessions.length - 1].end_time;
+                    sessionsList = event.recurrence_rules.standard_sessions;
+                    if (sessionsList) {
+                        startTime = sessionsList[0].start_time;
+                    }
+                    if (sessionsList) {
+                        endTime = sessionsList[sessionsList.length - 1].end_time;
+                    }
                 }
                 // Pull the dynamically saved faction from Supabase
                 if (event.recurrence_rules?.factions) {
@@ -75,21 +101,31 @@ export default function LiveWeeklyPage() {
         } else {
             // For Wednesday/Tuesday (Digging Deep, Hours of Mercy, etc.)
             if (event.recurrence_rules?.standard_sessions?.length > 0) {
-                startTime = event.recurrence_rules.standard_sessions[0].start_time;
-                endTime = event.recurrence_rules.standard_sessions[event.recurrence_rules.standard_sessions.length - 1].end_time;
+                sessionsList = event.recurrence_rules.standard_sessions;
+                if (sessionsList) {
+                    startTime = sessionsList[0].start_time;
+                }
+                if (sessionsList) {
+                    endTime = sessionsList[sessionsList.length - 1].end_time;
+                }
             } else if (event.recurrence_rules?.sessions?.length > 0) {
-                startTime = event.recurrence_rules.sessions[0].start_time;
-                endTime = event.recurrence_rules.sessions[event.recurrence_rules.sessions.length - 1].end_time;
+                sessionsList = event.recurrence_rules.sessions;
+                if (sessionsList) {
+                    startTime = sessionsList[0].start_time;
+                }
+                if (sessionsList) {
+                    endTime = sessionsList[sessionsList.length - 1].end_time;
+                }
             }
         }
 
         const [startH, startM] = startTime.split(':').map(Number);
         const [endH, endM] = endTime.split(':').map(Number);
 
-        return { startH, startM, endH, endM, theme, startTime, endTime };
+        return { startH, startM, endH, endM, theme, startTime, endTime, sessionsList };
     };
 
-    // --- 🧮 THE REAL-TIME COUNTDOWN ENGINE 🧮 ---
+    // --- THE REAL-TIME COUNTDOWN ENGINE ---
     const getServiceStatus = (event: any): ServiceStatus | null => {
         if (!event.recurrence_rules) return null;
 
@@ -108,14 +144,22 @@ export default function LiveWeeklyPage() {
         // Fetch dynamic times for THIS specific occurrence
         let details = getOccurrenceDetails(event, dayName, nthOccurrence);
 
-        targetDate.setHours(details.startH, details.startM, 0, 0);
-        let realEndDate = new Date(targetDate);
-        realEndDate.setHours(details.endH, details.endM, 0, 0);
+        // Helper to format countdown text
+        const formatCountdown = (diffMs: number) => {
+            const d = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diffMs / 1000 / 60) % 60);
+            const s = Math.floor((diffMs / 1000) % 60);
+            if (d > 0) return `${d} day${d > 1 ? 's' : ''} to go`;
+            if (h > 0) return `In ${h}h ${m}m`;
+            return `In ${m}m ${s}s`;
+        };
 
-        // If today is the day, check if it already ended
+        // If today is the day, check if the ENTIRE event is over (grace period of 1 hr after last session)
         if (daysUntil === 0) {
-            let graceLimit = new Date(realEndDate);
-            graceLimit.setHours(graceLimit.getHours() + 1); // 1-hour grace period
+            let graceLimit = new Date(targetDate);
+            graceLimit.setHours(details.endH, details.endM, 0, 0);
+            graceLimit.setHours(graceLimit.getHours() + 1);
 
             if (now > graceLimit) {
                 // Service ended. Look to NEXT week.
@@ -125,45 +169,82 @@ export default function LiveWeeklyPage() {
 
                 // RECALCULATE times for next week! (e.g. Next week might be Thanksgiving)
                 details = getOccurrenceDetails(event, dayName, nthOccurrence);
-
-                targetDate.setHours(details.startH, details.startM, 0, 0);
-                realEndDate = new Date(targetDate);
-                realEndDate.setHours(details.endH, details.endM, 0, 0);
             }
         }
 
+        // SUB-SESSION PROCESSING
+        if (details.sessionsList && details.sessionsList.length > 0) {
+            let processedSessions: SessionStatus[] = details.sessionsList.map(sess => {
+                const [sH, sM] = sess.start_time.split(':').map(Number);
+                const [eH, eM] = (sess.end_time || "23:59").split(':').map(Number);
+
+                let sStart = new Date(targetDate); sStart.setHours(sH, sM, 0, 0);
+                let sEnd = new Date(targetDate); sEnd.setHours(eH, eM, 0, 0);
+
+                let state: 'LIVE'|'ENDED'|'UPCOMING' = 'UPCOMING';
+                let countdown = "";
+                const diffMs = sStart.getTime() - now.getTime();
+
+                if (now >= sStart && now <= sEnd) {
+                    state = 'LIVE'; countdown = "Live Now";
+                } else if (now > sEnd) {
+                    state = 'ENDED'; countdown = "Ended";
+                } else {
+                    countdown = formatCountdown(diffMs);
+                }
+
+                return { name: sess.name, start_time: sess.start_time, end_time: sess.end_time, state, countdown, targetDate: sStart, diffMs };
+            });
+
+            // Figure out the GLOBAL status for the main card based on the sub-sessions
+            const liveSession = processedSessions.find(s => s.state === 'LIVE');
+            const upcomingSessions = processedSessions.filter(s => s.state === 'UPCOMING').sort((a,b) => a.diffMs - b.diffMs);
+
+            let globalState: 'LIVE'|'ENDED'|'UPCOMING' = 'ENDED';
+            let globalCountdown = "Ended";
+            let globalTargetDate = targetDate;
+
+            if (liveSession) {
+                globalState = 'LIVE';
+                globalCountdown = "Live Now";
+                globalTargetDate = liveSession.targetDate;
+            } else if (upcomingSessions.length > 0) {
+                globalState = 'UPCOMING';
+                globalTargetDate = upcomingSessions[0].targetDate;
+                globalCountdown = formatCountdown(upcomingSessions[0].diffMs);
+            }
+
+            return {
+                state: globalState, countdown: globalCountdown, daysUntil, targetDate: globalTargetDate,
+                specificTheme: details.theme, displayStartTime: details.startTime, displayEndTime: details.endTime,
+                sessions: processedSessions
+            };
+        }
+
+        // STANDARD SINGLE-SESSION LOGIC
+        targetDate.setHours(details.startH, details.startM, 0, 0);
+        let realEndDate = new Date(targetDate);
+        realEndDate.setHours(details.endH, details.endM, 0, 0);
+
         const diffMs = targetDate.getTime() - now.getTime();
-
-        // STATUS LOGIC
-        if (now >= targetDate && now <= realEndDate) {
-            return {
-                state: 'LIVE', message: '🔴 Service is Live Now!', targetDate, daysUntil,
-                specificTheme: details.theme, displayStartTime: details.startTime, displayEndTime: details.endTime
-            };
-        }
-
-        if (diffMs < 0 && now > realEndDate) {
-            return {
-                state: 'ENDED', message: 'Service Just Ended', targetDate, daysUntil,
-                specificTheme: details.theme, displayStartTime: details.startTime, displayEndTime: details.endTime
-            };
-        }
-
-        const d = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
-        const m = Math.floor((diffMs / 1000 / 60) % 60);
-        const s = Math.floor((diffMs / 1000) % 60);
-
+        let state: 'LIVE'|'ENDED'|'UPCOMING' = 'UPCOMING';
         let countdown = "";
-        if (d > 0) countdown = `${d} day${d > 1 ? 's' : ''} to go`;
-        else if (h > 0) countdown = `Starts in ${h}h ${m}m`;
-        else countdown = `Starting in ${m}m ${s}s!`;
+
+        if (now >= targetDate && now <= realEndDate) {
+            state = 'LIVE'; countdown = 'Live Now';
+        } else if (now > realEndDate) {
+            state = 'ENDED'; countdown = 'Ended';
+        } else {
+            countdown = formatCountdown(diffMs);
+        }
 
         return {
-            state: 'UPCOMING', countdown, daysUntil, targetDate,
+            state, countdown, daysUntil, targetDate,
             specificTheme: details.theme, displayStartTime: details.startTime, displayEndTime: details.endTime
         };
     };
+
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
     if (loading) {
         return (
@@ -241,7 +322,7 @@ export default function LiveWeeklyPage() {
                                         )}
                                     </div>
 
-                                    <div className="flex-grow flex flex-col justify-center text-center md:text-left">
+                                    <div className="flex-grow flex flex-col justify-center text-center md:text-left w-full">
                                         <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-3">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-purple-600 bg-purple-100 px-3 py-1 rounded-full">Every {event.recurrence_rules?.day}</span>
                                             {status.specificTheme && (
@@ -250,27 +331,53 @@ export default function LiveWeeklyPage() {
                                         </div>
 
                                         <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-2">{event.title}</h2>
-                                        <p className="text-sm text-gray-500 mb-6 max-w-lg mx-auto md:mx-0">{event.description || "Join us for our weekly gathering."}</p>
 
-                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-auto">
-                                            <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm"><MapPin size={14} className="text-amber-500" /> {event.location}</div>
-
-                                            {event.title.toLowerCase().includes('house fellowship') ? (
-                                                <Link href="/departments" className="flex items-center gap-2 text-xs font-bold text-brand-primary underline underline-offset-4 hover:text-amber-600">Find Nearest Center</Link>
-                                            ) : (
-                                                <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
-                                                    <Calendar size={14} className="text-amber-500" />
-                                                    {/* Uses the safe, dynamically pulled time! */}
-                                                    {status.displayStartTime} - {status.displayEndTime}
-                                                </div>
-                                            )}
+                                        <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-gray-600 mb-4">
+                                            <MapPin size={14} className="text-amber-500" /> {event.location}
                                         </div>
+
+                                        {/* SUB-SESSION BOX UI */}
+                                        {status.sessions && status.sessions.length > 0 ? (
+                                            <div className="mt-2 bg-slate-50/80 rounded-2xl border border-gray-100 p-4 space-y-2 w-full">
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 border-b border-gray-100 pb-2">Schedule breakdown</h4>
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {status.sessions.map((sess, idx) => (
+                                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${
+                                                            sess.state === 'LIVE' ? 'bg-red-50 border-red-200 shadow-sm' :
+                                                                sess.state === 'UPCOMING' ? 'bg-white border-gray-100' :
+                                                                    'bg-gray-100/50 border-gray-50 opacity-70 grayscale'
+                                                        }`}>
+                                                            <div className="flex flex-col text-left">
+                                                                <span className={`font-bold text-sm ${sess.state === 'LIVE' ? 'text-red-700' : 'text-brand-primary'}`}>{sess.name}</span>
+                                                                <span className="text-[10px] font-bold text-gray-500">{sess.start_time} {sess.end_time ? `- ${sess.end_time}` : ''}</span>
+                                                            </div>
+                                                            <div>
+                                                                {sess.state === 'LIVE' && <span className="bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md animate-pulse">Live Now</span>}
+                                                                {sess.state === 'ENDED' && <span className="flex items-center gap-1 text-gray-400 text-[10px] font-bold uppercase"><CheckCircle2 size={12}/> Ended</span>}
+                                                                {sess.state === 'UPCOMING' && <span className="bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">{sess.countdown}</span>}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-gray-500 max-w-lg mx-auto md:mx-0 mt-2 border-t border-gray-100 pt-4">
+                                                {event.description || "Join us for our weekly gathering."}
+                                            </p>
+                                        )}
+
                                     </div>
                                 </div>
                             </div>
                         );
                     })}
                 </div>
+            </div>
+
+            {/* SCROLL TO TOP */}
+            <div className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
+                <button onClick={scrollToTop} className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"><ChevronUp size={20} /></button>
+                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">Back to Top</span>
             </div>
         </div>
     );

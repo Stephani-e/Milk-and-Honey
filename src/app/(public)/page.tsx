@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import LatestSermon from "@/components/Home/LatestSermon";
 import LatestGallery from "@/components/Home/LatestGallery";
+import NextEvent from "@/components/Home/NextEvent";
 
 export default function HomePage() {
     const [showTopBtn, setShowTopBtn] = useState(false);
@@ -112,17 +113,7 @@ export default function HomePage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <LatestSermon />
 
-                                {/* DB Card Placeholder 2: Event */}
-                                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between min-h-[250px]">
-                                    <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-4">
-                                        <Calendar size={20} />
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Next Event</span>
-                                        <h3 className="font-serif font-bold text-brand-primary text-xl mb-2">[DB: Event Title]</h3>
-                                        <p className="text-xs text-gray-500 line-clamp-2">This will automatically pull the next upcoming event from your calendar.</p>
-                                    </div>
-                                </div>
+                                <NextEvent />
                             </div>
                         </div>
 

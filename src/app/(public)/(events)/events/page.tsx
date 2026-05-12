@@ -4,16 +4,25 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import {
     Calendar as CalendarIcon, Clock, MapPin, ArrowRight,
-    ChevronLeft, ChevronRight, Star, Loader2, Users
+    ChevronLeft, ChevronRight, Star, Loader2, Users, Radio, Info, ChevronUp
 } from "lucide-react";
 
 export default function EventsPage() {
     const [events, setEvents] = useState<any[]>([]);
-    const [monthlyTheme, setMonthlyTheme] = useState<any>(null); // NEW: Theme State
+    const [monthlyTheme, setMonthlyTheme] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     // Calendar State
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [currentNotice, setCurrentNotice] = useState<string | null>(null);
+
+    const [showTopBtn, setShowTopBtn] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setShowTopBtn(window.scrollY > 400);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     useEffect(() => {
         async function fetchData() {
@@ -28,7 +37,7 @@ export default function EventsPage() {
 
             if (eventData) setEvents(eventData);
 
-            // NEW: Fetch Global Theme
+            // Fetch Global Theme (Which now includes our takeover toggles!)
             const { data: themeData } = await supabase
                 .from("monthly_themes")
                 .select("*")
@@ -42,7 +51,23 @@ export default function EventsPage() {
         fetchData();
     }, []);
 
-    // --- 🧮 THE DATE MATH ENGINE  ---
+    useEffect(() => {
+        async function fetchNoticeForMonth() {
+            const monthYearString = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            const { data } = await supabase
+                .from("monthly_themes")
+                .select("special_notice")
+                .eq("month_year", monthYearString)
+                .maybeSingle(); // maybeSingle is safe and won't throw errors if no notice exists
+
+            setCurrentNotice(data?.special_notice || null);
+        }
+
+        fetchNoticeForMonth();
+    }, [currentDate]);
+
+    // --- THE DATE MATH ENGINE ---
     const getFirstFriday = (year: number, month: number) => {
         let d = new Date(year, month, 1);
         while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
@@ -143,6 +168,28 @@ export default function EventsPage() {
     const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
     const goToToday = () => setCurrentDate(new Date());
 
+    // STRICT ADMIN-CONTROLLED TAKEOVER LOGIC
+    const getActiveTakeoverEvent = () => {
+        if (!monthlyTheme) return null;
+
+        if (monthlyTheme.is_convention_active || monthlyTheme.is_congress_active) {
+            return {
+                title: monthlyTheme.takeover_title || (monthlyTheme.is_convention_active ? "RCCG Annual Convention" : "Holy Ghost Congress"),
+                theme: monthlyTheme.takeover_theme,
+                location: monthlyTheme.takeover_location || "Viewing Center",
+                flyer_url: monthlyTheme.takeover_flyer_url,
+                link: monthlyTheme.takeover_link,
+                type: monthlyTheme.is_convention_active ? "Convention" : "Congress"
+            };
+        }
+
+        return null;
+    };
+
+    const activeTakeover = getActiveTakeoverEvent();
+
+    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
@@ -157,160 +204,281 @@ export default function EventsPage() {
 
             {/* HERO SECTION WITH DYNAMIC THEME */}
             <div className="bg-slate-900 text-white pt-24 pb-20 px-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop')] bg-cover bg-center opacity-20 blur-[2px]" />
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-70 blur-[2px] transition-all duration-1000 scale-105"
+                    style={{
+                        backgroundImage: `url('${monthlyTheme?.theme_banner_url || "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=2073&auto=format&fit=crop"}')`
+                    }}
+                />
+
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900" />
 
                 <div className="max-w-6xl mx-auto relative z-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
-                        {monthlyTheme?.theme_title ? `Theme for ${monthlyTheme.month_year}` : "Church Calendar"}
+                        {monthlyTheme?.theme_title && !activeTakeover ? `Theme for ${monthlyTheme.month_year}` : "Church Calendar"}
                     </span>
 
                     <h1 className="text-4xl md:text-6xl font-serif font-black mb-4">
-                        {monthlyTheme?.theme_title || "Join Us In Fellowship"}
+                        {activeTakeover ? "Special Viewing Center Mode" : (monthlyTheme?.theme_title || "Join Us In Fellowship")}
                     </h1>
 
-                    {monthlyTheme?.scripture && (
+                    {monthlyTheme?.scripture && !activeTakeover && (
                         <p className="text-amber-400 max-w-2xl mx-auto text-lg md:text-xl font-serif font-bold italic mb-6">
                             "{monthlyTheme.scripture}"
                         </p>
                     )}
 
                     <p className="text-slate-300 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-                        Whether it is our weekly services or special monthly gatherings, there is always a place for you. Mark your calendars and come expectantly.
+                        {activeTakeover
+                            ? "Regular weekly events are temporarily paused as we stream the global event live."
+                            : "Whether it is our weekly services or special monthly gatherings, there is always a place for you. Mark your calendars and come expectantly."}
                     </p>
                 </div>
             </div>
 
             <div className="max-w-6xl mx-auto px-4 md:px-6 -mt-10 relative z-20">
 
-                {/* PART 1: THE WEEKLY RHYTHM */}
-                <div className="mt-20 mb-20">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 px-2">
-                        <div className="flex items-center gap-3">
-                            <Users className="text-brand-primary" size={24} />
-                            <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">Our Weekly Rhythm</h2>
-                        </div>
-                        <Link href="/events/weekly" className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md hover:bg-amber-600 transition-all hover:scale-105 active:scale-95">
-                            <Clock size={16} /> View Live Countdowns
-                        </Link>
-                    </div>
+                {/* TAKEOVER VIEW (Hides regular calendar when Switch is ON) */}
+                {activeTakeover ? (
+                    <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-amber-400 p-6 md:p-12 animate-in zoom-in-95 duration-500 overflow-hidden relative">
+                        {/* Decorative background glow */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    <div className="bg-white rounded-3xl p-2 md:p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-2 md:gap-4 overflow-x-auto no-scrollbar">
-                        {weeklyEvents.map((event) => (
-                            <div key={event.id} className="flex-1 min-w-[250px] p-4 bg-slate-50 rounded-2xl border border-gray-100 hover:border-amber-200 transition-colors">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600 mb-1 block">
-                                    Every {event.recurrence_rules?.day}
-                                </span>
-                                <h3 className="font-bold text-brand-primary text-lg mb-2 truncate">{event.title}</h3>
-                                <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
-                                    <MapPin size={12} className="text-amber-500"/> <span className="truncate">{event.location}</span>
+                        <div className="flex flex-col md:flex-row gap-8 md:gap-12 relative z-10">
+                            {/* Left: Info */}
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-widest text-xs mb-4 bg-amber-50 w-fit px-4 py-2 rounded-full">
+                                    <Radio size={16} className="animate-pulse" /> Live Viewing Center
+                                </div>
+                                <h2 className="text-3xl md:text-5xl font-serif font-black text-brand-primary mb-4 leading-tight">
+                                    {activeTakeover.title}
+                                </h2>
+                                {activeTakeover.theme && (
+                                    <p className="text-xl font-bold text-gray-900 mb-6 italic">
+                                        Theme: {activeTakeover.theme}
+                                    </p>
+                                )}
+                                <div className="space-y-4 mb-8">
+                                    <div className="flex items-center gap-3 text-gray-900 bg-slate-50 p-4 rounded-xl border border-gray-100">
+                                        <MapPin className="text-amber-500 shrink-0" size={24}/>
+                                        <div>
+                                            <span className="block font-bold text-sm">Location</span>
+                                            <span className="text-brand-primary font-black">{activeTakeover.location}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-gray-900 bg-slate-50 p-4 rounded-xl border border-gray-100">
+                                        <Info className="text-blue-500 shrink-0" size={24}/>
+                                        <div>
+                                            <span className="block font-bold text-sm">Notice</span>
+                                            <span className="text-gray-900 text-sm">All regular house fellowships and weekly physical gatherings are suspended for the duration of this event.</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
 
-                        <Link href="/events/weekly" className="flex-1 min-w-[200px] p-4 bg-brand-primary/5 rounded-2xl border border-brand-primary/20 flex flex-col items-center justify-center text-center group cursor-pointer hover:bg-brand-primary hover:text-white transition-colors">
-                            <ArrowRight size={24} className="text-brand-primary group-hover:text-white mb-2 transition-colors" />
-                            <span className="font-bold text-sm text-brand-primary group-hover:text-white transition-colors">See Live Schedule & Upcoming Topics</span>
-                        </Link>
-                    </div>
-                </div>
-
-                {/* PART 2: THE DYNAMIC MONTHLY CALENDAR */}
-                <div>
-                    <div className="bg-white rounded-t-3xl border border-gray-200 p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm z-10 relative">
-                        <div className="flex items-center gap-3">
-                            <CalendarIcon className="text-brand-primary" size={24} />
-                            <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">
-                                Special & Monthly
-                            </h2>
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 bg-slate-50 p-1.5 md:p-2 rounded-2xl border border-gray-200 w-full sm:w-auto">
-                            <button onClick={prevMonth} className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all"><ChevronLeft size={20}/></button>
-                            <span className="w-32 md:w-40 text-center font-black text-brand-primary uppercase tracking-widest text-xs md:text-sm">
-                                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                            </span>
-                            <button onClick={nextMonth} className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all"><ChevronRight size={20}/></button>
+                            {/* Right: Flyer/Schedule */}
+                            <div className="flex-1 flex items-center justify-center">
+                                {activeTakeover.flyer_url ? (
+                                    <img
+                                        src={activeTakeover.flyer_url}
+                                        alt={activeTakeover.title}
+                                        className="w-full max-w-md rounded-2xl shadow-xl border border-gray-100 object-cover rotate-1 hover:rotate-0 transition-transform duration-300"
+                                    />
+                                ) : (
+                                    <div className="w-full aspect-square max-w-md bg-slate-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300">
+                                        <Star size={48} className="mb-4" />
+                                        <p className="font-bold uppercase tracking-widest text-xs">{activeTakeover.type} Ongoing</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
+                ) : (
+                    /* REGULAR VIEW (Visible when Takeovers are OFF) */
+                    <>
+                        {/* PART 1: THE WEEKLY RHYTHM */}
+                        <div className="mt-20 mb-20">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 px-2">
+                                <div className="flex items-center gap-3">
+                                    <Users className="text-brand-primary" size={24} />
+                                    <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">Our Weekly Rhythm</h2>
+                                </div>
+                                <Link href="/events/weekly" className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md hover:bg-amber-600 transition-all hover:scale-105 active:scale-95">
+                                    <Clock size={14} /> View Live Countdowns
+                                </Link>
+                            </div>
 
-                    <div className="bg-white rounded-b-3xl border-x border-b border-gray-200 p-4 md:p-8 shadow-sm min-h-[400px]">
-                        {plottedEvents.length > 0 ? (
-                            <div className="space-y-4 md:space-y-6">
-                                {plottedEvents.map((event, idx) => (
-                                    <div key={idx} className="flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl border border-gray-100 hover:border-amber-200 hover:shadow-lg transition-all group bg-white">
-
-                                        <div className="w-full md:w-32 flex-shrink-0 flex flex-row md:flex-col items-center justify-center bg-slate-50 border border-gray-100 rounded-2xl p-4 group-hover:bg-amber-400 group-hover:border-amber-400 group-hover:text-amber-950 transition-colors duration-300">
-                                            <span className="text-xs font-bold uppercase tracking-widest opacity-60 mr-3 md:mr-0 md:mb-1">
-                                                {event.displayDate.toLocaleString('default', { month: 'short' })}
-                                            </span>
-                                            <span className="text-4xl md:text-5xl font-black leading-none tracking-tighter">
-                                                {event.displayDate.getDate()}
-                                            </span>
-                                            <span className="hidden md:block text-[10px] font-bold uppercase tracking-widest opacity-60 mt-2">
-                                                {event.displayDate.toLocaleString('default', { weekday: 'long' })}
-                                            </span>
+                            <div className="bg-white rounded-3xl p-2 md:p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-2 md:gap-4 overflow-x-auto no-scrollbar">
+                                {weeklyEvents.map((event) => (
+                                    <div key={event.id} className="flex-1 min-w-[250px] p-4 bg-slate-50 rounded-2xl border border-brand-primary/10 border-l-4 border-l-brand-primary hover:border-l-amber-500 hover:shadow-md transition-all">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600 mb-1 block">
+                                            Every {event.recurrence_rules?.day}
+                                        </span>
+                                        <h3 className="font-bold text-brand-primary text-lg mb-2 truncate">{event.title}</h3>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
+                                            <MapPin size={12} className="text-amber-500"/> <span className="truncate">{event.location}</span>
                                         </div>
-
-                                        <div className="flex-grow flex flex-col justify-center py-2">
-                                            <div className="flex flex-wrap gap-2 mb-3">
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-md">
-                                                    {event.category}
-                                                </span>
-                                                {event.event_type === 'multi_day' && (
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-md">
-                                                        Multi-Day Event
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <h3 className="text-xl md:text-2xl font-bold text-brand-primary mb-2">
-                                                {event.title}
-                                            </h3>
-
-                                            {event.theme && (
-                                                <p className="text-sm font-bold text-gray-500 mb-4 italic">
-                                                    Theme: {event.theme}
-                                                </p>
-                                            )}
-
-                                            <div className="flex flex-col sm:flex-row flex-wrap sm:items-center gap-3 sm:gap-6 text-xs font-bold text-gray-500 mt-auto pt-4 border-t border-gray-100">
-                                                <span className="flex items-center gap-2"><Clock size={16} className="text-brand-secondary"/>
-                                                    {event.isCalculated ? (
-                                                        `${event.recurrence_rules?.start_time} - ${event.recurrence_rules?.end_time}`
-                                                    ) : event.event_type === 'single_day' ? (
-                                                        `${new Date(event.start_datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
-                                                    ) : (
-                                                        "View Full Schedule"
-                                                    )}
-                                                </span>
-                                                <span className="flex items-center gap-2"><MapPin size={16} className="text-brand-secondary"/> {event.location}</span>
-                                            </div>
-                                        </div>
-
-                                        {event.flyer_url && (
-                                            <div className="w-full md:w-56 aspect-video md:aspect-square bg-slate-100 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 relative">
-                                                <img src={event.flyer_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                <div className="absolute inset-0 bg-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                            </div>
-                                        )}
                                     </div>
                                 ))}
+
+                                <Link href="/events/weekly" className="flex-1 min-w-[200px] p-4 bg-brand-primary/5 rounded-2xl border border-brand-primary/20 flex flex-col items-center justify-center text-center group cursor-pointer hover:bg-brand-primary hover:text-white transition-colors">
+                                    <ArrowRight size={24} className="text-brand-primary group-hover:text-white mb-2 transition-colors" />
+                                    <span className="font-bold text-sm text-brand-primary group-hover:text-white transition-colors">See Live Schedule</span>
+                                </Link>
                             </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-24 text-center bg-slate-50/50 rounded-2xl border border-dashed border-gray-200">
-                                <Star size={48} className="text-gray-300 mb-4" />
-                                <h3 className="text-xl font-bold text-brand-primary mb-2">No Special Events</h3>
-                                <p className="text-gray-500 text-sm max-w-md">
-                                    There are no special or monthly events scheduled for <strong className="text-brand-primary">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</strong>. Check our weekly rhythm above!
-                                </p>
-                                <button onClick={goToToday} className="mt-6 text-xs font-bold text-brand-primary hover:text-amber-600 bg-white px-6 py-2.5 rounded-full shadow-sm border border-gray-200 uppercase tracking-widest transition-colors">
-                                    Return to Current Month
-                                </button>
+                        </div>
+
+                        {/* PART 2: THE DYNAMIC MONTHLY CALENDAR */}
+                        <div>
+                            <div className="bg-white rounded-t-3xl border border-gray-200 p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm z-10 relative">
+                                <div className="flex items-center gap-3">
+                                    <CalendarIcon className="text-brand-primary" size={24} />
+                                    <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">
+                                        Special & Monthly
+                                    </h2>
+                                </div>
+
+                                <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 bg-slate-50 p-1.5 md:p-2 rounded-2xl border border-gray-200 w-full sm:w-auto">
+                                    <button onClick={prevMonth} className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all"><ChevronLeft size={20}/></button>
+                                    <span className="w-32 md:w-40 text-center font-black text-brand-primary uppercase tracking-widest text-xs md:text-sm">
+                                        {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                    </span>
+                                    <button onClick={nextMonth} className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all"><ChevronRight size={20}/></button>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                </div>
+
+                            <div className="bg-white rounded-b-3xl border-x border-b border-gray-200 p-4 md:p-8 shadow-sm min-h-[400px]">
+                                {currentNotice && (
+                                    <div className="mb-8 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex gap-4 items-start shadow-sm animate-in slide-in-from-top-4">
+                                        <div className="p-2 bg-amber-100 text-amber-600 rounded-full shrink-0">
+                                            <Info size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-amber-800 mb-1">
+                                                Schedule Notice for {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                            </h4>
+                                            <p className="text-sm text-amber-700/80 leading-relaxed font-medium">
+                                                {currentNotice}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {plottedEvents.length > 0 ? (
+                                    <div className="space-y-4 md:space-y-6">
+                                        {plottedEvents.map((event, idx) => {
+
+                                            const eventDateForCheck = new Date(event.displayDate);
+                                            eventDateForCheck.setHours(23, 59, 59, 999);
+
+                                            const isPast = eventDateForCheck < new Date();
+                                            const isToday = event.displayDate.toDateString() === new Date().toDateString();
+
+                                            const cardStyle = isPast
+                                                ? "bg-slate-50 border-gray-200 opacity-60 grayscale hover:grayscale-0"
+                                                : isToday
+                                                    ? "bg-amber-50 border-amber-300 ring-2 ring-amber-400/50 shadow-lg scale-[1.01]"
+                                                    : "bg-white border-brand-primary/20 hover:border-brand-primary hover:shadow-xl shadow-md";
+
+                                            const badgeStyle = isPast
+                                                ? "bg-gray-200 text-gray-400 border border-gray-300"
+                                                : isToday
+                                                    ? "bg-amber-400 text-amber-950 border border-amber-500 shadow-sm"
+                                                    : "bg-brand-primary/5 text-brand-primary border border-brand-primary/20 group-hover:bg-brand-primary group-hover:text-white";
+
+                                            return (
+                                                <div key={idx} className={`flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl border transition-all duration-300 group ${cardStyle}`}>
+
+                                                    <div className={`w-full md:w-32 flex-shrink-0 flex flex-row md:flex-col items-center justify-center rounded-2xl p-4 transition-colors duration-300 ${badgeStyle}`}>
+                                                        <span className="text-xs font-bold uppercase tracking-widest opacity-80 mr-3 md:mr-0 md:mb-1">
+                                                            {event.displayDate.toLocaleString('default', { month: 'short' })}
+                                                        </span>
+                                                        <span className="text-4xl md:text-5xl font-black leading-none tracking-tighter">
+                                                            {event.displayDate.getDate()}
+                                                        </span>
+                                                        <span className="hidden md:block text-[10px] font-bold uppercase tracking-widest opacity-80 mt-2">
+                                                            {event.displayDate.toLocaleString('default', { weekday: 'long' })}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex-grow flex flex-col justify-center py-2">
+                                                        <div className="flex flex-wrap gap-2 mb-3 items-center">
+                                                            {isToday && (
+                                                                <span className="text-[9px] font-black uppercase tracking-widest text-white bg-amber-500 px-2.5 py-1 rounded-md animate-pulse">
+                                                                    Happening Today
+                                                                </span>
+                                                            )}
+                                                            {isPast && (
+                                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 bg-gray-200 px-2.5 py-1 rounded-md">
+                                                                    Passed
+                                                                </span>
+                                                            )}
+                                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${isPast ? 'bg-gray-200 text-gray-500' : 'text-amber-600 bg-amber-50 border border-amber-100'}`}>
+                                                                {event.category}
+                                                            </span>
+                                                            {event.event_type === 'multi_day' && (
+                                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${isPast ? 'bg-gray-200 text-gray-500' : 'text-purple-600 bg-purple-50 border border-purple-100'}`}>
+                                                                    Multi-Day Event
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <h3 className={`text-xl md:text-2xl font-bold mb-2 ${isPast ? 'text-gray-500' : 'text-brand-primary'}`}>
+                                                            {event.title}
+                                                        </h3>
+
+                                                        {event.theme && (
+                                                            <p className={`text-sm font-bold mb-4 italic ${isPast ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                                Theme: {event.theme}
+                                                            </p>
+                                                        )}
+
+                                                        <div className={`flex flex-col sm:flex-row flex-wrap sm:items-center gap-3 sm:gap-6 text-xs font-bold mt-auto pt-4 border-t ${isPast ? 'border-gray-200 text-gray-400' : 'border-gray-100 text-gray-600'}`}>
+                                                            <span className="flex items-center gap-2"><Clock size={16} className={isPast ? "text-gray-400" : "text-brand-secondary"}/>
+                                                                {event.isCalculated ? (
+                                                                    `${event.recurrence_rules?.start_time} - ${event.recurrence_rules?.end_time}`
+                                                                ) : event.event_type === 'single_day' ? (
+                                                                    `${new Date(event.start_datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+                                                                ) : (
+                                                                    "View Full Schedule"
+                                                                )}
+                                                            </span>
+                                                            <span className="flex items-center gap-2"><MapPin size={16} className={isPast ? "text-gray-400" : "text-brand-secondary"}/> {event.location}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {event.flyer_url && (
+                                                        <div className={`w-full md:w-56 aspect-video md:aspect-square rounded-2xl overflow-hidden flex-shrink-0 border relative ${isPast ? 'border-gray-200 opacity-50' : 'bg-slate-100 border-gray-100'}`}>
+                                                            <img src={event.flyer_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                            {!isPast && <div className="absolute inset-0 bg-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-24 text-center bg-slate-50/50 rounded-2xl border border-dashed border-gray-200">
+                                        <Star size={48} className="text-gray-300 mb-4" />
+                                        <h3 className="text-xl font-bold text-brand-primary mb-2">No Special Events</h3>
+                                        <p className="text-gray-500 text-sm max-w-md">
+                                            There are no special or monthly events scheduled for <strong className="text-brand-primary">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</strong>. Check our weekly rhythm above!
+                                        </p>
+                                        <button onClick={goToToday} className="mt-6 text-xs font-bold text-brand-primary hover:text-amber-600 bg-white px-6 py-2.5 rounded-full shadow-sm border border-gray-200 uppercase tracking-widest transition-colors">
+                                            Return to Current Month
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* SCROLL TO TOP */}
+            <div className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
+                <button onClick={scrollToTop} className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"><ChevronUp size={20} /></button>
+                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">Back to Top</span>
             </div>
         </div>
     );

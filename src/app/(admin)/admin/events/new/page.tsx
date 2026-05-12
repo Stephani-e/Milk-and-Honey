@@ -226,11 +226,11 @@ export default function NewEventPage() {
                             <h3 className="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest">1. Core Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Event Title *</label>
+                                    <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Event Title *</label>
                                     <input required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Sunday Service" className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Category *</label>
+                                    <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Category *</label>
                                     <select required value={category} onChange={e => setCategory(e.target.value)} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-brand-primary outline-none">
                                         {getAvailableCategories().map(cat => (
                                             <option key={cat} value={cat}>{cat}</option>
@@ -251,7 +251,7 @@ export default function NewEventPage() {
                             </div>
 
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Description</label>
+                                <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Description</label>
                                 <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-brand-primary outline-none" />
                             </div>
                         </div>
@@ -261,12 +261,14 @@ export default function NewEventPage() {
                             <h3 className="text-xs font-bold text-purple-600 uppercase tracking-widest">2. Event Flyer</h3>
                             <div className="flex flex-col sm:flex-row gap-6 items-start">
                                 <div className="w-full sm:w-48 aspect-square bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
-                                    {flyerUrl ? <img src={flyerUrl} alt="Flyer" className="w-full h-full object-cover" /> : <div className="text-gray-300 flex flex-col items-center"><ImageIcon size={32} className="mb-2"/><span className="text-[10px] font-bold uppercase">No Image</span></div>}
+                                    {flyerUrl ? <img src={flyerUrl} alt="Flyer" className="w-full h-full object-cover" /> : <div className="text-gray-900 flex flex-col items-center"><ImageIcon size={32} className="mb-2"/><span className="text-[10px] font-bold uppercase">No Image</span></div>}
                                 </div>
                                 <div className="flex-1 w-full space-y-4">
-                                    <p className="text-sm text-gray-500">Upload the official graphic for this event. Note: For Sunday Services, you can upload specific session flyers in the edit page later.</p>
+                                    <p className="text-sm text-gray-900">Upload the official graphic for this event. Note: For Sunday Services, you can upload specific session flyers in the edit page later.</p>
                                     {!flyerUrl ? (
-                                        <UploadButton endpoint="imageUploader" appearance={{ button: "bg-brand-primary text-white text-xs px-6 py-4 rounded-xl after:bg-brand-secondary w-full sm:w-auto" }} onClientUploadComplete={(res) => { setFlyerUrl(res[0].url); toast.success("Flyer uploaded!"); }} onUploadError={(error) => { toast.error(`Upload Failed: ${error.message}`); }} />
+                                        <UploadButton
+                                            endpoint="imageUploader"
+                                            appearance={{ button: "bg-brand-primary text-white text-xs px-6 py-4 rounded-xl after:bg-brand-secondary w-full sm:w-auto" }} onClientUploadComplete={(res) => { setFlyerUrl(res[0].url); toast.success("Flyer uploaded!"); }} onUploadError={(error) => { toast.error(`Upload Failed: ${error.message}`); }} />
                                     ) : <button type="button" onClick={() => setFlyerUrl("")} className="bg-red-50 text-red-600 px-6 py-3 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors">Remove Flyer</button>}
                                 </div>
                             </div>
@@ -281,14 +283,14 @@ export default function NewEventPage() {
                                 <div className="space-y-6 animate-in fade-in">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Pattern</label>
+                                            <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Pattern</label>
                                             <select value={recurringPattern} onChange={e => setRecurringPattern(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none">
                                                 <option value="weekly">Weekly</option>
                                                 <option value="monthly">Monthly</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">{recurringPattern === 'weekly' ? 'Day of Week' : 'Monthly Rule'}</label>
+                                            <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">{recurringPattern === 'weekly' ? 'Day of Week' : 'Monthly Rule'}</label>
                                             {recurringPattern === 'weekly' ? (
                                                 <select value={recurringDay} onChange={e => setRecurringDay(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none">
                                                     <option value="sunday">Sunday</option><option value="monday">Monday</option><option value="tuesday">Tuesday</option><option value="wednesday">Wednesday</option><option value="thursday">Thursday</option><option value="friday">Friday</option><option value="saturday">Saturday</option>
@@ -313,10 +315,10 @@ export default function NewEventPage() {
                                             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
                                                 <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Monthly Themes (Factions)</h5>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div><label className="text-xs font-bold text-gray-600 block mb-1">2nd Sunday</label><input value={sundayFactions.second_sunday} onChange={e => setSundayFactions({...sundayFactions, second_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
-                                                    <div><label className="text-xs font-bold text-gray-600 block mb-1">3rd Sunday</label><input value={sundayFactions.third_sunday} onChange={e => setSundayFactions({...sundayFactions, third_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
-                                                    <div><label className="text-xs font-bold text-gray-600 block mb-1">4th Sunday</label><input value={sundayFactions.fourth_sunday} onChange={e => setSundayFactions({...sundayFactions, fourth_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
-                                                    <div><label className="text-xs font-bold text-gray-600 block mb-1">5th Sunday</label><input value={sundayFactions.fifth_sunday} onChange={e => setSundayFactions({...sundayFactions, fifth_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                    <div><label className="text-xs font-bold text-gray-900 block mb-1">2nd Sunday</label><input value={sundayFactions.second_sunday} onChange={e => setSundayFactions({...sundayFactions, second_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                    <div><label className="text-xs font-bold text-gray-900 block mb-1">3rd Sunday</label><input value={sundayFactions.third_sunday} onChange={e => setSundayFactions({...sundayFactions, third_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                    <div><label className="text-xs font-bold text-gray-000 block mb-1">4th Sunday</label><input value={sundayFactions.fourth_sunday} onChange={e => setSundayFactions({...sundayFactions, fourth_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                    <div><label className="text-xs font-bold text-gray-900 block mb-1">5th Sunday</label><input value={sundayFactions.fifth_sunday} onChange={e => setSundayFactions({...sundayFactions, fifth_sunday: e.target.value})} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
                                                 </div>
                                             </div>
 
@@ -336,9 +338,9 @@ export default function NewEventPage() {
                                                 <div className="space-y-4">
                                                     {standardSessions.map((session, index) => (
                                                         <div key={index} className="flex flex-col sm:flex-row gap-4">
-                                                            <div className="flex-1"><label className="text-xs font-bold text-gray-600 block mb-1">Service Name</label><input value={session.name} onChange={e => {const s = [...standardSessions]; s[index].name = e.target.value; setStandardSessions(s);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
-                                                            <div className="w-full sm:w-32"><label className="text-xs font-bold text-gray-600 block mb-1">Start Time</label><input type="time" value={session.start_time} onChange={e => {const s = [...standardSessions]; s[index].start_time = e.target.value; setStandardSessions(s);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
-                                                            <div className="w-full sm:w-32"><label className="text-xs font-bold text-gray-600 block mb-1">End Time</label><input type="time" value={session.end_time} onChange={e => {const s = [...standardSessions]; s[index].end_time = e.target.value; setStandardSessions(s);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                            <div className="flex-1"><label className="text-xs font-bold text-gray-900 block mb-1">Service Name</label><input value={session.name} onChange={e => {const s = [...standardSessions]; s[index].name = e.target.value; setStandardSessions(s);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                            <div className="w-full sm:w-32"><label className="text-xs font-bold text-gray-900 block mb-1">Start Time</label><input type="time" value={session.start_time} onChange={e => {const s = [...standardSessions]; s[index].start_time = e.target.value; setStandardSessions(s);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
+                                                            <div className="w-full sm:w-32"><label className="text-xs font-bold text-gray-900 block mb-1">End Time</label><input type="time" value={session.end_time} onChange={e => {const s = [...standardSessions]; s[index].end_time = e.target.value; setStandardSessions(s);}} className="w-full p-3 border rounded-lg bg-slate-50" /></div>
                                                             {standardSessions.length > 1 && (
                                                                 <button type="button" onClick={() => handleRemoveSession(index)} className="mt-6 p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
                                                             )}
@@ -352,20 +354,19 @@ export default function NewEventPage() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 border-t border-gray-200 pt-6">
-                                            <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label><input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                            <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label><input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                            <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Start Time</label><input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                            <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">End Time</label><input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
                                         </div>
                                     )}
                                 </div>
                             )}
 
-                            {/* IF SINGLE DAY OR MULTI DAY REMAINS UNCHANGED ... */}
                             {/* IF SINGLE DAY */}
                             {eventType === 'single_day' && (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in">
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific Date</label><input type="date" required value={singleDate} onChange={e => setSingleDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Start Time</label><input type="time" required value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                    <div><label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">End Time</label><input type="time" required value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Specific Date</label><input type="date" required value={singleDate} onChange={e => setSingleDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Start Time</label><input type="time" required value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">End Time</label><input type="time" required value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none" /></div>
                                 </div>
                             )}
 
@@ -375,13 +376,13 @@ export default function NewEventPage() {
                                     {multiDays.map((day, index) => (
                                         <div key={index} className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative group">
                                             <div className="flex flex-col sm:flex-row gap-4 items-end w-full">
-                                                <div className="flex-[0.5] w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Label</label><input value={day.label} onChange={e => {const newDays = [...multiDays]; newDays[index].label = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Date</label><input type="date" required value={day.date} onChange={e => {const newDays = [...multiDays]; newDays[index].date = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Start</label><input type="time" required value={day.start_time} onChange={e => {const newDays = [...multiDays]; newDays[index].start_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
-                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">End</label><input type="time" required value={day.end_time} onChange={e => {const newDays = [...multiDays]; newDays[index].end_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                                <div className="flex-[0.5] w-full"><label className="text-[10px] font-bold text-gray-900 uppercase block mb-1">Label</label><input value={day.label} onChange={e => {const newDays = [...multiDays]; newDays[index].label = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-900 uppercase block mb-1">Date</label><input type="date" required value={day.date} onChange={e => {const newDays = [...multiDays]; newDays[index].date = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-900 uppercase block mb-1">Start</label><input type="time" required value={day.start_time} onChange={e => {const newDays = [...multiDays]; newDays[index].start_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                                <div className="flex-1 w-full"><label className="text-[10px] font-bold text-gray-900 uppercase block mb-1">End</label><input type="time" required value={day.end_time} onChange={e => {const newDays = [...multiDays]; newDays[index].end_time = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none" /></div>
                                             </div>
                                             <div className="w-full flex gap-4">
-                                                <div className="flex-1"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Speaker for {day.label} (Optional)</label><input placeholder="e.g. Pastor John Doe" value={day.guest_speaker || ""} onChange={e => {const newDays = [...multiDays]; newDays[index].guest_speaker = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none" /></div>
+                                                <div className="flex-1"><label className="text-[10px] font-bold text-gray-900 uppercase block mb-1">Speaker for {day.label} (Optional)</label><input placeholder="e.g. Pastor John Doe" value={day.guest_speaker || ""} onChange={e => {const newDays = [...multiDays]; newDays[index].guest_speaker = e.target.value; setMultiDays(newDays);}} className="w-full p-3 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none" /></div>
                                                 {multiDays.length > 1 && (
                                                     <button type="button" onClick={() => handleRemoveMultiDay(index)} className="p-3 bg-red-50 text-red-500 rounded-lg self-end hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={18}/></button>
                                                 )}
