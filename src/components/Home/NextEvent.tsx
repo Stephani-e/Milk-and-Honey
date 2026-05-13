@@ -2,7 +2,8 @@
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import Link from "next/link";
-import {ArrowRight, Calendar, Clock, Loader2, MapPin, Star} from "lucide-react";
+import {ArrowRight, Calendar, Clock, MapPin, Star} from "lucide-react";
+import SkeletonLoader from "../UI/SkeletonLoader";
 
 export default function NextEvent() {
     const [nextEvent, setNextEvent] = useState<any>(null);
@@ -152,10 +153,8 @@ export default function NextEvent() {
 
     if (loading) {
         return (
-            <div
-                className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center min-h-[250px]">
-                <Loader2 size={24} className="text-amber-500 animate-spin mb-2"/>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Finding Next Event...</p>
+            <div className="w-full h-full min-h-[250px]">
+                <SkeletonLoader variant="next-event-card"/>
             </div>
         );
     }

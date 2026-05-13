@@ -2,13 +2,13 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import Link from "next/link";
-import {Calendar, Camera, ChevronDown, ChevronUp, Image as ImageIcon, Loader2, Search, Smartphone} from "lucide-react";
+import {Calendar, Camera, ChevronDown, ChevronUp, Image as ImageIcon, Search, Smartphone} from "lucide-react";
 import {CHURCH_INFO} from "@/lib/constants";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function GalleryPage() {
     const [galleries, setGalleries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showTopBtn, setShowTopBtn] = useState(false);
 
     // Search and Filter State (Identical to Sermon UX)
     const [searchQuery, setSearchQuery] = useState("");
@@ -30,12 +30,6 @@ export default function GalleryPage() {
 
     useEffect(() => {
         fetchPublicGalleries().catch(console.error)
-    }, []);
-
-    useEffect(() => {
-        const handleScroll = () => setShowTopBtn(window.scrollY > 400);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     const FacebookIcon = ({size = 20, className = ""}) => (
@@ -61,8 +55,6 @@ export default function GalleryPage() {
                 d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
         </svg>
     );
-
-    const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
 
     async function fetchPublicGalleries() {
         setLoading(true);
@@ -279,10 +271,7 @@ export default function GalleryPage() {
             </section>
 
             {loading ? (
-                <div className="py-32 flex flex-col items-center justify-center text-brand-primary">
-                    <Loader2 size={48} className="animate-spin mb-4"/>
-                    <p className="font-bold tracking-widest uppercase text-xs">Loading Albums...</p>
-                </div>
+                <SkeletonLoader variant="gallery-list"/>
             ) : (
                 <>
                     {/* SEARCH & FILTER BAR */}
@@ -595,65 +584,53 @@ export default function GalleryPage() {
                         )}
                     </section>
 
-                    {/* SOCIAL MEDIA PROMO */}
-                    <section className="max-w-7xl mx-auto px-4 md:px-6 mb-24">
-                        <div
-                            className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
-                            {/* Background Watermark Icon */}
-                            <Smartphone size={150}
-                                        className="absolute -right-5 -bottom-5 md:-right-10 md:-bottom-10 text-white/5 pointer-events-none md:w-[200px] md:h-[200px]"/>
-
-                            <div className="relative z-10 max-w-xl text-center lg:text-left">
-                                <h2 className="text-2xl md:text-4xl font-serif font-black text-white mb-3 md:mb-4">Want
-                                    to see more?</h2>
-                                <p className="text-slate-300 leading-relaxed text-sm md:text-lg">
-                                    Join our digital community! Follow us across our social platforms for daily updates,
-                                    behind-the-scenes moments, and hundreds of extra photos.
-                                </p>
-                            </div>
-
-                            <div
-                                className="relative z-10 flex flex-col sm:flex-row flex-wrap justify-center lg:justify-end gap-3 md:gap-4 w-full lg:w-auto">
-
-                                {/* Instagram */}
-                                <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer"
-                                   className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#E1306C] hover:text-white transition-all shadow-lg group">
-                                    <InstagramIcon size={18}
-                                                   className="group-hover:scale-110 transition-transform"/> Instagram
-                                </a>
-
-                                {/* Facebook */}
-                                <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer"
-                                   className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#1877F2] hover:text-white transition-all backdrop-blur-sm group">
-                                    <FacebookIcon size={18}
-                                                  className="group-hover:scale-110 transition-transform"/> Facebook
-                                </a>
-
-                                {/* Twitter / X */}
-                                <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer"
-                                   className="flex flex-1 sm:flex-none w-full sm:w-auto items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-slate-900 hover:text-white transition-all shadow-lg group">
-                                    <TwitterIcon size={18} className="group-hover:scale-110 transition-transform"/> X
-                                    (Twitter)
-                                </a>
-
-                            </div>
-                        </div>
-                    </section>
                 </>
             )}
 
-            {/* SCROLL TO TOP BUTTON */}
-            <div
-                className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
-                <button onClick={scrollToTop}
-                        className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center">
-                    <ChevronUp size={20}/>
-                </button>
-                <span
-                    className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">
-                    Back to Top
-                </span>
-            </div>
+            {/* SOCIAL MEDIA PROMO */}
+            <section className="max-w-7xl mx-auto px-4 md:px-6 mb-24">
+                <div
+                    className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
+                    {/* Background Watermark Icon */}
+                    <Smartphone size={150}
+                                className="absolute -right-5 -bottom-5 md:-right-10 md:-bottom-10 text-white/5 pointer-events-none md:w-[200px] md:h-[200px]"/>
+
+                    <div className="relative z-10 max-w-xl text-center lg:text-left">
+                        <h2 className="text-2xl md:text-4xl font-serif font-black text-white mb-3 md:mb-4">Want
+                            to see more?</h2>
+                        <p className="text-slate-300 leading-relaxed text-sm md:text-lg">
+                            Join our digital community! Follow us across our social platforms for daily updates,
+                            behind-the-scenes moments, and hundreds of extra photos.
+                        </p>
+                    </div>
+
+                    <div
+                        className="relative z-10 flex flex-col sm:flex-row flex-wrap justify-center lg:justify-end gap-3 md:gap-4 w-full lg:w-auto">
+
+                        {/* Instagram */}
+                        <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer"
+                           className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#E1306C] hover:text-white transition-all shadow-lg group">
+                            <InstagramIcon size={18}
+                                           className="group-hover:scale-110 transition-transform"/> Instagram
+                        </a>
+
+                        {/* Facebook */}
+                        <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer"
+                           className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#1877F2] hover:text-white transition-all backdrop-blur-sm group">
+                            <FacebookIcon size={18}
+                                          className="group-hover:scale-110 transition-transform"/> Facebook
+                        </a>
+
+                        {/* Twitter / X */}
+                        <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer"
+                           className="flex flex-1 sm:flex-none w-full sm:w-auto items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-slate-900 hover:text-white transition-all shadow-lg group">
+                            <TwitterIcon size={18} className="group-hover:scale-110 transition-transform"/> X
+                            (Twitter)
+                        </a>
+
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

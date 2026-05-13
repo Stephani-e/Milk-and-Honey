@@ -12,11 +12,11 @@ import {
     Film,
     Headphones,
     LinkIcon,
-    Loader2,
     PlayCircle,
     Video,
     X
 } from "lucide-react";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function GalleryDetailPage() {
     const {id} = useParams();
@@ -65,14 +65,13 @@ export default function GalleryDetailPage() {
         }
 
     }, [id]);
-    
+
     useEffect(() => {
         document.body.style.overflow = selectedMedia ? 'hidden' : 'auto';
         return () => {
             document.body.style.overflow = 'auto';
         };
     }, [selectedMedia]);
-
 
     const Facebook = ({size = 20, className = ""}) => (
         <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -117,11 +116,8 @@ export default function GalleryDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
-                <Loader2 size={48} className="animate-spin mb-4"/>
-                <p className="font-bold tracking-widest uppercase text-xs">Loading Album...</p>
-            </div>
-        );
+            <SkeletonLoader variant="gallery-list-id"/>
+        )
     }
 
     if (!gallery) {
@@ -216,7 +212,7 @@ export default function GalleryDetailPage() {
                 </div>
             </div>
 
-            {/* FIX 2: DROPDOWN FOR YOUTUBE & LINKS */}
+            {/* DROPDOWN FOR YOUTUBE & LINKS */}
             {(youtubeId || hasExternalLinks) && (
                 <div className="max-w-6xl mx-auto px-4 md:px-6 mb-10 md:mb-12">
 

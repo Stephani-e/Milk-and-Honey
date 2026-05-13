@@ -3,8 +3,9 @@ import React, {useEffect, useState} from "react";
 import {useParams, useSearchParams} from "next/navigation";
 import Link from "next/link";
 import {supabase} from "@/lib/supabase";
-import {ArrowLeft, BookOpen, Calendar, Eye, Headphones, Loader2, PlayCircle, Quote, User, Video} from "lucide-react";
+import {ArrowLeft, BookOpen, Calendar, Eye, Headphones, PlayCircle, Quote, User, Video} from "lucide-react";
 import "react-quill-new/dist/quill.snow.css";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function SermonDetailPage() {
     const {id} = useParams();
@@ -110,6 +111,12 @@ export default function SermonDetailPage() {
 
     const hasSidebarContent = youtubeId || sermon?.clip_url || sermon?.link_spotify || sermon?.link_apple || sermon?.link_ytmusic || sermon?.link_ig || sermon?.link_facebook || sermon?.link_twitter;
 
+    if (loading) {
+        return (
+            <SkeletonLoader variant="sermon-list-id"/>
+        );
+    }
+
     if (!sermon) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center px-6">
@@ -123,14 +130,6 @@ export default function SermonDetailPage() {
         );
     }
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
-                <Loader2 size={48} className="animate-spin mb-4"/>
-                <p className="font-bold tracking-widest uppercase text-xs">Loading Message...</p>
-            </div>
-        );
-    }
 
     return (
         <div className="bg-slate-50 min-h-screen pb-24 relative">

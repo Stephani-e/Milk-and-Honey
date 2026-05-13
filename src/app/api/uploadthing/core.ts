@@ -5,10 +5,10 @@ const f = createUploadthing();
 export const ourFileRouter = {
     // This endpoint is for the Sermon Banner
     imageUploader: f({image: {maxFileSize: "4MB"}})
-        // FIX 1: Removed unused 'metadata' parameter
+        // Removed unused 'metadata' parameter
         .onUploadComplete(async ({file}) => {
             console.log("Upload complete for file:", file.name);
-            // FIX 2: Swapped file.url for file.appUrl
+            // Swapped file.url for file.appUrl
             return {url: file.url};
         }),
 

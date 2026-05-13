@@ -44,9 +44,7 @@ function ResetPasswordForm() {
 
     const isPasswordStrong = Object.values(checks).every(Boolean);
 
-    // ==========================================
     // ICONS
-    // ==========================================
     const EyeIcon = ({isVisible}: { isVisible: boolean }) => (
         isVisible ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -79,9 +77,7 @@ function ResetPasswordForm() {
         </svg>
     );
 
-    // ==========================================
     // ACTIONS
-    // ==========================================
     const handleVerifyCode = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -251,7 +247,7 @@ function ResetPasswordForm() {
                                     Verify Code
                                 </button>
 
-                                {/* NEW: Resend Code and Back to Log in links grouped together */}
+                                {/* Resend Code and Back to Log in links grouped together */}
                                 <div className="flex flex-col items-center gap-3 mt-4 text-xs font-medium">
                                     <button
                                         type="button"

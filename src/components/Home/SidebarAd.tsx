@@ -2,13 +2,16 @@
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {ChevronLeft, ChevronRight, ExternalLink, Megaphone} from "lucide-react";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function SidebarAd() {
     const [ads, setAds] = useState<any[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchSidebarAds() {
+            setLoading(true);
             const {data} = await supabase
                 .from('advertisements')
                 .select('*')
@@ -22,6 +25,8 @@ export default function SidebarAd() {
                 const validAds = data.filter(ad => !ad.expires_at || new Date(ad.expires_at) > new Date());
                 setAds(validAds);
             }
+
+            setLoading(false)
         }
 
         fetchSidebarAds().catch(console.error);
@@ -37,8 +42,15 @@ export default function SidebarAd() {
         return () => clearInterval(timer);
     }, [ads.length]);
 
+    const currentAd = ads[currentIndex];
     const nextAd = () => setCurrentIndex((prev) => (prev + 1) % ads.length);
     const prevAd = () => setCurrentIndex((prev) => (prev === 0 ? ads.length - 1 : prev - 1));
+
+    if (loading) {
+        return (
+            <SkeletonLoader variant="sidebar-ad"/>
+        );
+    }
 
     // Fallback if no ads exist
     if (ads.length === 0) {
@@ -53,8 +65,6 @@ export default function SidebarAd() {
             </div>
         );
     }
-
-    const currentAd = ads[currentIndex];
 
     return (
         <div

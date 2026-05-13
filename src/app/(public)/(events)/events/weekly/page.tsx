@@ -2,7 +2,8 @@
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import Link from "next/link";
-import {ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, PlayCircle,} from "lucide-react";
+import {ArrowLeft, CheckCircle2, Clock, MapPin, PlayCircle,} from "lucide-react";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 // 1. Strict TypeScript definition
 type SessionStatus = {
@@ -24,7 +25,7 @@ type ServiceStatus = {
     specificTheme: string | null;
     displayStartTime: string;
     displayEndTime: string;
-    sessions?: SessionStatus[]; // NEW: Holds the individual session data!
+    sessions?: SessionStatus[]; // Holds the individual session data!
 };
 
 export default function LiveWeeklyPage() {
@@ -259,15 +260,6 @@ export default function LiveWeeklyPage() {
         };
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
-                <Loader2 size={48} className="animate-spin mb-4"/>
-                <p className="font-bold tracking-widest uppercase text-xs">Loading Live Engine...</p>
-            </div>
-        );
-    }
-
     // Safely sort events (TypeScript approved!)
     const sortedEvents = [...events].sort((a, b) => {
         const statA = getServiceStatus(a);
@@ -281,6 +273,12 @@ export default function LiveWeeklyPage() {
 
         return statA.targetDate.getTime() - statB.targetDate.getTime();
     });
+
+    if (loading) {
+        return (
+            <SkeletonLoader variant="weekly-event-list"/>
+        );
+    }
 
     return (
         <div className="bg-slate-50 min-h-screen pb-24">
@@ -369,7 +367,15 @@ export default function LiveWeeklyPage() {
                                         <div
                                             className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-gray-600 mb-4">
                                             <MapPin size={14} className="text-amber-500"/> {event.location}
+                                            <div
+                                                className="flex items-center justify-center md:justify-start gap-2 bg-slate-50 w-fit mx-auto md:mx-0 px-3 py-1.5 rounded-lg border border-gray-100">
+                                                <Clock size={14} className="text-amber-500"/>
+                                                <span className="text-xs font-bold text-brand-primary">
+                                                        {status.displayStartTime} {status.displayEndTime && status.displayEndTime !== "23:59" ? `- ${status.displayEndTime}` : ''}
+                                                    </span>
+                                            </div>
                                         </div>
+
 
                                         {/* SUB-SESSION BOX UI */}
                                         {status.sessions && status.sessions.length > 0 ? (
@@ -405,9 +411,11 @@ export default function LiveWeeklyPage() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-gray-500 max-w-lg mx-auto md:mx-0 mt-2 border-t border-gray-100 pt-4">
-                                                {event.description || "Join us for our weekly gathering."}
-                                            </p>
+                                            <div className="w-full border-t border-gray-100 pt-4">
+                                                <p className="text-sm text-gray-500 max-w-lg mx-auto md:mx-0 text-center md:text-left">
+                                                    {event.description || "Join us for our weekly gathering."}
+                                                </p>
+                                            </div>
                                         )}
 
                                     </div>

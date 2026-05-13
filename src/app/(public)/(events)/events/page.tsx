@@ -9,12 +9,12 @@ import {
     ChevronRight,
     Clock,
     Info,
-    Loader2,
     MapPin,
     Radio,
     Star,
     Users
 } from "lucide-react";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function EventsPage() {
     const [events, setEvents] = useState<any[]>([]);
@@ -202,10 +202,7 @@ export default function EventsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
-                <Loader2 size={48} className="animate-spin mb-4"/>
-                <p className="font-bold tracking-widest uppercase text-xs">Loading Schedule...</p>
-            </div>
+            <SkeletonLoader variant="event-list"/>
         );
     }
 

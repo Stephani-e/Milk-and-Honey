@@ -8,16 +8,16 @@ import {
     ChevronDown,
     ChevronUp,
     Headphones,
-    Loader2,
     Play,
     PlayCircle,
     Search,
     User
 } from "lucide-react";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function SermonsPage() {
     const [sermons, setSermons] = useState<any[]>([]);
-    const [monthlyThemes, setMonthlyThemes] = useState<Record<string, any>>({}); // NEW STATE FOR THEMES
+    const [monthlyThemes, setMonthlyThemes] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(true);
 
     // Search and Filter State
@@ -272,10 +272,7 @@ export default function SermonsPage() {
             </section>
 
             {loading ? (
-                <div className="py-32 flex flex-col items-center justify-center text-brand-primary">
-                    <Loader2 size={48} className="animate-spin mb-4"/>
-                    <p className="font-bold tracking-widest uppercase text-xs">Loading Library...</p>
-                </div>
+                <SkeletonLoader variant="sermon-list"/>
             ) : (
                 <>
                     {/* FEATURED MESSAGE */}
@@ -783,44 +780,44 @@ export default function SermonsPage() {
                             </div>
                         )}
                     </section>
-
-                    {/* AUDIO PROMO */}
-                    <section className="max-w-7xl mx-auto px-4 md:px-6">
-                        <div
-                            className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
-                            <Headphones size={150}
-                                        className="absolute -right-5 -bottom-5 md:-right-10 md:-bottom-10 text-white/5 pointer-events-none md:w-[200px] md:h-[200px]"/>
-
-                            <div className="relative z-10 max-w-xl text-center lg:text-left">
-                                <h2 className="text-2xl md:text-4xl font-serif font-black text-white mb-3 md:mb-4">Listen
-                                    on the Go.</h2>
-                                <p className="text-slate-300 leading-relaxed text-sm md:text-lg">Take the word with you
-                                    anywhere. All our Sunday messages and Bible studies are uploaded weekly to major
-                                    audio platforms.</p>
-                            </div>
-
-                            <div
-                                className="relative z-10 flex flex-col sm:flex-row flex-wrap justify-center lg:justify-end gap-3 md:gap-4 w-full lg:w-auto">
-                                <a href="https://spotify.com" target="_blank" rel="noreferrer"
-                                   className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#1DB954] hover:text-white transition-all shadow-lg group">
-                                    <Headphones size={18}
-                                                className="group-hover:scale-110 transition-transform"/> Spotify
-                                </a>
-                                <a href="https://apple.com/podcasts" target="_blank" rel="noreferrer"
-                                   className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-white hover:text-purple-600 transition-all backdrop-blur-sm group">
-                                    <Headphones size={18} className="group-hover:scale-110 transition-transform"/> Apple
-                                    Podcasts
-                                </a>
-                                <a href="https://spotify.com" target="_blank" rel="noreferrer"
-                                   className="flex flex-1 sm:flex-none w-full sm:w-auto items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#FF0000] hover:text-white transition-all shadow-lg group">
-                                    <PlayCircle size={18}
-                                                className="group-hover:scale-110 transition-transform"/> YouTube Music
-                                </a>
-                            </div>
-                        </div>
-                    </section>
                 </>
             )}
+
+            {/* AUDIO PROMO */}
+            <section className="max-w-7xl mx-auto px-4 md:px-6">
+                <div
+                    className="bg-brand-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-10 relative overflow-hidden shadow-2xl">
+                    <Headphones size={150}
+                                className="absolute -right-5 -bottom-5 md:-right-10 md:-bottom-10 text-white/5 pointer-events-none md:w-[200px] md:h-[200px]"/>
+
+                    <div className="relative z-10 max-w-xl text-center lg:text-left">
+                        <h2 className="text-2xl md:text-4xl font-serif font-black text-white mb-3 md:mb-4">Listen
+                            on the Go.</h2>
+                        <p className="text-slate-300 leading-relaxed text-sm md:text-lg">Take the word with you
+                            anywhere. All our Sunday messages and Bible studies are uploaded weekly to major
+                            audio platforms.</p>
+                    </div>
+
+                    <div
+                        className="relative z-10 flex flex-col sm:flex-row flex-wrap justify-center lg:justify-end gap-3 md:gap-4 w-full lg:w-auto">
+                        <a href="https://spotify.com" target="_blank" rel="noreferrer"
+                           className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#1DB954] hover:text-white transition-all shadow-lg group">
+                            <Headphones size={18}
+                                        className="group-hover:scale-110 transition-transform"/> Spotify
+                        </a>
+                        <a href="https://apple.com/podcasts" target="_blank" rel="noreferrer"
+                           className="flex flex-1 sm:flex-none items-center justify-center gap-2 md:gap-3 bg-white/10 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-white hover:text-purple-600 transition-all backdrop-blur-sm group">
+                            <Headphones size={18} className="group-hover:scale-110 transition-transform"/> Apple
+                            Podcasts
+                        </a>
+                        <a href="https://spotify.com" target="_blank" rel="noreferrer"
+                           className="flex flex-1 sm:flex-none w-full sm:w-auto items-center justify-center gap-2 md:gap-3 bg-white text-brand-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-sm md:text-base font-bold hover:bg-[#FF0000] hover:text-white transition-all shadow-lg group">
+                            <PlayCircle size={18}
+                                        className="group-hover:scale-110 transition-transform"/> YouTube Music
+                        </a>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

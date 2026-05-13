@@ -110,7 +110,8 @@ export default function ContactPage() {
 
             {/* MAIN CONTENT AREA */}
             <section
-                className="py-16 md:py-24 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start -mt-10 md:-mt-20 relative z-20">
+                className="py-16 md:py-24 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start -mt-10 md:-mt-20 relative z-20"
+            >
 
                 {/* LEFT SIDE: Contact Information Cards */}
                 <div className="lg:col-span-5 space-y-6">

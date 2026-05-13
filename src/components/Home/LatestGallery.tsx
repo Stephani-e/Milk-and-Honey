@@ -2,13 +2,16 @@
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import Link from "next/link";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function LatestGallery() {
     const [images, setImages] = useState<string[]>([]);
     const [galleryId, setGalleryId] = useState<string>("");
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchLatestGallery() {
+            setLoading(true);
             const {data} = await supabase
                 .from("media_gallery")
                 .select("id, media_urls")
@@ -33,10 +36,18 @@ export default function LatestGallery() {
 
                 setImages(extractedImages);
             }
+
+            setLoading(false)
         }
 
         fetchLatestGallery().catch(console.error);
     }, []);
+
+    if (loading) {
+        return (
+            <SkeletonLoader variant="gallery-item"/>
+        )
+    }
 
     // Fallback images in case the gallery doesn't have enough photos yet
     const displayImages = [

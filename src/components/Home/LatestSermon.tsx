@@ -3,12 +3,15 @@ import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {ArrowRight, Film, PlayCircle, User} from "lucide-react";
 import {supabase} from "@/lib/supabase";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
 
 export default function LatestSermon() {
+    const [loading, setLoading] = useState(true);
     const [latestSermon, setLatestSermon] = useState<any>(null);
 
     useEffect(() => {
         async function fetchLatestSermon() {
+            setLoading(true);
             const {data} = await supabase
                 .from("sermons")
                 .select("id, title, preacher, banner_url, youtube_url, clip_url")
@@ -21,6 +24,8 @@ export default function LatestSermon() {
             if (data && data.length > 0) {
                 setLatestSermon(data[0]);
             }
+
+            setLoading(false);
         }
 
         fetchLatestSermon().catch(console.error);
@@ -35,6 +40,14 @@ export default function LatestSermon() {
         }
         return "https://hegyctrfwn.ufs.sh/f/iMcVGeeTb1N4go9KLrcAQBW5E03lrCpOqKzJIRZUnG9sLDHa";
     };
+
+    if (loading) {
+        return (
+            <div className="w-full h-full min-h-[250px]">
+                <SkeletonLoader variant="sermon-card"/>
+            </div>
+        );
+    }
 
     if (!latestSermon) {
         return (
