@@ -1,10 +1,19 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import React, {useEffect, useState} from "react";
+import {supabase} from "@/lib/supabase";
 import Link from "next/link";
 import {
-    Calendar as CalendarIcon, Clock, MapPin, ArrowRight,
-    ChevronLeft, ChevronRight, Star, Loader2, Users, Radio, Info, ChevronUp
+    ArrowRight,
+    Calendar as CalendarIcon,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Info,
+    Loader2,
+    MapPin,
+    Radio,
+    Star,
+    Users
 } from "lucide-react";
 
 export default function EventsPage() {
@@ -16,20 +25,12 @@ export default function EventsPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [currentNotice, setCurrentNotice] = useState<string | null>(null);
 
-    const [showTopBtn, setShowTopBtn] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => setShowTopBtn(window.scrollY > 400);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
 
             // Fetch Events
-            const { data: eventData } = await supabase
+            const {data: eventData} = await supabase
                 .from("church_events")
                 .select("*")
                 .is("deleted_at", null)
@@ -38,7 +39,7 @@ export default function EventsPage() {
             if (eventData) setEvents(eventData);
 
             // Fetch Global Theme (Which now includes our takeover toggles!)
-            const { data: themeData } = await supabase
+            const {data: themeData} = await supabase
                 .from("monthly_themes")
                 .select("*")
                 .eq("id", 1)
@@ -48,14 +49,15 @@ export default function EventsPage() {
 
             setLoading(false);
         }
-        fetchData();
+
+        fetchData().catch(error => console.error("Error fetching data:", error));
     }, []);
 
     useEffect(() => {
         async function fetchNoticeForMonth() {
-            const monthYearString = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            const monthYearString = currentDate.toLocaleString('default', {month: 'long', year: 'numeric'});
 
-            const { data } = await supabase
+            const {data} = await supabase
                 .from("monthly_themes")
                 .select("special_notice")
                 .eq("month_year", monthYearString)
@@ -64,7 +66,7 @@ export default function EventsPage() {
             setCurrentNotice(data?.special_notice || null);
         }
 
-        fetchNoticeForMonth();
+        fetchNoticeForMonth().catch(error => console.error("Error fetching notice:", error));
     }, [currentDate]);
 
     // --- THE DATE MATH ENGINE ---
@@ -102,19 +104,29 @@ export default function EventsPage() {
 
     const calculateMonthlyDate = (rule: string, year: number, month: number): Date | null => {
         switch (rule) {
-            case 'first_sunday': return getNthDayOfMonth(year, month, 0, 1);
-            case 'second_sunday': return getNthDayOfMonth(year, month, 0, 2);
-            case 'third_sunday': return getNthDayOfMonth(year, month, 0, 3);
-            case 'last_sunday': return getNthDayOfMonth(year, month, 0, 4);
+            case 'first_sunday':
+                return getNthDayOfMonth(year, month, 0, 1);
+            case 'second_sunday':
+                return getNthDayOfMonth(year, month, 0, 2);
+            case 'third_sunday':
+                return getNthDayOfMonth(year, month, 0, 3);
+            case 'last_sunday':
+                return getNthDayOfMonth(year, month, 0, 4);
 
-            case 'first_thursday': return getNthDayOfMonth(year, month, 4, 1);
-            case 'first_friday': return getNthDayOfMonth(year, month, 5, 1);
+            case 'first_thursday':
+                return getNthDayOfMonth(year, month, 4, 1);
+            case 'first_friday':
+                return getNthDayOfMonth(year, month, 5, 1);
 
-            case 'first_day': return new Date(year, month, 1);
-            case 'second_saturday': return getNthDayOfMonth(year, month, 6, 2);
+            case 'first_day':
+                return new Date(year, month, 1);
+            case 'second_saturday':
+                return getNthDayOfMonth(year, month, 6, 2);
 
-            case 'last_friday': return getLastFriday(year, month);
-            case 'thursday_before_first_friday': return getThursdayBeforeFirstFriday(year, month);
+            case 'last_friday':
+                return getLastFriday(year, month);
+            case 'thursday_before_first_friday':
+                return getThursdayBeforeFirstFriday(year, month);
 
             default:
                 return null;
@@ -143,21 +155,21 @@ export default function EventsPage() {
         if (event.event_type === 'recurring' && event.recurrence_rules?.pattern_type === 'monthly') {
             const calculatedDate = calculateMonthlyDate(event.recurrence_rules.rule, year, month);
             if (calculatedDate) {
-                plottedEvents.push({ ...event, displayDate: calculatedDate, isCalculated: true });
+                plottedEvents.push({...event, displayDate: calculatedDate, isCalculated: true});
             }
         }
 
         if (event.event_type === 'single_day' && event.start_datetime) {
             const eventDate = new Date(event.start_datetime);
             if (eventDate.getFullYear() === year && eventDate.getMonth() === month) {
-                plottedEvents.push({ ...event, displayDate: eventDate });
+                plottedEvents.push({...event, displayDate: eventDate});
             }
         }
 
         if (event.event_type === 'multi_day' && event.multi_day_schedule && event.multi_day_schedule.length > 0) {
             const firstDayDate = new Date(event.multi_day_schedule[0].date);
             if (firstDayDate.getFullYear() === year && firstDayDate.getMonth() === month) {
-                plottedEvents.push({ ...event, displayDate: firstDayDate });
+                plottedEvents.push({...event, displayDate: firstDayDate});
             }
         }
     });
@@ -188,12 +200,10 @@ export default function EventsPage() {
 
     const activeTakeover = getActiveTakeoverEvent();
 
-    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-brand-primary">
-                <Loader2 size={48} className="animate-spin mb-4" />
+                <Loader2 size={48} className="animate-spin mb-4"/>
                 <p className="font-bold tracking-widest uppercase text-xs">Loading Schedule...</p>
             </div>
         );
@@ -211,9 +221,10 @@ export default function EventsPage() {
                     }}
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900" />
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900"/>
 
-                <div className="max-w-6xl mx-auto relative z-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                <div
+                    className="max-w-6xl mx-auto relative z-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
                         {monthlyTheme?.theme_title && !activeTakeover ? `Theme for ${monthlyTheme.month_year}` : "Church Calendar"}
                     </span>
@@ -240,15 +251,18 @@ export default function EventsPage() {
 
                 {/* TAKEOVER VIEW (Hides regular calendar when Switch is ON) */}
                 {activeTakeover ? (
-                    <div className="bg-white rounded-[2rem] shadow-2xl border-4 border-amber-400 p-6 md:p-12 animate-in zoom-in-95 duration-500 overflow-hidden relative">
+                    <div
+                        className="bg-white rounded-[2rem] shadow-2xl border-4 border-amber-400 p-6 md:p-12 animate-in zoom-in-95 duration-500 overflow-hidden relative">
                         {/* Decorative background glow */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div
+                            className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <div className="flex flex-col md:flex-row gap-8 md:gap-12 relative z-10">
                             {/* Left: Info */}
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-widest text-xs mb-4 bg-amber-50 w-fit px-4 py-2 rounded-full">
-                                    <Radio size={16} className="animate-pulse" /> Live Viewing Center
+                                <div
+                                    className="flex items-center gap-2 text-amber-600 font-black uppercase tracking-widest text-xs mb-4 bg-amber-50 w-fit px-4 py-2 rounded-full">
+                                    <Radio size={16} className="animate-pulse"/> Live Viewing Center
                                 </div>
                                 <h2 className="text-3xl md:text-5xl font-serif font-black text-brand-primary mb-4 leading-tight">
                                     {activeTakeover.title}
@@ -259,14 +273,17 @@ export default function EventsPage() {
                                     </p>
                                 )}
                                 <div className="space-y-4 mb-8">
-                                    <div className="flex items-center gap-3 text-gray-900 bg-slate-50 p-4 rounded-xl border border-gray-100">
+                                    <div
+                                        className="flex items-center gap-3 text-gray-900 bg-slate-50 p-4 rounded-xl border border-gray-100">
                                         <MapPin className="text-amber-500 shrink-0" size={24}/>
                                         <div>
                                             <span className="block font-bold text-sm">Location</span>
-                                            <span className="text-brand-primary font-black">{activeTakeover.location}</span>
+                                            <span
+                                                className="text-brand-primary font-black">{activeTakeover.location}</span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 text-gray-900 bg-slate-50 p-4 rounded-xl border border-gray-100">
+                                    <div
+                                        className="flex items-center gap-3 text-gray-900 bg-slate-50 p-4 rounded-xl border border-gray-100">
                                         <Info className="text-blue-500 shrink-0" size={24}/>
                                         <div>
                                             <span className="block font-bold text-sm">Notice</span>
@@ -285,8 +302,9 @@ export default function EventsPage() {
                                         className="w-full max-w-md rounded-2xl shadow-xl border border-gray-100 object-cover rotate-1 hover:rotate-0 transition-transform duration-300"
                                     />
                                 ) : (
-                                    <div className="w-full aspect-square max-w-md bg-slate-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300">
-                                        <Star size={48} className="mb-4" />
+                                    <div
+                                        className="w-full aspect-square max-w-md bg-slate-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300">
+                                        <Star size={48} className="mb-4"/>
                                         <p className="font-bold uppercase tracking-widest text-xs">{activeTakeover.type} Ongoing</p>
                                     </div>
                                 )}
@@ -300,62 +318,83 @@ export default function EventsPage() {
                         <div className="mt-20 mb-20">
                             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 px-2">
                                 <div className="flex items-center gap-3">
-                                    <Users className="text-brand-primary" size={24} />
-                                    <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">Our Weekly Rhythm</h2>
+                                    <Users className="text-brand-primary" size={24}/>
+                                    <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">Our
+                                        Weekly Rhythm</h2>
                                 </div>
-                                <Link href="/events/weekly" className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md hover:bg-amber-600 transition-all hover:scale-105 active:scale-95">
-                                    <Clock size={14} /> View Live Countdowns
+                                <Link href="/events/weekly"
+                                      className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md hover:bg-amber-600 transition-all hover:scale-105 active:scale-95">
+                                    <Clock size={14}/> View Live Countdowns
                                 </Link>
                             </div>
 
-                            <div className="bg-white rounded-3xl p-2 md:p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-2 md:gap-4 overflow-x-auto no-scrollbar">
+                            <div
+                                className="bg-white rounded-3xl p-2 md:p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-2 md:gap-4 overflow-x-auto no-scrollbar">
                                 {weeklyEvents.map((event) => (
-                                    <div key={event.id} className="flex-1 min-w-[250px] p-4 bg-slate-50 rounded-2xl border border-brand-primary/10 border-l-4 border-l-brand-primary hover:border-l-amber-500 hover:shadow-md transition-all">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600 mb-1 block">
+                                    <div key={event.id}
+                                         className="flex-1 min-w-[250px] p-4 bg-slate-50 rounded-2xl border border-brand-primary/10 border-l-4 border-l-brand-primary hover:border-l-amber-500 hover:shadow-md transition-all">
+                                        <span
+                                            className="text-[10px] font-bold uppercase tracking-widest text-purple-600 mb-1 block">
                                             Every {event.recurrence_rules?.day}
                                         </span>
                                         <h3 className="font-bold text-brand-primary text-lg mb-2 truncate">{event.title}</h3>
                                         <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
-                                            <MapPin size={12} className="text-amber-500"/> <span className="truncate">{event.location}</span>
+                                            <MapPin size={12} className="text-amber-500"/> <span
+                                            className="truncate">{event.location}</span>
                                         </div>
                                     </div>
                                 ))}
 
-                                <Link href="/events/weekly" className="flex-1 min-w-[200px] p-4 bg-brand-primary/5 rounded-2xl border border-brand-primary/20 flex flex-col items-center justify-center text-center group cursor-pointer hover:bg-brand-primary hover:text-white transition-colors">
-                                    <ArrowRight size={24} className="text-brand-primary group-hover:text-white mb-2 transition-colors" />
-                                    <span className="font-bold text-sm text-brand-primary group-hover:text-white transition-colors">See Live Schedule</span>
+                                <Link href="/events/weekly"
+                                      className="flex-1 min-w-[200px] p-4 bg-brand-primary/5 rounded-2xl border border-brand-primary/20 flex flex-col items-center justify-center text-center group cursor-pointer hover:bg-brand-primary hover:text-white transition-colors">
+                                    <ArrowRight size={24}
+                                                className="text-brand-primary group-hover:text-white mb-2 transition-colors"/>
+                                    <span
+                                        className="font-bold text-sm text-brand-primary group-hover:text-white transition-colors">See Live Schedule</span>
                                 </Link>
                             </div>
                         </div>
 
                         {/* PART 2: THE DYNAMIC MONTHLY CALENDAR */}
                         <div>
-                            <div className="bg-white rounded-t-3xl border border-gray-200 p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm z-10 relative">
+                            <div
+                                className="bg-white rounded-t-3xl border border-gray-200 p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm z-10 relative">
                                 <div className="flex items-center gap-3">
-                                    <CalendarIcon className="text-brand-primary" size={24} />
+                                    <CalendarIcon className="text-brand-primary" size={24}/>
                                     <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">
                                         Special & Monthly
                                     </h2>
                                 </div>
 
-                                <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 bg-slate-50 p-1.5 md:p-2 rounded-2xl border border-gray-200 w-full sm:w-auto">
-                                    <button onClick={prevMonth} className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all"><ChevronLeft size={20}/></button>
-                                    <span className="w-32 md:w-40 text-center font-black text-brand-primary uppercase tracking-widest text-xs md:text-sm">
-                                        {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                <div
+                                    className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 bg-slate-50 p-1.5 md:p-2 rounded-2xl border border-gray-200 w-full sm:w-auto">
+                                    <button onClick={prevMonth}
+                                            className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all">
+                                        <ChevronLeft size={20}/></button>
+                                    <span
+                                        className="w-32 md:w-40 text-center font-black text-brand-primary uppercase tracking-widest text-xs md:text-sm">
+                                        {currentDate.toLocaleString('default', {month: 'long', year: 'numeric'})}
                                     </span>
-                                    <button onClick={nextMonth} className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all"><ChevronRight size={20}/></button>
+                                    <button onClick={nextMonth}
+                                            className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all">
+                                        <ChevronRight size={20}/></button>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-b-3xl border-x border-b border-gray-200 p-4 md:p-8 shadow-sm min-h-[400px]">
+                            <div
+                                className="bg-white rounded-b-3xl border-x border-b border-gray-200 p-4 md:p-8 shadow-sm min-h-[400px]">
                                 {currentNotice && (
-                                    <div className="mb-8 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex gap-4 items-start shadow-sm animate-in slide-in-from-top-4">
+                                    <div
+                                        className="mb-8 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex gap-4 items-start shadow-sm animate-in slide-in-from-top-4">
                                         <div className="p-2 bg-amber-100 text-amber-600 rounded-full shrink-0">
-                                            <Info size={20} />
+                                            <Info size={20}/>
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-bold text-amber-800 mb-1">
-                                                Schedule Notice for {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                                Schedule Notice for {currentDate.toLocaleString('default', {
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
                                             </h4>
                                             <p className="text-sm text-amber-700/80 leading-relaxed font-medium">
                                                 {currentNotice}
@@ -387,37 +426,46 @@ export default function EventsPage() {
                                                     : "bg-brand-primary/5 text-brand-primary border border-brand-primary/20 group-hover:bg-brand-primary group-hover:text-white";
 
                                             return (
-                                                <div key={idx} className={`flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl border transition-all duration-300 group ${cardStyle}`}>
+                                                <div key={idx}
+                                                     className={`flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-3xl border transition-all duration-300 group ${cardStyle}`}>
 
-                                                    <div className={`w-full md:w-32 flex-shrink-0 flex flex-row md:flex-col items-center justify-center rounded-2xl p-4 transition-colors duration-300 ${badgeStyle}`}>
-                                                        <span className="text-xs font-bold uppercase tracking-widest opacity-80 mr-3 md:mr-0 md:mb-1">
-                                                            {event.displayDate.toLocaleString('default', { month: 'short' })}
+                                                    <div
+                                                        className={`w-full md:w-32 flex-shrink-0 flex flex-row md:flex-col items-center justify-center rounded-2xl p-4 transition-colors duration-300 ${badgeStyle}`}>
+                                                        <span
+                                                            className="text-xs font-bold uppercase tracking-widest opacity-80 mr-3 md:mr-0 md:mb-1">
+                                                            {event.displayDate.toLocaleString('default', {month: 'short'})}
                                                         </span>
-                                                        <span className="text-4xl md:text-5xl font-black leading-none tracking-tighter">
+                                                        <span
+                                                            className="text-4xl md:text-5xl font-black leading-none tracking-tighter">
                                                             {event.displayDate.getDate()}
                                                         </span>
-                                                        <span className="hidden md:block text-[10px] font-bold uppercase tracking-widest opacity-80 mt-2">
-                                                            {event.displayDate.toLocaleString('default', { weekday: 'long' })}
+                                                        <span
+                                                            className="hidden md:block text-[10px] font-bold uppercase tracking-widest opacity-80 mt-2">
+                                                            {event.displayDate.toLocaleString('default', {weekday: 'long'})}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex-grow flex flex-col justify-center py-2">
                                                         <div className="flex flex-wrap gap-2 mb-3 items-center">
                                                             {isToday && (
-                                                                <span className="text-[9px] font-black uppercase tracking-widest text-white bg-amber-500 px-2.5 py-1 rounded-md animate-pulse">
+                                                                <span
+                                                                    className="text-[9px] font-black uppercase tracking-widest text-white bg-amber-500 px-2.5 py-1 rounded-md animate-pulse">
                                                                     Happening Today
                                                                 </span>
                                                             )}
                                                             {isPast && (
-                                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 bg-gray-200 px-2.5 py-1 rounded-md">
+                                                                <span
+                                                                    className="text-[9px] font-black uppercase tracking-widest text-gray-500 bg-gray-200 px-2.5 py-1 rounded-md">
                                                                     Passed
                                                                 </span>
                                                             )}
-                                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${isPast ? 'bg-gray-200 text-gray-500' : 'text-amber-600 bg-amber-50 border border-amber-100'}`}>
+                                                            <span
+                                                                className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${isPast ? 'bg-gray-200 text-gray-500' : 'text-amber-600 bg-amber-50 border border-amber-100'}`}>
                                                                 {event.category}
                                                             </span>
                                                             {event.event_type === 'multi_day' && (
-                                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${isPast ? 'bg-gray-200 text-gray-500' : 'text-purple-600 bg-purple-50 border border-purple-100'}`}>
+                                                                <span
+                                                                    className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${isPast ? 'bg-gray-200 text-gray-500' : 'text-purple-600 bg-purple-50 border border-purple-100'}`}>
                                                                     Multi-Day Event
                                                                 </span>
                                                             )}
@@ -433,24 +481,33 @@ export default function EventsPage() {
                                                             </p>
                                                         )}
 
-                                                        <div className={`flex flex-col sm:flex-row flex-wrap sm:items-center gap-3 sm:gap-6 text-xs font-bold mt-auto pt-4 border-t ${isPast ? 'border-gray-200 text-gray-400' : 'border-gray-100 text-gray-600'}`}>
-                                                            <span className="flex items-center gap-2"><Clock size={16} className={isPast ? "text-gray-400" : "text-brand-secondary"}/>
+                                                        <div
+                                                            className={`flex flex-col sm:flex-row flex-wrap sm:items-center gap-3 sm:gap-6 text-xs font-bold mt-auto pt-4 border-t ${isPast ? 'border-gray-200 text-gray-400' : 'border-gray-100 text-gray-600'}`}>
+                                                            <span className="flex items-center gap-2"><Clock size={16}
+                                                                                                             className={isPast ? "text-gray-400" : "text-brand-secondary"}/>
                                                                 {event.isCalculated ? (
                                                                     `${event.recurrence_rules?.start_time} - ${event.recurrence_rules?.end_time}`
                                                                 ) : event.event_type === 'single_day' ? (
-                                                                    `${new Date(event.start_datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+                                                                    `${new Date(event.start_datetime).toLocaleTimeString([], {
+                                                                        hour: '2-digit',
+                                                                        minute: '2-digit'
+                                                                    })}`
                                                                 ) : (
                                                                     "View Full Schedule"
                                                                 )}
                                                             </span>
-                                                            <span className="flex items-center gap-2"><MapPin size={16} className={isPast ? "text-gray-400" : "text-brand-secondary"}/> {event.location}</span>
+                                                            <span className="flex items-center gap-2"><MapPin size={16}
+                                                                                                              className={isPast ? "text-gray-400" : "text-brand-secondary"}/> {event.location}</span>
                                                         </div>
                                                     </div>
 
                                                     {event.flyer_url && (
-                                                        <div className={`w-full md:w-56 aspect-video md:aspect-square rounded-2xl overflow-hidden flex-shrink-0 border relative ${isPast ? 'border-gray-200 opacity-50' : 'bg-slate-100 border-gray-100'}`}>
-                                                            <img src={event.flyer_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                            {!isPast && <div className="absolute inset-0 bg-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
+                                                        <div
+                                                            className={`w-full md:w-56 aspect-video md:aspect-square rounded-2xl overflow-hidden flex-shrink-0 border relative ${isPast ? 'border-gray-200 opacity-50' : 'bg-slate-100 border-gray-100'}`}>
+                                                            <img src={event.flyer_url} alt={event.title}
+                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"/>
+                                                            {!isPast && <div
+                                                                className="absolute inset-0 bg-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
                                                         </div>
                                                     )}
                                                 </div>
@@ -458,13 +515,19 @@ export default function EventsPage() {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center py-24 text-center bg-slate-50/50 rounded-2xl border border-dashed border-gray-200">
-                                        <Star size={48} className="text-gray-300 mb-4" />
+                                    <div
+                                        className="flex flex-col items-center justify-center py-24 text-center bg-slate-50/50 rounded-2xl border border-dashed border-gray-200">
+                                        <Star size={48} className="text-gray-300 mb-4"/>
                                         <h3 className="text-xl font-bold text-brand-primary mb-2">No Special Events</h3>
                                         <p className="text-gray-500 text-sm max-w-md">
-                                            There are no special or monthly events scheduled for <strong className="text-brand-primary">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</strong>. Check our weekly rhythm above!
+                                            There are no special or monthly events scheduled for <strong
+                                            className="text-brand-primary">{currentDate.toLocaleString('default', {
+                                            month: 'long',
+                                            year: 'numeric'
+                                        })}</strong>. Check our weekly rhythm above!
                                         </p>
-                                        <button onClick={goToToday} className="mt-6 text-xs font-bold text-brand-primary hover:text-amber-600 bg-white px-6 py-2.5 rounded-full shadow-sm border border-gray-200 uppercase tracking-widest transition-colors">
+                                        <button onClick={goToToday}
+                                                className="mt-6 text-xs font-bold text-brand-primary hover:text-amber-600 bg-white px-6 py-2.5 rounded-full shadow-sm border border-gray-200 uppercase tracking-widest transition-colors">
                                             Return to Current Month
                                         </button>
                                     </div>
@@ -473,12 +536,6 @@ export default function EventsPage() {
                         </div>
                     </>
                 )}
-            </div>
-
-            {/* SCROLL TO TOP */}
-            <div className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
-                <button onClick={scrollToTop} className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"><ChevronUp size={20} /></button>
-                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">Back to Top</span>
             </div>
         </div>
     );

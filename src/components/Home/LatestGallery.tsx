@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import React, {useEffect, useState} from "react";
+import {supabase} from "@/lib/supabase";
 import Link from "next/link";
 
 export default function LatestGallery() {
@@ -9,13 +9,13 @@ export default function LatestGallery() {
 
     useEffect(() => {
         async function fetchLatestGallery() {
-            const { data } = await supabase
+            const {data} = await supabase
                 .from("media_gallery")
                 .select("id, media_urls")
                 .eq("status", "published")
                 .eq("is_archived", false)
                 .is("deleted_at", null)
-                .order("service_date", { ascending: false })
+                .order("service_date", {ascending: false})
                 .limit(1);
 
             if (data && data.length > 0) {
@@ -34,7 +34,8 @@ export default function LatestGallery() {
                 setImages(extractedImages);
             }
         }
-        fetchLatestGallery();
+
+        fetchLatestGallery().catch(console.error);
     }, []);
 
     // Fallback images in case the gallery doesn't have enough photos yet
@@ -48,37 +49,46 @@ export default function LatestGallery() {
     ];
 
     return (
-        <Link href={galleryId ? `/gallery/${galleryId}` : `/gallery`} className="grid grid-cols-2 md:grid-cols-3 gap-4 group cursor-pointer">
+        <Link href={galleryId ? `/gallery/${galleryId}` : `/gallery`}
+              className="grid grid-cols-2 md:grid-cols-3 gap-4 group cursor-pointer">
             {/* Column 1 */}
             <div className="flex flex-col gap-4 translate-y-8">
                 <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm overflow-hidden">
-                    <img src={displayImages[0]} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                    <img src={displayImages[0]} alt="Gallery"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
                 </div>
                 <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm overflow-hidden">
-                    <img src={displayImages[1]} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                    <img src={displayImages[1]} alt="Gallery"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
                 </div>
             </div>
 
             {/* Column 2 */}
             <div className="flex flex-col gap-4">
                 <div className="bg-slate-200 rounded-3xl h-64 w-full shadow-sm overflow-hidden relative">
-                    <img src={displayImages[2]} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
-                    <div className="absolute inset-0 bg-brand-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white font-bold text-xs uppercase tracking-widest border border-white px-4 py-2 rounded-full backdrop-blur-sm">Open Album</span>
+                    <img src={displayImages[2]} alt="Gallery"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                    <div
+                        className="absolute inset-0 bg-brand-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span
+                            className="text-white font-bold text-xs uppercase tracking-widest border border-white px-4 py-2 rounded-full backdrop-blur-sm">Open Album</span>
                     </div>
                 </div>
                 <div className="bg-slate-200 rounded-3xl h-48 w-full shadow-sm overflow-hidden">
-                    <img src={displayImages[3]} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                    <img src={displayImages[3]} alt="Gallery"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
                 </div>
             </div>
 
             {/* Column 3 (Hidden on mobile) */}
             <div className="hidden md:flex flex-col gap-4 translate-y-12">
                 <div className="bg-slate-200 rounded-3xl h-40 w-full shadow-sm overflow-hidden">
-                    <img src={displayImages[4]} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                    <img src={displayImages[4]} alt="Gallery"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
                 </div>
                 <div className="bg-slate-200 rounded-3xl h-72 w-full shadow-sm overflow-hidden">
-                    <img src={displayImages[5]} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
+                    <img src={displayImages[5]} alt="Gallery"
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"/>
                 </div>
             </div>
         </Link>

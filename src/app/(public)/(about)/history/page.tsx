@@ -3,7 +3,8 @@ import React, {useEffect, useRef, useState} from "react";
 import Link from "next/link";
 import {
     Calendar, MapPin, Users,
-    Award, Church, Globe, ArrowRight
+    Award, Church, Globe, ArrowRight,
+    ArrowLeft
 } from "lucide-react";
 
 // Timeline Data - Easily editable by the media team later!
@@ -101,6 +102,12 @@ export default function HistoryPage() {
                 {/* 2. Dark Gradient Overlay (Crucial for making the white text readable) */}
                 <div className="absolute inset-0 bg-gradient-to-b from-brand-primary/90 via-brand-primary/80 to-slate-900/90"></div>
 
+                <div className="absolute top-8 left-6 md:left-12 z-20">
+                    <Link href="/about" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-xs md:text-sm font-bold tracking-widest uppercase transition-colors">
+                        <ArrowLeft size={16} /> Back to About Us
+                    </Link>
+                </div>
+
                 {/* 3. The Content (z-10 keeps it floating above the image and overlay) */}
                 <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
                     <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
@@ -140,7 +147,7 @@ export default function HistoryPage() {
                     {/* RIGHT SIDE: Masonry Photo Grid with Overlay */}
                     <div className="relative w-full h-[450px] md:h-[550px] rounded-[3rem] overflow-hidden shadow-2xl group bg-slate-900">
 
-                        {/* The Staggered Masonry Images (Using -inset-8 expands the canvas to hide edges during movement) */}
+                        {/* The Staggered Masonry Images (Using - inset-8 expands the canvas to hide edges during movement) */}
                         <div className="absolute -inset-10 grid grid-cols-2 gap-4 p-4">
 
                             {/* Column 1 (Pushed up) */}

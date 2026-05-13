@@ -1,30 +1,31 @@
 "use client";
-import React, { useState } from "react";
+import React, {useState} from "react";
 import Link from "next/link";
-import { toast } from "sonner";
-import {
-    MapPin, Phone, Mail, Clock,
-    Send, Calendar, Info
-} from "lucide-react";
-import { CHURCH_INFO } from "@/lib/constants";
+import {toast} from "sonner";
+import {Calendar, Clock, Info, Mail, MapPin, Phone, Send} from "lucide-react";
+import {CHURCH_INFO} from "@/lib/constants";
 
-const FacebookIcon = ({ size = 20, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+const FacebookIcon = ({size = 20, className = ""}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
     </svg>
 );
 
-const InstagramIcon = ({ size = 20, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+const InstagramIcon = ({size = 20, className = ""}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
         <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
     </svg>
 );
 
-const TwitterIcon = ({ size = 20, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+const TwitterIcon = ({size = 20, className = ""}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path
+            d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
     </svg>
 );
 
@@ -41,10 +42,10 @@ export default function ContactPage() {
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData({...formData, [e.target.name]: e.target.value});
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
 
@@ -60,7 +61,10 @@ export default function ContactPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to send message');
+                toast.error("Failed to send message.", {
+                    description: "The server responded with an error. Please try again.",
+                });
+                return;
             }
 
             // Trigger Success Toast
@@ -70,7 +74,7 @@ export default function ContactPage() {
             });
 
             // Clear the form
-            setFormData({ name: "", email: "", phone: "", subject: "general", message: "" });
+            setFormData({name: "", email: "", phone: "", subject: "general", message: ""});
 
         } catch (error: any) {
             console.error("Error sending message:", error);
@@ -87,7 +91,8 @@ export default function ContactPage() {
 
             {/* HERO SECTION */}
             <section className="relative py-20 bg-brand-primary overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1577563908411-5077b6dc7624?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat opacity-20"></div>
+                <div
+                    className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1577563908411-5077b6dc7624?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat opacity-20"></div>
 
                 <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
                     <span className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block">
@@ -97,13 +102,15 @@ export default function ContactPage() {
                         We'd Love to Hear <br className="hidden md:block"/> From You.
                     </h1>
                     <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-                        Whether you have a question, need prayer, or want to learn more about Milk & Honey, our team is ready to connect.
+                        Whether you have a question, need prayer, or want to learn more about Milk & Honey, our team is
+                        ready to connect.
                     </p>
                 </div>
             </section>
 
             {/* MAIN CONTENT AREA */}
-            <section className="py-16 md:py-24 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start -mt-10 md:-mt-20 relative z-20">
+            <section
+                className="py-16 md:py-24 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start -mt-10 md:-mt-20 relative z-20">
 
                 {/* LEFT SIDE: Contact Information Cards */}
                 <div className="lg:col-span-5 space-y-6">
@@ -114,8 +121,9 @@ export default function ContactPage() {
 
                         <div className="space-y-8">
                             <div className="flex gap-5">
-                                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
-                                    <MapPin size={24} />
+                                <div
+                                    className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+                                    <MapPin size={24}/>
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Our Sanctuary</h4>
@@ -124,31 +132,36 @@ export default function ContactPage() {
                                         {CHURCH_INFO.parish}, <br/>
                                         {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}.
                                     </p>
-                                    <a href={CHURCH_INFO.address.googleMapsLink} target="_blank" rel="noreferrer" className="text-xs font-bold text-brand-primary uppercase tracking-widest mt-3 inline-block hover:text-amber-600 transition-colors">
+                                    <a href={CHURCH_INFO.address.googleMapsLink} target="_blank" rel="noreferrer"
+                                       className="text-xs font-bold text-brand-primary uppercase tracking-widest mt-3 inline-block hover:text-amber-600 transition-colors">
                                         Get Directions →
                                     </a>
                                 </div>
                             </div>
 
                             <div className="flex gap-5">
-                                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
-                                    <Phone size={24} />
+                                <div
+                                    className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+                                    <Phone size={24}/>
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Phone</h4>
-                                    <a href={`tel:${CHURCH_INFO.contact.phoneLink}`} className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
+                                    <a href={`tel:${CHURCH_INFO.contact.phoneLink}`}
+                                       className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
                                         {CHURCH_INFO.contact.phone}
                                     </a>
                                 </div>
                             </div>
 
                             <div className="flex gap-5">
-                                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
-                                    <Mail size={24} />
+                                <div
+                                    className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+                                    <Mail size={24}/>
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Email</h4>
-                                    <a href={`mailto:${CHURCH_INFO.contact.email}`} className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
+                                    <a href={`mailto:${CHURCH_INFO.contact.email}`}
+                                       className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
                                         {CHURCH_INFO.contact.email}
                                     </a>
                                 </div>
@@ -159,23 +172,28 @@ export default function ContactPage() {
                     {/* Social Media Quick Connect */}
                     <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-xl border border-gray-100">
                         <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Quick Connect</h3>
-                        <p className="text-sm text-gray-500 mb-6">Send us a direct message on our social channels for quick inquiries.</p>
+                        <p className="text-sm text-gray-500 mb-6">Send us a direct message on our social channels for
+                            quick inquiries.</p>
                         <div className="flex gap-4">
-                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-pink-50 border border-gray-100 hover:border-pink-200 text-gray-600 hover:text-pink-600 py-4 rounded-xl font-bold transition-all">
-                                <InstagramIcon /> Instagram
+                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer"
+                               className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-pink-50 border border-gray-100 hover:border-pink-200 text-gray-600 hover:text-pink-600 py-4 rounded-xl font-bold transition-all">
+                                <InstagramIcon/> Instagram
                             </a>
-                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 text-gray-600 hover:text-blue-600 py-4 rounded-xl font-bold transition-all">
-                                <FacebookIcon /> Facebook
+                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer"
+                               className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 text-gray-600 hover:text-blue-600 py-4 rounded-xl font-bold transition-all">
+                                <FacebookIcon/> Facebook
                             </a>
-                            <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-green-50 border border-gray-100 hover:border-green-200 text-gray-600 hover:text-green-600 py-4 rounded-xl font-bold transition-all">
-                                <TwitterIcon /> Twitter
+                            <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer"
+                               className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-green-50 border border-gray-100 hover:border-green-200 text-gray-600 hover:text-green-600 py-4 rounded-xl font-bold transition-all">
+                                <TwitterIcon/> Twitter
                             </a>
                         </div>
                     </div>
 
                     {/* Service Times Card */}
-                    <div className="bg-brand-primary text-white p-8 md:p-10 rounded-[2rem] shadow-xl relative overflow-hidden flex flex-col justify-between">
-                        <Clock size={160} className="absolute -bottom-10 -right-10 text-white/5 pointer-events-none" />
+                    <div
+                        className="bg-brand-primary text-white p-8 md:p-10 rounded-[2rem] shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <Clock size={160} className="absolute -bottom-10 -right-10 text-white/5 pointer-events-none"/>
 
                         <div className="relative z-10">
                             <h3 className="text-xl font-serif font-bold mb-6">Service Times</h3>
@@ -199,20 +217,24 @@ export default function ContactPage() {
                             </div>
                         </div>
 
-                        <Link href="/events" className="relative z-10 mt-8 w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all backdrop-blur-sm">
-                            <Calendar size={16} /> View Full Calendar
+                        <Link href="/events"
+                              className="relative z-10 mt-8 w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all backdrop-blur-sm">
+                            <Calendar size={16}/> View Full Calendar
                         </Link>
                     </div>
 
                 </div>
 
                 {/* RIGHT SIDE: The Contact Form */}
-                <div className="lg:col-span-7 bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl shadow-brand-primary/5 border border-gray-100">
+                <div
+                    className="lg:col-span-7 bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl shadow-brand-primary/5 border border-gray-100">
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-serif font-black text-brand-primary mb-3">Send a Serious Inquiry</h2>
+                        <h2 className="text-3xl font-serif font-black text-brand-primary mb-3">Send a Serious
+                            Inquiry</h2>
                         <p className="text-sm text-gray-500">
-                            Fill out the form below. For accountability and prompt response, this message is routed directly to multiple departments.
+                            Fill out the form below. For accountability and prompt response, this message is routed
+                            directly to multiple departments.
                         </p>
                     </div>
 
@@ -220,7 +242,9 @@ export default function ContactPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Full Name *</label>
+                                <label
+                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Full
+                                    Name *</label>
                                 <input
                                     required
                                     type="text"
@@ -233,7 +257,9 @@ export default function ContactPage() {
                             </div>
 
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Phone Number</label>
+                                <label
+                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Phone
+                                    Number</label>
                                 <input
                                     type="tel"
                                     name="phone"
@@ -247,7 +273,9 @@ export default function ContactPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Email Address *</label>
+                                <label
+                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Email
+                                    Address *</label>
                                 <input
                                     required
                                     type="email"
@@ -260,7 +288,9 @@ export default function ContactPage() {
                             </div>
 
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">How can we help? *</label>
+                                <label
+                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">How
+                                    can we help? *</label>
                                 <select
                                     name="subject"
                                     value={formData.subject}
@@ -277,7 +307,8 @@ export default function ContactPage() {
                         </div>
 
                         <div>
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Your Message *</label>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Your
+                                Message *</label>
                             <textarea
                                 required
                                 name="message"
@@ -291,10 +322,13 @@ export default function ContactPage() {
 
                         {/* Distribution Warning Disclaimer */}
                         <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-start gap-3">
-                            <Info size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                            <Info size={20} className="text-amber-500 shrink-0 mt-0.5"/>
                             <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                                <strong className="font-bold text-amber-900 block mb-1">Message Distribution Notice:</strong>
-                                To ensure your inquiry is not missed, submitting this form will simultaneously email our primary contact addresses (Admin, Media, and Pastoral team). You may also follow up by phone to confirm receipt.
+                                <strong className="font-bold text-amber-900 block mb-1">Message Distribution
+                                    Notice:</strong>
+                                To ensure your inquiry is not missed, submitting this form will simultaneously email our
+                                primary contact addresses (Admin, Media, and Pastoral team). You may also follow up by
+                                phone to confirm receipt.
                             </p>
                         </div>
 

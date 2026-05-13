@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
 import BrandWatermark from "@/components/BrandWatermark";
 import LoadingState from "@/components/Admin/LoadingPage";
 
@@ -23,12 +23,12 @@ export default function AdminDashboard() {
     const goToAds = () => router.push("/admin/ads")
 
     if (initialLoading) {
-        return <LoadingState variant="full" message="Opening Control Center..." />;
+        return <LoadingState variant="full" message="Opening Control Center..."/>;
     }
 
     return (
         <div className="min-h-[calc(100vh-80px)] bg-brand-surface p-6 md:p-12">
-            <BrandWatermark />
+            <BrandWatermark/>
 
             <div className="relative z-10 max-w-6xl mx-auto">
                 <div className="mb-10 text-center md:text-left">
@@ -42,13 +42,19 @@ export default function AdminDashboard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl hover:shadow-brand-primary/5 transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl hover:shadow-brand-primary/5 transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-blue-100 text-blue-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-primary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            <div
+                                className="h-12 w-12 bg-blue-100 text-blue-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-primary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-blue-900 mb-2">Sermons & Notes</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Upload weekly sermon clips, outlines, and rotation details.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Upload weekly sermon clips,
+                                outlines, and rotation details.</p>
                         </div>
                         <button
                             onClick={goToSermon}
@@ -58,13 +64,21 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-orange-100 text-orange-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                            <div
+                                className="h-12 w-12 bg-orange-100 text-orange-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path d="M21 15l-5-5L5 21"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-orange-900 mb-2">Media Gallery</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Update the church media gallery with images & videos from latest events.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Update the church media gallery
+                                with images & videos from latest events.</p>
                         </div>
                         <button
                             onClick={goToMedia}
@@ -74,13 +88,20 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-purple-100 text-purple-900 rounded-xl flex items-center justify-center mb-6">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                            <div
+                                className="h-12 w-12 bg-purple-100 text-purple-900 rounded-xl flex items-center justify-center mb-6">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <path d="M16 2v4M8 2v4M3 10h18"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-purple-900  mb-2">Events Calendar</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Set dates for Provincial meetings and Parish celebrations.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Set dates for Provincial meetings
+                                and Parish celebrations.</p>
                         </div>
                         <button
                             onClick={goToEvents}
@@ -90,90 +111,134 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-emerald-100 text-emerald-900 rounded-xl flex items-center justify-center mb-6">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m12-10a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+                            <div
+                                className="h-12 w-12 bg-emerald-100 text-emerald-900 rounded-xl flex items-center justify-center mb-6">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path
+                                        d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m12-10a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-emerald-900 mb-2">Workforce Units</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Organize church departments, duty rosters, and head of departments.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Organize church departments, duty
+                                rosters, and head of departments.</p>
                         </div>
-                        <button onClick={goToDepartments} className="w-full bg-emerald-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        <button onClick={goToDepartments}
+                                className="w-full bg-emerald-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                             Manage Units
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-red-100 text-red-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+                            <div
+                                className="h-12 w-12 bg-red-100 text-red-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-red-900 mb-2">Life Stages</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Dedicated portals for Youth, Teens, Women (Good Women), and Men (Excellent Men).</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Dedicated portals for Youth,
+                                Teens, Women (Good Women), and Men (Excellent Men).</p>
                         </div>
-                        <button onClick={goToLifeStages} className="w-full bg-red-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        <button onClick={goToLifeStages}
+                                className="w-full bg-red-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                             Open Fellowships
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-olive-100 text-olive-900 rounded-xl flex items-center justify-center mb-6">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m0 0A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10c0 2.478-.897 4.747-2.387 6.5m-3.226 3.123c-1.047.23-2.134.377-3.253.377a10.003 10.003 0 01-4.387-.999"/></svg>
+                            <div
+                                className="h-12 w-12 bg-olive-100 text-olive-900 rounded-xl flex items-center justify-center mb-6">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 11c0 3.517-1.009 6.799-2.753 9.571m0 0A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10c0 2.478-.897 4.747-2.387 6.5m-3.226 3.123c-1.047.23-2.134.377-3.253.377a10.003 10.003 0 01-4.387-.999"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-olive-900 mb-2">Leadership Registry</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Directory of Pastors, Secretaries, and Board Members across the Province.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Directory of Pastors, Secretaries,
+                                and Board Members across the Province.</p>
                         </div>
-                        <button onClick={goToLeadership} className="w-full bg-olive-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        <button onClick={goToLeadership}
+                                className="w-full bg-olive-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                             View Registry
                         </button>
                     </div>
 
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-2">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-2">
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 h-full">
-                            <div className="h-16 w-16 bg-mauve-100 text-mauve-900 border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
-                                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <div
+                                className="h-16 w-16 bg-mauve-100 text-mauve-900 border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
+                                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
                             </div>
                             <div className='flex-1 flex flex-col justify-center'>
-                                <h3 className="text-xl md:text-2xl font-serif font-bold text-mauve-900 mb-2">Parish & Hierarchy Network</h3>
+                                <h3 className="text-xl md:text-2xl font-serif font-bold text-mauve-900 mb-2">Parish &
+                                    Hierarchy Network</h3>
                                 <p className="text-sm text-gray-500 leading-relaxed">
-                                    Map out the organizational flow of the church. Manage data for Zonal, Area, and Parish levels across the Province.
+                                    Map out the organizational flow of the church. Manage data for Zonal, Area, and
+                                    Parish levels across the Province.
                                 </p>
                             </div>
-                            <button onClick={goToParishes} className="w-full md:w-auto px-8 bg-mauve-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer whitespace-nowrap self-end md:self-center">
+                            <button onClick={goToParishes}
+                                    className="w-full md:w-auto px-8 bg-mauve-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer whitespace-nowrap self-end md:self-center">
                                 Explore Network
                             </button>
                         </div>
                     </div>
 
                     {/* 2. THE NEW ADVERTISEMENT ENGINE CARD (Takes the 3rd column) */}
-                    <div className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
-                            <div className="h-12 w-12 bg-pink-100 text-pink-900 rounded-xl flex items-center justify-center mb-6">
+                            <div
+                                className="h-12 w-12 bg-pink-100 text-pink-900 rounded-xl flex items-center justify-center mb-6">
                                 {/* Megaphone Icon */}
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                          d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                                </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-pink-900 mb-2">Ad Engine</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Publish banners and videos for internal events or external businesses.</p>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Publish banners and videos for
+                                internal events or external businesses.</p>
                         </div>
-                        <button onClick={goToAds} className="w-full bg-pink-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        <button onClick={goToAds}
+                                className="w-full bg-pink-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                             Manage Ads
                         </button>
                     </div>
                 </div>
 
-                <div className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                <div
+                    className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
                     {/* Left Side: Status */}
                     <div className="flex items-center gap-3">
                         <div className="relative flex h-2 w-2">
                             {/* Added a ping effect for a more "live" feel */}
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span
+                                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </div>
                         <p className="text-[10px] font-sans font-black text-gray-400 uppercase tracking-widest">
                             System Status: <span className="text-brand-primary">Operational</span>
                         </p>
                     </div>
+
 
                     {/* Right Side: Version & Branding */}
                     <div className="flex items-center gap-4">

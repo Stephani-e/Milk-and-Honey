@@ -2,10 +2,11 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-    Heart, Target, Eye, Users,
+    Heart, Users,
     ArrowRight, MapPin, Phone,
     Mail, PlayCircle, Camera, Globe
 } from "lucide-react";
+import {CHURCH_INFO} from "@/lib/constants";
 
 const storyImages = [
     "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=1200", // Photo 1
@@ -236,10 +237,6 @@ export default function AboutPage() {
             <section className="relative w-full h-[500px] md:h-[650px] bg-slate-100 group">
                 {/* Visual Placeholder for Google Maps Embed */}
                 <div className="absolute inset-0 bg-slate-200 flex items-center justify-center overflow-hidden">
-                    {/* <div className="text-center space-y-4 opacity-30 group-hover:opacity-50 transition-opacity">
-                        <MapPin size={64} className="mx-auto" />
-                        <p className="font-bold tracking-widest uppercase">Interactive Map Display</p>
-                    </div> */}
                     <iframe
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d832.2053568590655!2d3.373985169507433!3d6.569560031888077!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103b927f269e1105%3A0xefd56a17bce5ff1e!2sThe%20Redeemed%20Christian%20Church%20Of%20God%2C%20Milk%20%26%20Honey!5e1!3m2!1sen!2snl!4v1777332651414!5m2!1sen!2snl"
                         className="w-full h-full grayscale-[0.5] contrast-[1.1]"
@@ -258,27 +255,27 @@ export default function AboutPage() {
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0"><MapPin size={20}/></div>
                             <p className="text-sm text-gray-500 leading-relaxed">
-                                29 Sunmola Street, Mende<br/>
-                                Lagos Province 56 Headquaters,<br/>
-                                Lagos, Nigeria.
+                                {CHURCH_INFO.address.street}, <br/>
+                                {CHURCH_INFO.parish}, <br/>
+                                {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}.
                             </p>
                         </div>
                         <div className="flex items-center gap-4  hover:text-amber-600 transition-colors group">
-                            <a href="tel:+2341234567890" className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
+                            <a href={`tel:${CHURCH_INFO.contact.phoneLink}`} className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
                                 <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0"><Phone size={20}/></div>
-                                <p className="text-sm text-gray-500">+234 (0) 123 456 7890</p>
+                                <p className="text-sm text-gray-500">{CHURCH_INFO.contact.phone}</p>
                             </a>
                         </div>
                         <div className="flex items-center gap-4  hover:text-amber-600 transition-colors group">
-                            <a href="mailto:contact@milkandhoney.org" className="flex items-center gap-2">
+                            <a href={`mailto:${CHURCH_INFO.contact.email}`} className="flex items-center gap-2">
                                 <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0"><Mail size={20}/></div>
-                                <p className="text-sm text-gray-500">contact@milkandhoney.org</p>
+                                <p className="text-sm text-gray-500"> {CHURCH_INFO.contact.email}</p>
                             </a>
                         </div>
                     </div>
 
                     <a
-                        href="https://maps.app.goo.gl/XQ7xsxjVwwuL4JQo8"
+                        href={CHURCH_INFO.address.googleMapsLink}
                         target="_blank"
                         className="mt-10 w-full bg-brand-primary text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg shadow-brand-primary/20"
                     >

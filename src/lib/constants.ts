@@ -1,5 +1,3 @@
-// src/lib/constants.ts
-
 export const CHURCH_INFO = {
     name: "Milk & Honey Center",
     parish: "Lagos Province 56 Headquarters",

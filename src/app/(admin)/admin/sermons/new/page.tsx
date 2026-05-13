@@ -1,16 +1,16 @@
 "use client";
-import React, { useState, useEffect} from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import React, {useEffect, useState} from "react";
+import {supabase} from "@/lib/supabase";
+import {useRouter} from "next/navigation";
 import Link from "next/link";
-import { UploadButton } from "@/utils/uploadthing";
-import { toast } from "sonner";
+import {UploadButton} from "@/utils/uploadthing";
+import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import {Film, LinkIcon} from "lucide-react";
 import "react-quill-new/dist/quill.snow.css";
 import dynamic from "next/dynamic";
 
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false});
 
 export default function NewSermonPage() {
     const router = useRouter();
@@ -60,14 +60,14 @@ export default function NewSermonPage() {
 
     const quillModules = {
         toolbar: [
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'font': [] }, { 'size': ['small', false, 'medium', 'large', 'huge'] },],
+            [{'header': [1, 2, 3, 4, 5, 6, false]}],
+            [{'font': []}, {'size': ['small', false, 'medium', 'large', 'huge']},],
             ['bold', 'italic', 'underline', 'strike',],
-            [{ 'script': 'sub'}, { 'script': 'super' }],
+            [{'script': 'sub'}, {'script': 'super'}],
             [{'list': 'ordered'}, {'list': 'bullet'}, {'list': 'unordered'}],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'indent': '-1'}, { 'indent': '+1' }],
-            [{ 'align': [] }],
+            [{'color': []}, {'background': []}],
+            [{'indent': '-1'}, {'indent': '+1'}],
+            [{'align': []}],
             ['blockquote', 'code-block', 'link'],
             ['clean']
         ],
@@ -90,7 +90,7 @@ export default function NewSermonPage() {
 
     useEffect(() => {
         async function getSuggestions() {
-            const { data } = await supabase.from("sermons").select("service_category, co_host, special_service_name");
+            const {data} = await supabase.from("sermons").select("service_category, co_host, special_service_name");
             if (data) {
                 // Use Set to get unique values only (no duplicates)
                 const hosts = Array.from(new Set(data.map(i => i.co_host).filter(Boolean)));
@@ -103,32 +103,33 @@ export default function NewSermonPage() {
                 setSavedMonthlyNames(monthlyNames);
             }
         }
-        getSuggestions();
+
+        getSuggestions().catch(console.error);
     }, []);
 
     useEffect(() => {
         if (initialFetchDone) {
-            const draft = { formData, category, weeklyType, isThanksgiving, isMultiDay };
+            const draft = {formData, category, weeklyType, isThanksgiving, isMultiDay};
             localStorage.setItem("sermon_draft", JSON.stringify(draft));
         }
     }, [formData, category, weeklyType, isThanksgiving, isMultiDay, initialFetchDone]);
 
-    const triggerMediaAction = (type: 'banner' | 'clip' , action: 'delete' | 'change') => {
-        setMediaAction({ type, action });
+    const triggerMediaAction = (type: 'banner' | 'clip', action: 'delete' | 'change') => {
+        setMediaAction({type, action});
         setShowDeleteModal(true);
     };
 
     const handleConfirmMediaAction = () => {
         if (!mediaAction) return;
 
-        const { type } = mediaAction;
+        const {type} = mediaAction;
 
         if (type === 'banner') {
-            setFormData({ ...formData, banner_url: "" });
+            setFormData({...formData, banner_url: ""});
             setBannerUploaded(false);
             toast.success("Banner removed");
         } else if (type === 'clip') {
-            setFormData({ ...formData, clip_url: "" });
+            setFormData({...formData, clip_url: ""});
             setClipUploaded(false);
             toast.success("Video clip removed");
         }
@@ -175,7 +176,7 @@ export default function NewSermonPage() {
             }
         }
 
-        const { error } = await supabase.from("sermons").insert([submission]);
+        const {error} = await supabase.from("sermons").insert([submission]);
 
         if (error) {
             toast.error(`Database Error: ${error.message}`);
@@ -201,7 +202,8 @@ export default function NewSermonPage() {
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
-                    <Link href="/admin/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to Sermon Dashboard</Link>
+                    <Link href="/admin/sermons" className="text-sm font-bold text-brand-secondary mb-6 block">← Back to
+                        Sermon Dashboard</Link>
                     <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">Draft Auto-Saved</span>
                 </div>
 
@@ -214,7 +216,8 @@ export default function NewSermonPage() {
 
                         {/* Category Selection */}
                         <div className="space-y-4">
-                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1: Service Category</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1:
+                                Service Category</label>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {["Weekly", "Monthly", "Special"].map((item) => (
                                     <button
@@ -232,7 +235,8 @@ export default function NewSermonPage() {
                         {/* WEEKLY BRANCH */}
                         {category === "Weekly" && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1.1: Select Weekly Type</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                    1.1: Select Weekly Type</label>
                                 <div className="grid grid-cols-3 gap-4">
                                     {["Sunday", "Tuesday", "Thursday"].map((day) => (
                                         <button
@@ -248,7 +252,9 @@ export default function NewSermonPage() {
 
                                 {weeklyType === "Sunday" && (
                                     <div className="bg-slate-50 p-6 rounded-2xl space-y-6">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1.2: Select Which Sunday Service and Fill the Information</label>
+                                        <label
+                                            className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                            1.2: Select Which Sunday Service and Fill the Information</label>
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -274,7 +280,10 @@ export default function NewSermonPage() {
                                                 <select
                                                     className="p-3 rounded-lg border"
                                                     value={formData.service_number}
-                                                    onChange={(e) => setFormData({...formData, service_number: e.target.value})}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        service_number: e.target.value
+                                                    })}
                                                 >
                                                     <option>Pick a Service Type</option>
                                                     <option>First Service</option>
@@ -285,10 +294,13 @@ export default function NewSermonPage() {
                                                     placeholder="Add Co-Host (Optional)"
                                                     className="p-3 rounded-lg border text-brand-primary"
                                                     value={formData.co_host}
-                                                    onChange={(e) => setFormData({...formData, co_host: e.target.value})}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        co_host: e.target.value
+                                                    })}
                                                 />
                                                 <datalist id="cohosts">
-                                                    {savedCoHosts.map(h => <option key={h} value={h} />)}
+                                                    {savedCoHosts.map(h => <option key={h} value={h}/>)}
                                                 </datalist>
                                             </div>
                                         )}
@@ -300,7 +312,8 @@ export default function NewSermonPage() {
                         {/* Monthly Branch */}
                         {category === "Monthly" && (
                             <div className="animate-in fade-in bg-slate-50 p-6 rounded-2xl border border-gray-100">
-                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                    2: Fill Service Information</label>
                                 <input
                                     list="monthlyNames"
                                     placeholder="e.g. Holy Communion, Holy Ghost Service"
@@ -310,11 +323,11 @@ export default function NewSermonPage() {
                                 />
                                 <datalist id="monthlyNames">
                                     {/* Default RCCG Suggestions + Saved ones from DB */}
-                                    <option value="Holy Ghost Service" />
-                                    <option value="Holy Communion" />
-                                    <option value="Anointing Service" />
-                                    <option value="Wind of Change" />
-                                    {savedMonthlyNames.map(n => <option key={n} value={n} />)}
+                                    <option value="Holy Ghost Service"/>
+                                    <option value="Holy Communion"/>
+                                    <option value="Anointing Service"/>
+                                    <option value="Wind of Change"/>
+                                    {savedMonthlyNames.map(n => <option key={n} value={n}/>)}
                                 </datalist>
                             </div>
                         )}
@@ -322,7 +335,8 @@ export default function NewSermonPage() {
                         {/* SPECIAL BRANCH */}
                         {category === "Special" && (
                             <div className="space-y-6 animate-in fade-in">
-                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                    2: Fill Service Information</label>
                                 <input
                                     list="specialNames"
                                     placeholder="Service Name (e.g. Wind of Change)"
@@ -331,7 +345,7 @@ export default function NewSermonPage() {
                                     onChange={(e) => setFormData({...formData, special_service_name: e.target.value})}
                                 />
                                 <datalist id="specialNames">
-                                    {savedSpecialNames.map(n => <option key={n} value={n} />)}
+                                    {savedSpecialNames.map(n => <option key={n} value={n}/>)}
                                 </datalist>
 
                                 <div className="flex gap-4">
@@ -365,7 +379,8 @@ export default function NewSermonPage() {
                         {/* UNIFIED FIELDS (Title, Preacher, Date, Media) */}
                         {(weeklyType || category === "Monthly" || category === "Special") && (
                             <div className="pt-10 border-t border-gray-100 space-y-6">
-                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 2: Fill Service Information</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                    2: Fill Service Information</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <input
                                         required
@@ -409,30 +424,49 @@ export default function NewSermonPage() {
                                 {(weeklyType || category === "Monthly" || category === "Special") && (
                                     <>
                                         <div className='flex flex-col gap-2 mt-2'>
-                                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4">Step 3: Fill Service Media</label>
-                                            <div className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
-                                                <p className="text-[10px] font-bold text-brand-secondary uppercase">Media Attachments (Recommended)</p>
+                                            <label
+                                                className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4">Step
+                                                3: Fill Service Media</label>
+                                            <div
+                                                className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
+                                                <p className="text-[10px] font-bold text-brand-secondary uppercase">Media
+                                                    Attachments (Recommended)</p>
                                                 <input
                                                     placeholder="YouTube URL (Optional)"
                                                     className="w-full p-3 border rounded-lg bg-white text-brand-primary"
                                                     value={formData.youtube_url}
-                                                    onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        youtube_url: e.target.value
+                                                    })}
                                                 />
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                                                     {/* Banner Upload */}
                                                     <div className="space-y-3">
-                                                        <label className="text-[10px] font-bold uppercase text-blue-950">Sermon Banner</label>
+                                                        <label
+                                                            className="text-[10px] font-bold uppercase text-blue-950">Sermon
+                                                            Banner</label>
                                                         {bannerUploaded && formData.banner_url ? (
-                                                            <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
-                                                                <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative">
-                                                                    <img src={formData.banner_url} alt="Sermon Banner" className="w-full h-full object-cover" />
+                                                            <div
+                                                                className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
+                                                                <div
+                                                                    className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative">
+                                                                    <img src={formData.banner_url} alt="Sermon Banner"
+                                                                         className="w-full h-full object-cover"/>
                                                                 </div>
                                                                 <div className='flex justify-between items-center px-1'>
-                                                                    <span className="text-[9px] font-bold text-green-600 uppercase">Image Uploaded Successfully</span>
+                                                                    <span
+                                                                        className="text-[9px] font-bold text-green-600 uppercase">Image Uploaded Successfully</span>
                                                                     <div className="flex gap-3">
-                                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
-                                                                        <button type="button" onClick={() => triggerMediaAction('banner', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                                                        <button type="button"
+                                                                                onClick={() => triggerMediaAction('banner', 'change')}
+                                                                                className="text-[10px] underline font-bold text-blue-600">Change
+                                                                        </button>
+                                                                        <button type="button"
+                                                                                onClick={() => triggerMediaAction('banner', 'delete')}
+                                                                                className="text-[10px] underline font-bold text-red-500">Remove
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -445,13 +479,13 @@ export default function NewSermonPage() {
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                                 }}
                                                                 content={{
-                                                                    button({ ready }) {
+                                                                    button({ready}) {
                                                                         if (ready) return "Select Banner Image";
                                                                         return "Loading...";
                                                                     },
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
-                                                                    setFormData({ ...formData, banner_url: res[0].url });
+                                                                    setFormData({...formData, banner_url: res[0].url});
                                                                     setBannerUploaded(true);
                                                                     toast.success("Banner image uploaded successfully");
                                                                 }}
@@ -465,11 +499,15 @@ export default function NewSermonPage() {
 
                                                     {/* Video Clip Upload */}
                                                     <div className="space-y-3">
-                                                        <label className="text-[10px] font-bold uppercase text-blue-950">Video Clip</label>
+                                                        <label
+                                                            className="text-[10px] font-bold uppercase text-blue-950">Video
+                                                            Clip</label>
 
                                                         {clipUploaded && formData.clip_url ? (
-                                                            <div className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
-                                                                <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative group/video cursor-pointer">
+                                                            <div
+                                                                className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
+                                                                <div
+                                                                    className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative group/video cursor-pointer">
                                                                     <video
                                                                         src={formData.clip_url}
                                                                         className="w-full h-full object-cover"
@@ -487,15 +525,25 @@ export default function NewSermonPage() {
                                                                             e.currentTarget.currentTime = 0;
                                                                         }}
                                                                     />
-                                                                    <div className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
-                                                                        <div className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm"><Film size={16} /></div>
+                                                                    <div
+                                                                        className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
+                                                                        <div
+                                                                            className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm">
+                                                                            <Film size={16}/></div>
                                                                     </div>
                                                                 </div>
                                                                 <div className='flex justify-between items-center px-1'>
-                                                                    <span className="text-[9px] font-bold text-green-600 uppercase">Video Uploaded Successfully</span>
+                                                                    <span
+                                                                        className="text-[9px] font-bold text-green-600 uppercase">Video Uploaded Successfully</span>
                                                                     <div className="flex gap-3">
-                                                                        <button type="button" onClick={() => triggerMediaAction('clip', 'change')} className="text-[10px] underline font-bold text-blue-600">Change</button>
-                                                                        <button type="button" onClick={() => triggerMediaAction('clip', 'delete')} className="text-[10px] underline font-bold text-red-500">Remove</button>
+                                                                        <button type="button"
+                                                                                onClick={() => triggerMediaAction('clip', 'change')}
+                                                                                className="text-[10px] underline font-bold text-blue-600">Change
+                                                                        </button>
+                                                                        <button type="button"
+                                                                                onClick={() => triggerMediaAction('clip', 'delete')}
+                                                                                className="text-[10px] underline font-bold text-red-500">Remove
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -507,7 +555,7 @@ export default function NewSermonPage() {
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
-                                                                    setFormData({ ...formData, clip_url: res[0].url });
+                                                                    setFormData({...formData, clip_url: res[0].url});
                                                                     setClipUploaded(true);
                                                                     toast.success("Video clip uploaded successfully");
                                                                 }}
@@ -524,36 +572,81 @@ export default function NewSermonPage() {
 
                                         {/* NEW: Cross-Platform Links */}
                                         <div className='flex flex-col gap-2 mt-2'>
-                                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 4: Fill Service Links</label>
-                                            <div className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
+                                            <label
+                                                className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                                4: Fill Service Links</label>
+                                            <div
+                                                className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
                                                 <p className="text-[10px] font-bold text-brand-secondary uppercase flex items-center gap-2">
                                                     <LinkIcon size={14}/> External Platform Links (Optional)
                                                 </p>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="relative">
-                                                        <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">IG URL:</span>
-                                                        <input type="url" placeholder="https://instagram.com/..." className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_ig || ""} onChange={(e) => setFormData({...formData, link_ig: e.target.value})} />
+                                                        <span
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">IG URL:</span>
+                                                        <input type="url" placeholder="https://instagram.com/..."
+                                                               className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm"
+                                                               value={formData.link_ig || ""}
+                                                               onChange={(e) => setFormData({
+                                                                   ...formData,
+                                                                   link_ig: e.target.value
+                                                               })}/>
                                                     </div>
                                                     <div className="relative">
-                                                        <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">X URL:</span>
-                                                        <input type="url" placeholder="https://x.com/..." className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_twitter || ""} onChange={(e) => setFormData({...formData, link_twitter: e.target.value})} />
+                                                        <span
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">X URL:</span>
+                                                        <input type="url" placeholder="https://x.com/..."
+                                                               className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm"
+                                                               value={formData.link_twitter || ""}
+                                                               onChange={(e) => setFormData({
+                                                                   ...formData,
+                                                                   link_twitter: e.target.value
+                                                               })}/>
                                                     </div>
                                                     <div className="relative">
-                                                        <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">FB URL:</span>
-                                                        <input type="url" placeholder="https://facebook.com/..." className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_facebook || ""} onChange={(e) => setFormData({...formData, link_facebook: e.target.value})} />
+                                                        <span
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-16">FB URL:</span>
+                                                        <input type="url" placeholder="https://facebook.com/..."
+                                                               className="w-full p-3 pl-20 border rounded-lg bg-white text-brand-primary text-sm"
+                                                               value={formData.link_facebook || ""}
+                                                               onChange={(e) => setFormData({
+                                                                   ...formData,
+                                                                   link_facebook: e.target.value
+                                                               })}/>
                                                     </div>
                                                     <div className="relative">
-                                                        <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">Spotify:</span>
-                                                        <input type="url" placeholder="https://open.spotify.com/..." className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_spotify || ""} onChange={(e) => setFormData({...formData, link_spotify: e.target.value})} />
+                                                        <span
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">Spotify:</span>
+                                                        <input type="url" placeholder="https://open.spotify.com/..."
+                                                               className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm"
+                                                               value={formData.link_spotify || ""}
+                                                               onChange={(e) => setFormData({
+                                                                   ...formData,
+                                                                   link_spotify: e.target.value
+                                                               })}/>
                                                     </div>
                                                     <div className="relative">
-                                                        <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">Apple:</span>
-                                                        <input type="url" placeholder="https://podcasts.apple.com/..." className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_apple || ""} onChange={(e) => setFormData({...formData, link_apple: e.target.value})} />
+                                                        <span
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">Apple:</span>
+                                                        <input type="url" placeholder="https://podcasts.apple.com/..."
+                                                               className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm"
+                                                               value={formData.link_apple || ""}
+                                                               onChange={(e) => setFormData({
+                                                                   ...formData,
+                                                                   link_apple: e.target.value
+                                                               })}/>
                                                     </div>
                                                     <div className="relative">
-                                                        <span className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">YT Music:</span>
-                                                        <input type="url" placeholder="https://music.youtube.com/..." className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm" value={formData.link_ytmusic || ""} onChange={(e) => setFormData({...formData, link_ytmusic: e.target.value})} />
+                                                        <span
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">YT Music:</span>
+                                                        <input type="url" placeholder="https://music.youtube.com/..."
+                                                               className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm"
+                                                               value={formData.link_ytmusic || ""}
+                                                               onChange={(e) => setFormData({
+                                                                   ...formData,
+                                                                   link_ytmusic: e.target.value
+                                                               })}/>
                                                     </div>
                                                 </div>
                                             </div>
@@ -562,7 +655,8 @@ export default function NewSermonPage() {
                                 )}
 
                                 <div className='flex flex-col w-full'>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 5: Sermon Notes</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                        5: Sermon Notes</label>
                                     {/*<div className="bg-purple-50 border border-purple-100 rounded-xl p-3 mb-3 text-[10px] md:text-xs text-purple-800">*/}
                                     {/*    <span className="font-bold">💡 Pro Tips:</span>*/}
                                     {/*    <ul className="list-disc pl-4 mt-1 space-y-0.5 opacity-90">*/}
@@ -570,7 +664,8 @@ export default function NewSermonPage() {
                                     {/*        <li>When pasting from Word or WhatsApp, use <b>Ctrl + Shift + V</b> (or Cmd + Shift + V on Mac) to paste clean text without hidden formatting.</li>*/}
                                     {/*    </ul>*/}
                                     {/*</div>*/}
-                                    <div className="bg-white rounded-lg border border-gray-300 w-full flex flex-col overflow-hidden shadow-sm">
+                                    <div
+                                        className="bg-white rounded-lg border border-gray-300 w-full flex flex-col overflow-hidden shadow-sm">
                                         <ReactQuill
                                             theme="snow"
                                             value={formData.content}
@@ -583,7 +678,8 @@ export default function NewSermonPage() {
 
                                 {/* NEW: PRAYER POINTS SECTION */}
                                 <div className='flex flex-col w-full pt-4'>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2">Step 6: Prayer Points (Optional)</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2">Step
+                                        6: Prayer Points (Optional)</label>
                                     <div className="bg-blue-50 rounded-2xl border border-blue-200 p-2 shadow-inner">
                                         <textarea
                                             placeholder="1. Father, thank you for the gift of life...&#10;2. Lord, empower me to overcome every obstacle..."
@@ -592,11 +688,14 @@ export default function NewSermonPage() {
                                             className="w-full p-4 bg-transparent text-blue-900 border-none h-48 focus:ring-0 outline-none resize-y placeholder-blue-300/80 font-medium leading-loose"
                                         />
                                     </div>
-                                    <p className="text-[10px] text-gray-400 mt-2 italic">Format them exactly how you want them to appear (e.g., number them manually and press Enter for a new line).</p>
+                                    <p className="text-[10px] text-gray-400 mt-2 italic">Format them exactly how you
+                                        want them to appear (e.g., number them manually and press Enter for a new
+                                        line).</p>
                                 </div>
 
                                 <div className='flex flex-col pt-6'>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 6: Publish Sermon or Save As Draft</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                        6: Publish Sermon or Save As Draft</label>
                                     <div className="flex flex-col md:flex-row gap-4 pt-1">
                                         <button
                                             type="button"

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, createContext, useContext } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter, usePathname } from "next/navigation";
-import { Loader2, ShieldAlert } from "lucide-react";
+import React, {createContext, useContext, useEffect, useState} from "react";
+import {supabase} from "@/lib/supabase";
+import {usePathname, useRouter} from "next/navigation";
+import {Loader2, ShieldAlert} from "lucide-react";
 
 // 1. Create a Global Context so any page can ask "What is my role?" instantly
 type AuthContextType = {
@@ -12,7 +12,7 @@ type AuthContextType = {
 };
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// 2. Custom Hook for easy access in your pages
+// 2. Custom Hook for easy access to your pages
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) throw new Error("useAuth must be used within an AdminGuard");
@@ -20,7 +20,7 @@ export const useAuth = () => {
 };
 
 // 3. The Main Guard Component
-export default function AdminGuard({ children }: { children: React.ReactNode }) {
+export default function AdminGuard({children}: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname(); // Gets the current URL (e.g., "/events/new")
 
@@ -35,21 +35,25 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
             await new Promise(resolve => setTimeout(resolve, 100));
 
             try {
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                const {data: {session}, error: sessionError} = await supabase.auth.getSession();
 
                 if (sessionError || !session) {
                     router.replace("/login");
                     return;
                 }
 
-                // Fetch the user's role from the profiles table
-                const { data: profile, error: profileError } = await supabase
+                // Fetch the user's role from the profile table
+                const {data: profile, error: profileError} = await supabase
                     .from('profiles')
                     .select('role')
                     .eq('id', session.user.id)
                     .single();
 
-                if (profileError || !profile) throw new Error("Profile not found");
+                if (profileError || !profile) {
+                    console.error("Auth Guard failed: Profile not found", profileError?.message);
+                    router.replace("/login");
+                    return;
+                }
 
                 const userRole = profile.role;
 
@@ -60,11 +64,11 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
                         const isForbiddenRoute =
                             pathname.includes('/new') ||
                             pathname.includes('/edit') ||
-                            pathname.includes('/admin/profiles'); // Block super-admin area
+                            pathname.includes('/admin/profiles'); // Block the super-admin area
 
                         if (isForbiddenRoute) {
                             setIsAuthorized(false); // Trigger the "Access Denied" screen
-                            setTimeout(() => router.push("/events"), 2500); // Send them back to dashboard
+                            setTimeout(() => router.push("/events"), 2500); // Send them back to the dashboard
                             return;
                         }
                     }
@@ -77,7 +81,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
                     }
 
                     // If they pass all checks, let them in!
-                    setAuthData({ role: userRole, user: session.user });
+                    setAuthData({role: userRole, user: session.user});
                     setIsAuthorized(true);
                 }
             } catch (error) {
@@ -86,16 +90,18 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
             }
         };
 
-        verifyAccess();
+        verifyAccess().catch(console.error);
 
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [pathname, router]); // Re-run the bouncer check if the URL changes
 
     // STATE 1: Still checking the database
     if (isAuthorized === null) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-brand-surface gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
+                <Loader2 className="w-10 h-10 animate-spin text-brand-primary"/>
                 <p className="text-sm font-bold text-brand-secondary animate-pulse uppercase tracking-widest">
                     Verifying Clearance...
                 </p>
@@ -104,11 +110,12 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     }
 
     // STATE 2: Access Denied (They tried to sneak into a restricted URL)
-    if (isAuthorized === false) {
+    if (!isAuthorized) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-brand-surface gap-4 text-center px-4">
+            <div
+                className="flex flex-col items-center justify-center min-h-screen bg-brand-surface gap-4 text-center px-4">
                 <div className="h-20 w-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-2">
-                    <ShieldAlert size={40} />
+                    <ShieldAlert size={40}/>
                 </div>
                 <h2 className="text-3xl font-serif font-bold text-brand-primary">Access Denied</h2>
                 <p className="text-sm text-gray-500 max-w-md">

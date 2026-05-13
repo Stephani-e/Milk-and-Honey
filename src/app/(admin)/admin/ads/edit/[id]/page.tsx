@@ -1,25 +1,25 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter, useParams } from "next/navigation";
+import React, {useEffect, useState} from "react";
+import {supabase} from "@/lib/supabase";
+import {useParams, useRouter} from "next/navigation";
 import Link from "next/link";
-import { UploadButton } from "@/utils/uploadthing";
-import { toast } from "sonner";
+import {UploadButton} from "@/utils/uploadthing";
+import {toast} from "sonner";
 import {
     ArrowLeft,
-    Megaphone,
-    Target,
-    Image as ImageIcon,
     CalendarClock,
+    CheckCircle,
+    Image as ImageIcon,
     Link as LinkIcon,
-    CheckCircle
+    Megaphone,
+    Target
 } from "lucide-react";
-import { useAuth } from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/Admin Guard";
 
 export default function EditAdPage() {
     const router = useRouter();
-    const { id } = useParams();
-    const { role } = useAuth();
+    const {id} = useParams();
+    const {role} = useAuth();
 
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
@@ -46,7 +46,7 @@ export default function EditAdPage() {
 
     useEffect(() => {
         async function loadAdData() {
-            const { data, error } = await supabase
+            const {data, error} = await supabase
                 .from("advertisements")
                 .select("*")
                 .eq("id", id)
@@ -79,10 +79,12 @@ export default function EditAdPage() {
             setFetching(false);
         }
 
-        if (id) loadAdData();
+        if (id) {
+            loadAdData().catch(console.error);
+        }
     }, [id, router]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!mediaUrl) {
@@ -111,7 +113,7 @@ export default function EditAdPage() {
             fallback_image_url: mediaType === 'video' ? fallbackImageUrl : null,
         };
 
-        const { error } = await supabase
+        const {error} = await supabase
             .from("advertisements")
             .update(payload)
             .eq("id", id);
@@ -129,19 +131,21 @@ export default function EditAdPage() {
     if (role === 'viewer') return null;
 
     if (fetching) {
-        return <div className="p-20 text-center font-bold text-brand-primary min-h-screen bg-brand-surface">Loading Campaign Data...</div>;
+        return <div className="p-20 text-center font-bold text-brand-primary min-h-screen bg-brand-surface">Loading
+            Campaign Data...</div>;
     }
 
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-4xl mx-auto">
-                <Link href="/admin/ads" className="text-sm font-bold text-brand-secondary mb-6 flex items-center gap-2 hover:underline w-fit">
-                    <ArrowLeft size={16} /> Back to Campaigns
+                <Link href="/admin/ads"
+                      className="text-sm font-bold text-brand-secondary mb-6 flex items-center gap-2 hover:underline w-fit">
+                    <ArrowLeft size={16}/> Back to Campaigns
                 </Link>
 
                 <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-brand-accent">
                     <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100">
-                        <Megaphone className="text-pink-600" size={24} />
+                        <Megaphone className="text-pink-600" size={24}/>
                         <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-primary">
                             Edit Campaign
                         </h1>
@@ -156,12 +160,16 @@ export default function EditAdPage() {
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Campaign Title *</label>
-                                    <input required value={title} onChange={e => setTitle(e.target.value)} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none" />
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Campaign
+                                        Title *</label>
+                                    <input required value={title} onChange={e => setTitle(e.target.value)}
+                                           className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none"/>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Advertisement Type *</label>
-                                    <select required value={adType} onChange={e => setAdType(e.target.value)} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Advertisement
+                                        Type *</label>
+                                    <select required value={adType} onChange={e => setAdType(e.target.value)}
+                                            className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none">
                                         <option value="church_event">Internal Church Event</option>
                                         {role === 'super-admin' && (
                                             <option value="external_business">External Business / Sponsor</option>
@@ -170,25 +178,34 @@ export default function EditAdPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Short Description</label>
-                                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
+                                <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Short
+                                    Description</label>
+                                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
+                                          className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"/>
                             </div>
                         </div>
 
                         {/* 2. CALL TO ACTION */}
                         <div className='flex flex-col gap-4'>
-                            <label className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                            <label
+                                className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <LinkIcon size={16}/> Step 2: Edit/Change Call to Action (Link To AD)
                             </label>
                             <div className="space-y-6 p-6 bg-pink-50/50 border border-pink-100 rounded-3xl">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Target URL</label>
-                                        <input type="url" value={targetLink} onChange={e => setTargetLink(e.target.value)} placeholder="https://..." className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Target
+                                            URL</label>
+                                        <input type="url" value={targetLink}
+                                               onChange={e => setTargetLink(e.target.value)} placeholder="https://..."
+                                               className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"/>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Button Text</label>
-                                        <input value={buttonText} onChange={e => setButtonText(e.target.value)} placeholder="e.g. Register Now" className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none" />
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Button
+                                            Text</label>
+                                        <input value={buttonText} onChange={e => setButtonText(e.target.value)}
+                                               placeholder="e.g. Register Now"
+                                               className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none"/>
                                     </div>
                                 </div>
                             </div>
@@ -196,23 +213,39 @@ export default function EditAdPage() {
 
                         {/* 3. MEDIA UPLOAD */}
                         <div className='flex flex-col gap-4'>
-                            <label className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                            <label
+                                className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <ImageIcon size={16}/> Step 3: Edit/Change Campaign Creative (Either a Picture or Video)
                             </label>
 
                             <div className="space-y-6">
                                 <div className="flex gap-4 mb-4">
-                                    <button type="button" onClick={() => { setMediaType('image'); setMediaUrl(""); }} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'image' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Image Ad</button>
-                                    <button type="button" onClick={() => { setMediaType('video'); setMediaUrl(""); }} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'video' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Video Ad</button>
+                                    <button type="button" onClick={() => {
+                                        setMediaType('image');
+                                        setMediaUrl("");
+                                    }}
+                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'image' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Image
+                                        Ad
+                                    </button>
+                                    <button type="button" onClick={() => {
+                                        setMediaType('video');
+                                        setMediaUrl("");
+                                    }}
+                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'video' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Video
+                                        Ad
+                                    </button>
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-6 items-start">
-                                    <div className="w-full sm:w-64 aspect-video bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
+                                    <div
+                                        className="w-full sm:w-64 aspect-video bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
                                         {mediaUrl ? (
                                             mediaType === 'image' ? (
-                                                <img src={mediaUrl} alt="Ad Creative" className="w-full h-full object-cover" />
+                                                <img src={mediaUrl} alt="Ad Creative"
+                                                     className="w-full h-full object-cover"/>
                                             ) : (
-                                                <video key={mediaUrl} src={mediaUrl} className="w-full h-full object-cover" autoPlay muted loop />
+                                                <video key={mediaUrl} src={mediaUrl}
+                                                       className="w-full h-full object-cover" autoPlay muted loop/>
                                             )
                                         ) : (
                                             <div className="text-gray-300 flex flex-col items-center">
@@ -222,42 +255,65 @@ export default function EditAdPage() {
                                         )}
                                     </div>
                                     <div className="flex-1 w-full space-y-4">
-                                        <p className="text-sm text-gray-500">Upload the graphic or short video for this campaign.</p>
+                                        <p className="text-sm text-gray-500">Upload the graphic or short video for this
+                                            campaign.</p>
                                         {!mediaUrl ? (
                                             <UploadButton
                                                 endpoint={mediaType === 'image' ? "imageUploader" : "videoUploader"}
-                                                appearance={{ button: "bg-pink-600 text-white text-xs px-6 py-4 rounded-xl after:bg-pink-700 w-full sm:w-auto" }}
-                                                onClientUploadComplete={(res) => { setMediaUrl(res[0].url); toast.success("Creative uploaded!"); }}
-                                                onUploadError={(error) => { toast.error(`Upload Failed: ${error.message}`); }}
+                                                appearance={{button: "bg-pink-600 text-white text-xs px-6 py-4 rounded-xl after:bg-pink-700 w-full sm:w-auto"}}
+                                                onClientUploadComplete={(res) => {
+                                                    setMediaUrl(res[0].url);
+                                                    toast.success("Creative uploaded!");
+                                                }}
+                                                onUploadError={(error) => {
+                                                    toast.error(`Upload Failed: ${error.message}`);
+                                                }}
                                             />
                                         ) : (
-                                            <button type="button" onClick={() => setMediaUrl("")} className="bg-red-50 text-red-600 px-6 py-3 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors">Remove Creative</button>
+                                            <button type="button" onClick={() => setMediaUrl("")}
+                                                    className="bg-red-50 text-red-600 px-6 py-3 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors">Remove
+                                                Creative</button>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* OPTIONAL FALLBACK IMAGE (Only shows if Video is selected) */}
                                 {mediaType === 'video' && (
-                                    <div className="flex flex-col sm:flex-row gap-4 p-4 border border-pink-100 bg-pink-50/30 rounded-2xl animate-in fade-in">
-                                        <div className="w-full sm:w-32 aspect-video bg-white border border-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    <div
+                                        className="flex flex-col sm:flex-row gap-4 p-4 border border-pink-100 bg-pink-50/30 rounded-2xl animate-in fade-in">
+                                        <div
+                                            className="w-full sm:w-32 aspect-video bg-white border border-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
                                             {fallbackImageUrl ? (
-                                                <img src={fallbackImageUrl} alt="Fallback" className="w-full h-full object-cover" />
+                                                <img src={fallbackImageUrl} alt="Fallback"
+                                                     className="w-full h-full object-cover"/>
                                             ) : (
-                                                <div className="text-gray-300 flex flex-col items-center"><ImageIcon size={20} className="mb-1"/><span className="text-[8px] font-bold uppercase text-center leading-tight">Auto<br/>Thumbnail</span></div>
+                                                <div className="text-gray-300 flex flex-col items-center"><ImageIcon
+                                                    size={20} className="mb-1"/><span
+                                                    className="text-[8px] font-bold uppercase text-center leading-tight">Auto<br/>Thumbnail</span>
+                                                </div>
                                             )}
                                         </div>
                                         <div className="flex-1 space-y-2">
-                                            <p className="text-xs text-gray-600 font-bold">Fallback Poster (Optional)</p>
-                                            <p className="text-[10px] text-gray-500 leading-relaxed">If left blank, the browser will automatically use the first frame of the video.</p>
+                                            <p className="text-xs text-gray-600 font-bold">Fallback Poster
+                                                (Optional)</p>
+                                            <p className="text-[10px] text-gray-500 leading-relaxed">If left blank, the
+                                                browser will automatically use the first frame of the video.</p>
                                             {!fallbackImageUrl ? (
                                                 <UploadButton
                                                     endpoint="imageUploader"
-                                                    appearance={{ button: "bg-slate-800 text-white text-[10px] px-4 py-2 rounded-lg w-full sm:w-auto" }}
-                                                    onClientUploadComplete={(res) => { setFallbackImageUrl(res[0].url); toast.success("Fallback image uploaded!"); }}
-                                                    onUploadError={(error) => { toast.error(`Upload Failed: ${error.message}`); }}
+                                                    appearance={{button: "bg-slate-800 text-white text-[10px] px-4 py-2 rounded-lg w-full sm:w-auto"}}
+                                                    onClientUploadComplete={(res) => {
+                                                        setFallbackImageUrl(res[0].url);
+                                                        toast.success("Fallback image uploaded!");
+                                                    }}
+                                                    onUploadError={(error) => {
+                                                        toast.error(`Upload Failed: ${error.message}`);
+                                                    }}
                                                 />
                                             ) : (
-                                                <button type="button" onClick={() => setFallbackImageUrl("")} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-red-100 transition-colors w-full sm:w-auto">Remove Poster</button>
+                                                <button type="button" onClick={() => setFallbackImageUrl("")}
+                                                        className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-red-100 transition-colors w-full sm:w-auto">Remove
+                                                    Poster</button>
                                             )}
                                         </div>
                                     </div>
@@ -267,7 +323,8 @@ export default function EditAdPage() {
 
                         {/* 4. PLACEMENT, EXPIRY & STATUS */}
                         <div className='flex flex-col gap-4'>
-                            <label className="text-[9px] md:text-xs  font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                            <label
+                                className="text-[9px] md:text-xs  font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <CalendarClock size={16}/> Step 4: Edit/Change Delivery Rules
                             </label>
 
@@ -278,28 +335,38 @@ export default function EditAdPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Campaign Status</label>
-                                        <select value={status} onChange={e => setStatus(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none font-bold text-brand-primary">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Campaign
+                                            Status</label>
+                                        <select value={status} onChange={e => setStatus(e.target.value)}
+                                                className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none font-bold text-brand-primary">
                                             <option value="active">🟢 Active (Live)</option>
                                             <option value="inactive">🟠 Paused</option>
                                             <option value="archived">⚫ Archived</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Site Placement</label>
-                                        <select required value={placement} onChange={e => setPlacement(e.target.value)} className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none font-bold text-brand-primary">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Site
+                                            Placement</label>
+                                        <select required value={placement} onChange={e => setPlacement(e.target.value)}
+                                                className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-pink-500 outline-none font-bold text-brand-primary">
                                             <option value="" disabled>Pick a Display Position</option>
                                             <option value="global_top">Global Top Banner</option>
                                             <option value="global_sidebar">Global Sidebar</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire Date</label>
-                                        <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="w-full p-4 border rounded-xl bg-white text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none" />
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire
+                                            Date</label>
+                                        <input type="date" value={expiryDate}
+                                               onChange={e => setExpiryDate(e.target.value)}
+                                               className="w-full p-4 border rounded-xl bg-white text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"/>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire Time</label>
-                                        <input type="time" disabled={!expiryDate} value={expiryTime} onChange={e => setExpiryTime(e.target.value)} className={`w-full p-4 border rounded-xl outline-none ${!expiryDate ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white text-brand-primary focus:ring-2 focus:ring-pink-500'}`} />
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Auto-Expire
+                                            Time</label>
+                                        <input type="time" disabled={!expiryDate} value={expiryTime}
+                                               onChange={e => setExpiryTime(e.target.value)}
+                                               className={`w-full p-4 border rounded-xl outline-none ${!expiryDate ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white text-brand-primary focus:ring-2 focus:ring-pink-500'}`}/>
                                     </div>
                                 </div>
                             </div>
@@ -307,7 +374,8 @@ export default function EditAdPage() {
 
                         {/* SUBMIT BUTTON */}
                         <div className='flex flex-col gap-4 pt-8 border-t border-gray-100 '>
-                            <label className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                            <label
+                                className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <CheckCircle size={16}/> Step 5. Final Step: Review and Save
                             </label>
                             <div className="flex justify-end">

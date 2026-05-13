@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import {
-    ArrowRight, Heart, Users, HandHeart, Calendar,
-    Megaphone, Camera, ChevronUp, Briefcase
+    ArrowRight, Heart, Users, HandHeart, Camera, Briefcase
 } from "lucide-react";
 import LatestSermon from "@/components/Home/LatestSermon";
 import LatestGallery from "@/components/Home/LatestGallery";
@@ -11,15 +10,6 @@ import NextEvent from "@/components/Home/NextEvent";
 import SidebarAd from "@/components/Home/SidebarAd";
 
 export default function HomePage() {
-    const [showTopBtn, setShowTopBtn] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => setShowTopBtn(window.scrollY > 400);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
     return (
         <div className="flex flex-col bg-white">
@@ -168,12 +158,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-
-            {/* SCROLL TO TOP */}
-            <div className={`fixed bottom-8 left-4 md:left-8 z-40 flex flex-col items-center gap-2 transition-all duration-300 transform ${showTopBtn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}>
-                <button onClick={scrollToTop} className="p-2 md:p-2 bg-brand-primary text-white rounded-full shadow-2xl hover:bg-amber-600 hover:-translate-y-1 transition-all flex items-center justify-center"><ChevronUp size={20} /></button>
-                <span className="hidden md:block text-[9px] font-black uppercase tracking-widest text-brand-primary bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow-sm border border-brand-accent">Back to Top</span>
-            </div>
         </div>
     );
 }
