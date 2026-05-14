@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import {toast} from "sonner";
 import Link from "next/link";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 type ViewMode = 'personnel' | 'revoked';
 
@@ -244,6 +245,10 @@ export default function ProfilesManagement() {
         setRestoreTarget(null);
     };
 
+    if (loading && profiles.length === 0) {
+        return <AdminSkeletonLoader variant="personnel-management"/>;
+    }
+
     return (
         <div className="p-4 md:p-12 max-w-6xl mx-auto min-h-screen pb-24 relative">
 
@@ -372,78 +377,87 @@ export default function ProfilesManagement() {
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-accent">
-                        {filteredProfiles.map((p) => {
-                            const time = p.expires_at ? getTimeRemaining(p.expires_at) : null;
-                            return (
-                                <tr key={p.id} className="hover:bg-brand-surface/10 transition-colors group">
-                                    <td className="px-8 py-6">
-                                        <div
-                                            className="font-bold text-brand-primary text-lg leading-tight group-hover:translate-x-1 transition-transform">{p.full_name}</div>
-                                        <div className="text-xs text-gray-400 font-medium">{p.email}</div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex flex-col gap-1.5">
+                        {loading ? (
+                            // Show local table rows skeleton while searching/filtering
+                            <tr>
+                                <td colSpan={3} className="p-0">
+                                    <AdminSkeletonLoader variant="table-body-only" rows={5}/>
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredProfiles.map((p) => {
+                                const time = p.expires_at ? getTimeRemaining(p.expires_at) : null;
+                                return (
+                                    <tr key={p.id} className="hover:bg-brand-surface/10 transition-colors group">
+                                        <td className="px-8 py-6">
+                                            <div
+                                                className="font-bold text-brand-primary text-lg leading-tight group-hover:translate-x-1 transition-transform">{p.full_name}</div>
+                                            <div className="text-xs text-gray-400 font-medium">{p.email}</div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col gap-1.5">
                                             <span
                                                 className={`w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                                                     roleStyles[p.role] || roleStyles['viewer']
                                                 }`}>
                                                 {p.role}
                                             </span>
-                                            {activeView === 'revoked' && time && (
-                                                <div
-                                                    className="flex items-center gap-1 text-[9px] font-bold text-red-500 uppercase tracking-tighter bg-red-50 w-fit px-2 py-0.5 rounded-md">
-                                                    <Clock size={10}/> Auto-Delete in {time.days}d {time.hours}h
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {activeView === 'personnel' ? (
-                                                <>
+                                                {activeView === 'revoked' && time && (
+                                                    <div
+                                                        className="flex items-center gap-1 text-[9px] font-bold text-red-500 uppercase tracking-tighter bg-red-50 w-fit px-2 py-0.5 rounded-md">
+                                                        <Clock size={10}/> Auto-Delete in {time.days}d {time.hours}h
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {activeView === 'personnel' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handlePromote(p)}
+                                                            disabled={p.role === 'super-admin'}
+                                                            className="p-2.5 text-emerald-600 hover:bg-emerald-50 rounded-xl disabled:opacity-10 transition-all"
+                                                        >
+                                                            <ArrowUpCircle size={24}/>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDemote(p)}
+                                                            className="p-2.5 text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                                        >
+                                                            <ArrowDownCircle size={24}/>
+                                                        </button>
+                                                        <div className="w-px h-6 bg-gray-100 mx-1 self-center"/>
+                                                        <button
+                                                            onClick={() => setEditTarget({
+                                                                id: p.id,
+                                                                full_name: p.full_name,
+                                                                email: p.email,
+                                                                password: ''
+                                                            })}
+                                                            className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                            title="Edit Security Credentials"
+                                                        >
+                                                            <KeyRound size={20}/>
+                                                        </button>
+                                                        <button onClick={() => setRevokeTarget(p)}
+                                                                className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                                            <Trash2 size={20}/></button>
+                                                    </>
+                                                ) : (
                                                     <button
-                                                        onClick={() => handlePromote(p)}
-                                                        disabled={p.role === 'super-admin'}
-                                                        className="p-2.5 text-emerald-600 hover:bg-emerald-50 rounded-xl disabled:opacity-10 transition-all"
+                                                        onClick={() => setRestoreTarget(p)}
+                                                        className="px-5 py-2.5 bg-brand-surface text-brand-primary rounded-xl text-[10px] font-black uppercase tracking-widest border border-brand-accent hover:bg-brand-primary hover:text-white transition-all active:scale-95 shadow-sm"
                                                     >
-                                                        <ArrowUpCircle size={24}/>
+                                                        Restore Full Access
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDemote(p)}
-                                                        className="p-2.5 text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
-                                                    >
-                                                        <ArrowDownCircle size={24}/>
-                                                    </button>
-                                                    <div className="w-px h-6 bg-gray-100 mx-1 self-center"/>
-                                                    <button
-                                                        onClick={() => setEditTarget({
-                                                            id: p.id,
-                                                            full_name: p.full_name,
-                                                            email: p.email,
-                                                            password: ''
-                                                        })}
-                                                        className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                        title="Edit Security Credentials"
-                                                    >
-                                                        <KeyRound size={20}/>
-                                                    </button>
-                                                    <button onClick={() => setRevokeTarget(p)}
-                                                            className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
-                                                        <Trash2 size={20}/></button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setRestoreTarget(p)}
-                                                    className="px-5 py-2.5 bg-brand-surface text-brand-primary rounded-xl text-[10px] font-black uppercase tracking-widest border border-brand-accent hover:bg-brand-primary hover:text-white transition-all active:scale-95 shadow-sm"
-                                                >
-                                                    Restore Full Access
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        )}
                         </tbody>
                     </table>
 
@@ -480,80 +494,84 @@ export default function ProfilesManagement() {
 
                 {/* MOBILE LIST */}
                 <div className="md:hidden divide-y divide-brand-accent">
-                    {filteredProfiles.map((p) => {
-                        const time = p.expires_at ? getTimeRemaining(p.expires_at) : null;
-                        const roleStyle = roleStyles[p.role] || roleStyles['viewer'];
+                    {loading ? (
+                        <div className="p-5"><AdminSkeletonLoader variant="list-item" count={3}/></div>
+                    ) : (
+                        filteredProfiles.map((p) => {
+                            const time = p.expires_at ? getTimeRemaining(p.expires_at) : null;
+                            const roleStyle = roleStyles[p.role] || roleStyles['viewer'];
 
-                        return (
-                            <div key={p.id} className="p-5 space-y-5">
-                                <div className="flex justify-between items-start gap-4">
-                                    <div className='min-w-0 flex-1'>
-                                        <div
-                                            className="font-bold text-brand-primary text-lg truncate">{p.full_name}</div>
-                                        <div className="text-xs text-gray-400 truncate font-medium ">{p.email}</div>
-                                    </div>
-                                    <span
-                                        className={`shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${roleStyle}`}>
+                            return (
+                                <div key={p.id} className="p-5 space-y-5">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className='min-w-0 flex-1'>
+                                            <div
+                                                className="font-bold text-brand-primary text-lg truncate">{p.full_name}</div>
+                                            <div className="text-xs text-gray-400 truncate font-medium ">{p.email}</div>
+                                        </div>
+                                        <span
+                                            className={`shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${roleStyle}`}>
                                         {p.role}
                                     </span>
-                                </div>
-
-                                {activeView === 'revoked' && time && (
-                                    <div
-                                        className="flex items-center gap-1 text-[10px] font-bold text-red-500 uppercase tracking-tight bg-red-50 p-3 rounded-xl border border-red-100">
-                                        <Clock size={10}/> Auto-Delete in {time.days}d {time.hours}h
                                     </div>
-                                )}
 
-                                <div className="flex flex-wrap gap-2 pt-2">
-                                    {activeView === 'personnel' ? (
-                                        <>
-                                            <button
-                                                onClick={() => handlePromote(p)}
-                                                disabled={p.role === 'super-admin'}
-                                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 disabled:opacity-20 active:scale-95 transition-all"
-                                            >
-                                                <ArrowUpCircle size={15}/>
-                                            </button>
-                                            <button
-                                                onClick={() => handleDemote(p)}
-                                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-amber-50 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-100 active:scale-95 transition-all"
-                                            >
-                                                <ArrowDownCircle size={15}/>
-                                            </button>
-
-                                            <div className='flex gap-2 w-full'>
-                                                <button
-                                                    onClick={() => setEditTarget({
-                                                        id: p.id,
-                                                        full_name: p.full_name,
-                                                        email: p.email,
-                                                        password: ''
-                                                    })}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 active:scale-95 transition-all"
-                                                >
-                                                    <KeyRound size={15}/>
-                                                </button>
-                                                <button
-                                                    onClick={() => setRevokeTarget(p)}
-                                                    className="px-6 flex items-center justify-center bg-red-50 text-red-500 rounded-xl border border-red-100 active:scale-95 transition-all"
-                                                >
-                                                    <Trash2 size={15}/>
-                                                </button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <button
-                                            onClick={() => setRestoreTarget(p)}
-                                            className="w-full py-4 bg-brand-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <UserCheck size={15}/> Restore Full Access
-                                        </button>
+                                    {activeView === 'revoked' && time && (
+                                        <div
+                                            className="flex items-center gap-1 text-[10px] font-bold text-red-500 uppercase tracking-tight bg-red-50 p-3 rounded-xl border border-red-100">
+                                            <Clock size={10}/> Auto-Delete in {time.days}d {time.hours}h
+                                        </div>
                                     )}
+
+                                    <div className="flex flex-wrap gap-2 pt-2">
+                                        {activeView === 'personnel' ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handlePromote(p)}
+                                                    disabled={p.role === 'super-admin'}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 disabled:opacity-20 active:scale-95 transition-all"
+                                                >
+                                                    <ArrowUpCircle size={15}/>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDemote(p)}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-amber-50 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-100 active:scale-95 transition-all"
+                                                >
+                                                    <ArrowDownCircle size={15}/>
+                                                </button>
+
+                                                <div className='flex gap-2 w-full'>
+                                                    <button
+                                                        onClick={() => setEditTarget({
+                                                            id: p.id,
+                                                            full_name: p.full_name,
+                                                            email: p.email,
+                                                            password: ''
+                                                        })}
+                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-100 active:scale-95 transition-all"
+                                                    >
+                                                        <KeyRound size={15}/>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setRevokeTarget(p)}
+                                                        className="px-6 flex items-center justify-center bg-red-50 text-red-500 rounded-xl border border-red-100 active:scale-95 transition-all"
+                                                    >
+                                                        <Trash2 size={15}/>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => setRestoreTarget(p)}
+                                                className="w-full py-4 bg-brand-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <UserCheck size={15}/> Restore Full Access
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )
-                    })}
+                            )
+                        })
+                    )}
                 </div>
             </div>
 

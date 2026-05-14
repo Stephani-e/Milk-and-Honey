@@ -2,7 +2,7 @@
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import BrandWatermark from "@/components/BrandWatermark";
-import LoadingState from "@/components/Admin/LoadingPage";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -23,7 +23,9 @@ export default function AdminDashboard() {
     const goToAds = () => router.push("/admin/ads")
 
     if (initialLoading) {
-        return <LoadingState variant="full" message="Opening Control Center..."/>;
+        return (
+            <AdminSkeletonLoader variant="module-grid"/>
+        )
     }
 
     return (

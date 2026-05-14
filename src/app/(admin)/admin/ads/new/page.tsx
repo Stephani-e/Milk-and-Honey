@@ -24,6 +24,7 @@ export default function NewAdPage() {
     const {role} = useAuth();
 
     const [loading, setLoading] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
     const [submitType, setSubmitType] = useState<'active' | 'inactive'>('active');
 
     // 1. Core Details
@@ -65,6 +66,8 @@ export default function NewAdPage() {
             } catch (e) {
                 console.error("Failed to parse draft", e);
             }
+
+            setIsInitializing(false);
         }
     }, []);
 
@@ -119,6 +122,14 @@ export default function NewAdPage() {
             router.refresh();
         }
     };
+
+    if (isInitializing) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-4 md:p-12">
+                <AdminSkeletonLoader variant="ads-form"/>
+            </div>
+        );
+    }
 
     if (role === 'viewer') return null;
 

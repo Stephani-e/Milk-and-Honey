@@ -1,9 +1,9 @@
 "use client";
 import React, {useEffect, useState} from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import {supabase} from "@/lib/supabase";
+import {useRouter} from "next/navigation";
 import Image from "next/image";
-import { toast } from "sonner";
+import {toast} from "sonner";
 import LoadingState from "@/components/Admin/LoadingPage";
 
 export default function LoginPage() {
@@ -24,7 +24,7 @@ export default function LoginPage() {
     useEffect(() => {
         const verifyRole = async () => {
             if (email.includes('@')) {
-                const { data, error } = await supabase.rpc('check_is_super_admin', {
+                const {data, error} = await supabase.rpc('check_is_super_admin', {
                     email_input: email.toLowerCase()
                 });
                 if (!error) setIsSuperAdmin(data);
@@ -35,7 +35,7 @@ export default function LoginPage() {
         return () => clearTimeout(timeoutId);
     }, [email]);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log("Attempting login with:", email); // Debug log
         setIsLoggingIn(true);
@@ -82,21 +82,24 @@ export default function LoginPage() {
         }
     };
 
-const handleForgotPassword = async (emailToReset: string) => {
+    const handleForgotPassword = async (emailToReset: string) => {
         if (!emailToReset) return toast.error("Please enter your email first.");
 
         setIsResetting(true); // Start the spinner/loading text
 
         try {
             // Directly call Supabase to generate the OTP and send the email
-            const { error } = await supabase.auth.resetPasswordForEmail(emailToReset);
+            const {error} = await supabase.auth.resetPasswordForEmail(emailToReset);
 
-            if (error) throw error;
+            if (error) {
+                console.error(`error: `)
+                return;
+            }
 
             toast.success("Security code sent to your email!");
 
-             router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
-            
+            router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
+
         } catch (err: any) {
             toast.error(err.message || "Failed to send reset code. Please try again.");
         } finally {
@@ -186,7 +189,9 @@ const handleForgotPassword = async (emailToReset: string) => {
                                             </button>
                                         ) : (
                                             <p className="text-[11px] font-medium text-gray-400">
-                                                Forgot Security Key? <a href={`mailto:${SUPPORT_EMAIL}`} className="text-brand-secondary font-bold">Contact Admin</a>
+                                                Forgot Security Key? <a href={`mailto:${SUPPORT_EMAIL}`}
+                                                                        className="text-brand-secondary font-bold">Contact
+                                                Admin</a>
                                             </p>
                                         )
                                     )}

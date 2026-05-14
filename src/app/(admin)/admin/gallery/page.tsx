@@ -20,6 +20,7 @@ import {
     RotateCcw,
     Trash2
 } from "lucide-react";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const PAGE_SIZE = 10;
 
@@ -47,7 +48,7 @@ export default function GalleryPage() {
     const [modalType, setModalType] = useState<"delete" | "archive" | "restore" | null>(null);
     const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
 
-    // FIX 3: Reset Pagination whenever the tab, search, or sort changes!
+    // Reset Pagination whenever the tab, search, or sort changes!
     useEffect(() => {
         setCurrentPage(1);
     }, [view, search, sortBy]);
@@ -160,6 +161,14 @@ export default function GalleryPage() {
         if (modalType !== "restore") setModalType(null);
     };
 
+    if (loading && entries.length === 0) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-4 sm:p-6 md:p-12">
+                <AdminSkeletonLoader variant="gallery-library"/>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-brand-surface p-4 sm:p-6 md:p-12">
             <div className="max-w-6xl mx-auto">
@@ -218,223 +227,230 @@ export default function GalleryPage() {
                     value: "oldest"
                 }, {label: "Title (A-Z)", value: "alphabetical"}]}/>
 
-                {/* FIX 4: CHANGED TO grid-cols-2 ON MOBILE to make cards significantly smaller */}
+                {/* CHANGED TO grid-cols-2 ON MOBILE to make cards significantly smaller */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5 mt-8">
-                    {entries.map((entry) => (
-                        <div key={entry.id}
-                             className={`bg-white rounded-2xl border border-brand-accent overflow-hidden shadow-sm flex flex-col ${entry.is_archived && view !== "trash" ? "opacity-70 grayscale hover:grayscale-0 transition-all" : ""}`}>
+                    {loading ? (
+                        <AdminSkeletonLoader variant="gallery-library"/>
+                    ) : (
+                        entries.map((entry) => (
+                            <div key={entry.id}
+                                 className={`bg-white rounded-2xl border border-brand-accent overflow-hidden shadow-sm flex flex-col ${entry.is_archived && view !== "trash" ? "opacity-70 grayscale hover:grayscale-0 transition-all" : ""}`}>
 
-                            <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden flex-shrink-0">
-                                {entry.media_urls?.[0] ? (
-                                    entry.media_urls[0].type === 'image' ? (
-                                        <img src={entry.media_urls[0].url}
-                                             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                                             alt={entry.title}/>
+                                <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden flex-shrink-0">
+                                    {entry.media_urls?.[0] ? (
+                                        entry.media_urls[0].type === 'image' ? (
+                                            <img src={entry.media_urls[0].url}
+                                                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                                                 alt={entry.title}/>
+                                        ) : (
+                                            <video src={entry.media_urls[0].url}
+                                                   className="object-cover w-full h-full bg-slate-900 group-hover:scale-105 transition-transform duration-500"
+                                                   muted
+                                                   playsInline
+                                                   onMouseOver={(e) => e.currentTarget.play()}
+                                                   onMouseOut={(e) => {
+                                                       e.currentTarget.pause();
+                                                       e.currentTarget.currentTime = 0;
+                                                   }}
+                                            />
+                                        )
                                     ) : (
-                                        <video src={entry.media_urls[0].url}
-                                               className="object-cover w-full h-full bg-slate-900 group-hover:scale-105 transition-transform duration-500"
-                                               muted
-                                               playsInline
-                                               onMouseOver={(e) => e.currentTarget.play()}
-                                               onMouseOut={(e) => {
-                                                   e.currentTarget.pause();
-                                                   e.currentTarget.currentTime = 0;
-                                               }}
-                                        />
-                                    )
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-gray-300"><ImageIcon
-                                        size={32}/></div>
-                                )}
+                                        <div className="flex items-center justify-center h-full text-gray-300">
+                                            <ImageIcon
+                                                size={32}/></div>
+                                    )}
 
-                                <div className="absolute top-2 left-2 md:top-3 md:left-3 flex gap-2">
+                                    <div className="absolute top-2 left-2 md:top-3 md:left-3 flex gap-2">
                                     <span
                                         className="bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-black text-brand-primary uppercase shadow-sm">
                                         {entry.media_urls?.length || 0} Items
                                     </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* FIX 4: Slimmer internal padding */}
-                            <div className="p-3 md:p-5 flex flex-col flex-grow">
+                                {/* FIX 4: Slimmer internal padding */}
+                                <div className="p-3 md:p-5 flex flex-col flex-grow">
 
-                                <div className="flex flex-wrap gap-1 mb-2">
-                                    {entry.service_category === "Weekly" ? (
-                                        <span
-                                            className="bg-purple-100 text-purple-700 text-[7px] md:text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
+                                    <div className="flex flex-wrap gap-1 mb-2">
+                                        {entry.service_category === "Weekly" ? (
+                                            <span
+                                                className="bg-purple-100 text-purple-700 text-[7px] md:text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
                                             {entry.weekly_type}
                                         </span>
-                                    ) : entry.service_category === "Monthly" ? (
-                                        <span
-                                            className="bg-blue-100 text-blue-700 text-[7px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                                        ) : entry.service_category === "Monthly" ? (
+                                            <span
+                                                className="bg-blue-100 text-blue-700 text-[7px] md:text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
                                             {entry.special_service_name || "Monthly Service"}
                                         </span>
-                                    ) : (
-                                        <span
-                                            className="bg-amber-100 text-amber-700 text-[7px] md:text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
+                                        ) : (
+                                            <span
+                                                className="bg-amber-100 text-amber-700 text-[7px] md:text-[8px] px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">
                                             Special: {entry.special_service_name}
                                         </span>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
 
-                                {/* FIX 4: Scaled down Title & Details text */}
-                                <h3 className="font-serif font-bold text-brand-primary text-xs sm:text-sm md:text-lg mb-1 leading-tight line-clamp-2">{entry.title}</h3>
+                                    {/* FIX 4: Scaled down Title & Details text */}
+                                    <h3 className="font-serif font-bold text-brand-primary text-xs sm:text-sm md:text-lg mb-1 leading-tight line-clamp-2">{entry.title}</h3>
 
-                                <div
-                                    className="text-[8px] md:text-[9px] text-brand-secondary font-bold mb-3 uppercase tracking-tight line-clamp-1">
-                                    {new Date(entry.service_date).toLocaleDateString('en-GB')}
-                                </div>
+                                    <div
+                                        className="text-[8px] md:text-[9px] text-brand-secondary font-bold mb-3 uppercase tracking-tight line-clamp-1">
+                                        {new Date(entry.service_date).toLocaleDateString('en-GB')}
+                                    </div>
 
-                                <div
-                                    className="mt-auto pt-2 md:pt-3 border-t border-gray-50 flex justify-between items-center">
+                                    <div
+                                        className="mt-auto pt-2 md:pt-3 border-t border-gray-50 flex justify-between items-center">
 
-                                    {view === "trash" ? (
-                                        <div
-                                            className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1 py-0.5 rounded text-[7px] font-bold border border-amber-100">
-                                            <Clock size={8}/> <span>{getDaysLeft(entry.deleted_at)}D LEFT</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-1 md:gap-2">
-                                            {entry.media_urls?.some((m: any) => m.type === 'image') && (
-                                                <div className='group flex flex-col items-center gap-0.5'>
-                                                    <ImageIcon size={10} className="text-gray-400"/>
-                                                    <span
-                                                        className="text-[6px] font-bold uppercase text-gray-400">Pic</span>
-                                                </div>
-                                            )}
-                                            {entry.media_urls?.some((m: any) => m.type === 'video') && (
-                                                <div className='group flex flex-col items-center gap-0.5'>
-                                                    <Film size={10} className="text-gray-400"/>
-                                                    <span
-                                                        className="text-[6px] font-bold uppercase text-gray-400">Vid</span>
-                                                </div>
-                                            )}
-                                            {(entry.youtube_url || entry.link_ig || entry.link_twitter || entry.link_facebook || entry.link_spotify || entry.link_apple || entry.link_ytmusic) && (
-                                                <div className='group flex flex-col items-center gap-0.5'>
-                                                    <LinkIcon size={10} className="text-gray-400"/>
-                                                    <span
-                                                        className="text-[6px] font-bold uppercase text-gray-400">Link</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-2 items-center">
-                                        {view === "trash" && (
-                                            <>
-                                                {role !== 'viewer' && (
-                                                    <button onClick={() => {
-                                                        setSelectedEntry(entry);
-                                                        setModalType("restore");
-                                                    }} title="Restore"
-                                                            className="text-emerald-600 group flex flex-col items-center gap-1">
-                                                        <RotateCcw size={12}
-                                                                   className="transition-transform group-hover:rotate-[-45deg]"/>
-                                                    </button>
+                                        {view === "trash" ? (
+                                            <div
+                                                className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1 py-0.5 rounded text-[7px] font-bold border border-amber-100">
+                                                <Clock size={8}/> <span>{getDaysLeft(entry.deleted_at)}D LEFT</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-1 md:gap-2">
+                                                {entry.media_urls?.some((m: any) => m.type === 'image') && (
+                                                    <div className='group flex flex-col items-center gap-0.5'>
+                                                        <ImageIcon size={10} className="text-gray-400"/>
+                                                        <span
+                                                            className="text-[6px] font-bold uppercase text-gray-400">Pic</span>
+                                                    </div>
                                                 )}
-                                                {role === 'super-admin' && (
-                                                    <button onClick={() => {
-                                                        setSelectedEntry(entry);
-                                                        setModalType("delete");
-                                                    }} title="Purge"
-                                                            className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1">
-                                                        <Trash2 size={12}/>
-                                                    </button>
+                                                {entry.media_urls?.some((m: any) => m.type === 'video') && (
+                                                    <div className='group flex flex-col items-center gap-0.5'>
+                                                        <Film size={10} className="text-gray-400"/>
+                                                        <span
+                                                            className="text-[6px] font-bold uppercase text-gray-400">Vid</span>
+                                                    </div>
                                                 )}
-                                            </>
+                                                {(entry.youtube_url || entry.link_ig || entry.link_twitter || entry.link_facebook || entry.link_spotify || entry.link_apple || entry.link_ytmusic) && (
+                                                    <div className='group flex flex-col items-center gap-0.5'>
+                                                        <LinkIcon size={10} className="text-gray-400"/>
+                                                        <span
+                                                            className="text-[6px] font-bold uppercase text-gray-400">Link</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
 
-                                        {view === "archive" && (
-                                            <>
-                                                {role !== 'viewer' && (
-                                                    <>
+                                        <div className="flex gap-2 items-center">
+                                            {view === "trash" && (
+                                                <>
+                                                    {role !== 'viewer' && (
                                                         <button onClick={() => {
                                                             setSelectedEntry(entry);
                                                             setModalType("restore");
                                                         }} title="Restore"
-                                                                className="text-emerald-600 flex flex-col items-center gap-1">
-                                                            <RotateCcw size={12}/></button>
+                                                                className="text-emerald-600 group flex flex-col items-center gap-1">
+                                                            <RotateCcw size={12}
+                                                                       className="transition-transform group-hover:rotate-[-45deg]"/>
+                                                        </button>
+                                                    )}
+                                                    {role === 'super-admin' && (
                                                         <button onClick={() => {
                                                             setSelectedEntry(entry);
                                                             setModalType("delete");
-                                                        }} title="Trash"
-                                                                className="text-red-400 flex flex-col items-center gap-1">
-                                                            <Trash2 size={12}/></button>
-                                                    </>
-                                                )}
-                                            </>
-                                        )}
+                                                        }} title="Purge"
+                                                                className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1">
+                                                            <Trash2 size={12}/>
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
 
-                                        {view === "draft" && (
-                                            <>
-                                                <button onClick={() => handleViewLive(entry.id)} title="Preview"
-                                                        className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-                                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                                        <circle cx="12" cy="12" r="3"/>
-                                                    </svg>
-                                                </button>
+                                            {view === "archive" && (
+                                                <>
+                                                    {role !== 'viewer' && (
+                                                        <>
+                                                            <button onClick={() => {
+                                                                setSelectedEntry(entry);
+                                                                setModalType("restore");
+                                                            }} title="Restore"
+                                                                    className="text-emerald-600 flex flex-col items-center gap-1">
+                                                                <RotateCcw size={12}/></button>
+                                                            <button onClick={() => {
+                                                                setSelectedEntry(entry);
+                                                                setModalType("delete");
+                                                            }} title="Trash"
+                                                                    className="text-red-400 flex flex-col items-center gap-1">
+                                                                <Trash2 size={12}/></button>
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
 
-                                                {role !== 'viewer' && (
-                                                    <>
-                                                        <button onClick={() => handleQuickPublish(entry)}
-                                                                title="Publish"
-                                                                className="text-brand-primary flex flex-col items-center gap-1">
-                                                            <Inbox size={12}/></button>
-                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit"
-                                                              className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1"><FileText
-                                                            size={12}/></Link>
-                                                        <button onClick={() => {
-                                                            setSelectedEntry(entry);
-                                                            setModalType("delete");
-                                                        }} title="Trash"
-                                                                className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
-                                                            <Trash2 size={12}/></button>
-                                                    </>
-                                                )}
-                                            </>
-                                        )}
+                                            {view === "draft" && (
+                                                <>
+                                                    <button onClick={() => handleViewLive(entry.id)} title="Preview"
+                                                            className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                             strokeWidth="2" strokeLinecap="round"
+                                                             strokeLinejoin="round">
+                                                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                            <circle cx="12" cy="12" r="3"/>
+                                                        </svg>
+                                                    </button>
 
-                                        {view === "active" && (
-                                            <>
-                                                <button onClick={() => handleViewLive(entry.id)} title="View Live"
-                                                        className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-                                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                                        <circle cx="12" cy="12" r="3"/>
-                                                    </svg>
-                                                </button>
+                                                    {role !== 'viewer' && (
+                                                        <>
+                                                            <button onClick={() => handleQuickPublish(entry)}
+                                                                    title="Publish"
+                                                                    className="text-brand-primary flex flex-col items-center gap-1">
+                                                                <Inbox size={12}/></button>
+                                                            <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit"
+                                                                  className="text-slate-400 hover:text-brand-primary flex flex-col items-center gap-1"><FileText
+                                                                size={12}/></Link>
+                                                            <button onClick={() => {
+                                                                setSelectedEntry(entry);
+                                                                setModalType("delete");
+                                                            }} title="Trash"
+                                                                    className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
+                                                                <Trash2 size={12}/></button>
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
 
-                                                {role !== 'viewer' && (
-                                                    <>
-                                                        <button onClick={() => {
-                                                            setSelectedEntry(entry);
-                                                            setModalType("archive");
-                                                        }} title="Archive"
-                                                                className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1">
-                                                            <Archive size={12}/></button>
-                                                        <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit"
-                                                              className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1"><FileText
-                                                            size={12}/></Link>
-                                                        <button onClick={() => {
-                                                            setSelectedEntry(entry);
-                                                            setModalType("delete");
-                                                        }} title="Trash"
-                                                                className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
-                                                            <Trash2 size={12}/></button>
-                                                    </>
-                                                )}
-                                            </>
-                                        )}
+                                            {view === "active" && (
+                                                <>
+                                                    <button onClick={() => handleViewLive(entry.id)} title="View Live"
+                                                            className="text-brand-secondary hover:text-brand-primary flex flex-col items-center gap-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                             strokeWidth="2" strokeLinecap="round"
+                                                             strokeLinejoin="round">
+                                                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                                            <circle cx="12" cy="12" r="3"/>
+                                                        </svg>
+                                                    </button>
+
+                                                    {role !== 'viewer' && (
+                                                        <>
+                                                            <button onClick={() => {
+                                                                setSelectedEntry(entry);
+                                                                setModalType("archive");
+                                                            }} title="Archive"
+                                                                    className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1">
+                                                                <Archive size={12}/></button>
+                                                            <Link href={`/admin/gallery/edit/${entry.id}`} title="Edit"
+                                                                  className="text-brand-primary hover:scale-110 transition-transform flex flex-col items-center gap-1"><FileText
+                                                                size={12}/></Link>
+                                                            <button onClick={() => {
+                                                                setSelectedEntry(entry);
+                                                                setModalType("delete");
+                                                            }} title="Trash"
+                                                                    className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
+                                                                <Trash2 size={12}/></button>
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {entries.length === 0 && !loading && (

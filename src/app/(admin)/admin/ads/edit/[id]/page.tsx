@@ -15,6 +15,7 @@ import {
     Target
 } from "lucide-react";
 import {useAuth} from "@/components/Admin/Admin Guard";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 export default function EditAdPage() {
     const router = useRouter();
@@ -131,8 +132,11 @@ export default function EditAdPage() {
     if (role === 'viewer') return null;
 
     if (fetching) {
-        return <div className="p-20 text-center font-bold text-brand-primary min-h-screen bg-brand-surface">Loading
-            Campaign Data...</div>;
+        return (
+            <div className="min-h-screen bg-brand-surface p-4 md:p-12">
+                <AdminSkeletonLoader variant="ads-form"/>
+            </div>
+        );
     }
 
     return (

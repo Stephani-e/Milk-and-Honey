@@ -9,6 +9,7 @@ import ConfirmModal from "@/components/Admin/ConfirmModal";
 import {Film, LinkIcon, Lock} from "lucide-react";
 import "react-quill-new/dist/quill.snow.css";
 import dynamic from "next/dynamic";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false});
 
@@ -172,7 +173,13 @@ export default function EditSermonPage() {
     const todayObj = new Date();
     const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
-    if (fetching) return <div className="p-20 text-center font-bold text-brand-primary">Loading...</div>;
+    if (fetching) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+                <AdminSkeletonLoader variant="sermon-form"/>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">

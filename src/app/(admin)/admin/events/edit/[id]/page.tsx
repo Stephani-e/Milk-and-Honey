@@ -6,6 +6,7 @@ import Link from "next/link";
 import {UploadButton} from "@/utils/uploadthing";
 import {toast} from "sonner";
 import {ArrowLeft, Calendar, ImageIcon, Layers, Lock, MapPin, Plus, RefreshCw, Star, Trash2, Users} from "lucide-react";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 export default function EditEventPage() {
     const router = useRouter();
@@ -36,7 +37,7 @@ export default function EditEventPage() {
     const [startTime, setStartTime] = useState("18:00");
     const [endTime, setEndTime] = useState("20:00");
 
-    // --- NEW: DYNAMIC SUNDAY CONFIGURATION STATE ---
+    // --- DYNAMIC SUNDAY CONFIGURATION STATE ---
     const [sundayFactions, setSundayFactions] = useState({
         second_sunday: "Excellent Men",
         third_sunday: "The Lord's Garnet",
@@ -52,7 +53,6 @@ export default function EditEventPage() {
     });
 
     const [standardSessions, setStandardSessions] = useState<any[]>([]);
-    // ------------------------------------------------
 
     const [singleDate, setSingleDate] = useState("");
     const [multiDays, setMultiDays] = useState<any[]>([]);
@@ -207,9 +207,13 @@ export default function EditEventPage() {
         }
     };
 
-    if (fetching) return <div
-        className="p-20 text-center font-bold text-brand-primary min-h-screen bg-brand-surface">Loading Event
-        Data...</div>;
+    if (fetching) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+                <AdminSkeletonLoader variant="events-form"/>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">

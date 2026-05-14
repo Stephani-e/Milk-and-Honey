@@ -21,6 +21,7 @@ import {
     RotateCcw,
     Trash2,
 } from "lucide-react";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const PAGE_SIZE = 12;
 
@@ -182,6 +183,10 @@ function AdsDashboardContent() {
         setModalType(null);
     };
 
+    if (loading && ads.length === 0) {
+        return <AdminSkeletonLoader variant="ads-dashboard"/>;
+    }
+
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12 font-sans">
             <div className="max-w-6xl mx-auto">
@@ -310,166 +315,172 @@ function AdsDashboardContent() {
 
                 {/* AD GRID */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-                    {ads.map((ad) => (
-                        <div key={ad.id}
-                             className={`bg-white rounded-2xl border border-brand-accent overflow-hidden shadow-sm flex flex-col ${view === "archive" ? "opacity-80 grayscale hover:grayscale-0 transition-all" : ""}`}>
-                            {/* Media Preview Thumbnail */}
-                            <div
-                                className="aspect-video bg-slate-100 relative overflow-hidden flex-shrink-0 border-b border-brand-accent">
-                                {ad.media_type === 'image' ? (
-                                    <img src={ad.media_url}
-                                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                                         alt={ad.title}/>
-                                ) : (
-                                    <video
-                                        src={ad.media_url}
-                                        className="object-cover w-full h-full bg-slate-900 group-hover:scale-105 transition-transform duration-500"
-                                        muted playsInline
-                                        onMouseOver={(e) => e.currentTarget.play()}
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.pause();
-                                            e.currentTarget.currentTime = 0
-                                        }}
-                                    />
-                                )}
+                    {loading ? (
+                        <AdminSkeletonLoader variant="ads-list"/>
+                    ) : (
+                        ads.map((ad) => (
+                            <div key={ad.id}
+                                 className={`bg-white rounded-2xl border border-brand-accent overflow-hidden shadow-sm flex flex-col ${view === "archive" ? "opacity-80 grayscale hover:grayscale-0 transition-all" : ""}`}>
+                                {/* Media Preview Thumbnail */}
+                                <div
+                                    className="aspect-video bg-slate-100 relative overflow-hidden flex-shrink-0 border-b border-brand-accent">
+                                    {ad.media_type === 'image' ? (
+                                        <img src={ad.media_url}
+                                             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                                             alt={ad.title}/>
+                                    ) : (
+                                        <video
+                                            src={ad.media_url}
+                                            className="object-cover w-full h-full bg-slate-900 group-hover:scale-105 transition-transform duration-500"
+                                            muted playsInline
+                                            onMouseOver={(e) => e.currentTarget.play()}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.pause();
+                                                e.currentTarget.currentTime = 0
+                                            }}
+                                        />
+                                    )}
 
-                                {/* Placement Badge */}
-                                <div className="absolute top-3 left-3">
+                                    {/* Placement Badge */}
+                                    <div className="absolute top-3 left-3">
                                     <span
                                         className="bg-black/80 backdrop-blur text-white px-2 py-1 rounded text-[9px] font-bold uppercase shadow-sm tracking-widest">
                                         {ad.placement.replace('_', ' ')}
                                     </span>
-                                </div>
+                                    </div>
 
-                                {/* Ad Type Badge */}
-                                <div className="absolute top-3 right-3">
+                                    {/* Ad Type Badge */}
+                                    <div className="absolute top-3 right-3">
                                     <span
                                         className={`px-2 py-1 rounded text-[9px] font-bold uppercase shadow-sm tracking-widest ${ad.ad_type === 'church_event' ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white'}`}>
                                         {ad.ad_type.replace('_', ' ')}
                                     </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Card Body */}
-                            <div className="p-4 md:p-5 flex flex-col flex-grow">
-                                <h3 className="font-serif font-bold text-brand-primary text-base md:text-lg mb-1 leading-tight line-clamp-1">{ad.title}</h3>
-                                <p className="text-xs text-gray-500 line-clamp-2 mb-3">{ad.description || "No description provided."}</p>
+                                {/* Card Body */}
+                                <div className="p-4 md:p-5 flex flex-col flex-grow">
+                                    <h3 className="font-serif font-bold text-brand-primary text-base md:text-lg mb-1 leading-tight line-clamp-1">{ad.title}</h3>
+                                    <p className="text-xs text-gray-500 line-clamp-2 mb-3">{ad.description || "No description provided."}</p>
 
-                                {ad.target_link && (
-                                    <a href={ad.target_link} target="_blank" rel="noreferrer"
-                                       className="flex items-center gap-1 text-[10px] font-bold text-brand-secondary hover:text-brand-primary uppercase tracking-widest mb-4 truncate w-fit">
-                                        <ExternalLink size={12}/> {ad.button_text}
-                                    </a>
-                                )}
-
-                                {/* Footer Actions */}
-                                <div className="mt-auto pt-3 border-t border-gray-50 flex justify-between items-center">
-                                    {/* Left Side Info */}
-                                    {view === "trash" ? (
-                                        <div
-                                            className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[8px] font-bold border border-amber-100">
-                                            <Clock size={10}/> <span>{getDaysLeft(ad.deleted_at, true)}D LEFT</span>
-                                        </div>
-                                    ) : ad.expires_at ? (
-                                        <div
-                                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold border ${getDaysLeft(ad.expires_at) < 3 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-                                            <Clock size={10}/> <span>Expires: {getDaysLeft(ad.expires_at)}d</span>
-                                        </div>
-                                    ) : (
-                                        <span className="text-[9px] text-gray-400 font-bold uppercase">No Expiry</span>
+                                    {ad.target_link && (
+                                        <a href={ad.target_link} target="_blank" rel="noreferrer"
+                                           className="flex items-center gap-1 text-[10px] font-bold text-brand-secondary hover:text-brand-primary uppercase tracking-widest mb-4 truncate w-fit">
+                                            <ExternalLink size={12}/> {ad.button_text}
+                                        </a>
                                     )}
 
-                                    {/* Action Buttons */}
-                                    <div className="flex gap-3 items-center">
-                                        {view === "trash" && role !== 'viewer' && (
-                                            <>
-                                                <button onClick={() => {
-                                                    setSelectedAd(ad);
-                                                    setModalType("restore");
-                                                }} title="Restore"
-                                                        className="text-emerald-600 group flex flex-col items-center gap-1">
-                                                    <RotateCcw size={14}/>
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase text-emerald-600">Restore</span>
-                                                </button>
-                                                {role === 'super-admin' && (
+                                    {/* Footer Actions */}
+                                    <div
+                                        className="mt-auto pt-3 border-t border-gray-50 flex justify-between items-center">
+                                        {/* Left Side Info */}
+                                        {view === "trash" ? (
+                                            <div
+                                                className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[8px] font-bold border border-amber-100">
+                                                <Clock size={10}/> <span>{getDaysLeft(ad.deleted_at, true)}D LEFT</span>
+                                            </div>
+                                        ) : ad.expires_at ? (
+                                            <div
+                                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold border ${getDaysLeft(ad.expires_at) < 3 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                                                <Clock size={10}/> <span>Expires: {getDaysLeft(ad.expires_at)}d</span>
+                                            </div>
+                                        ) : (
+                                            <span
+                                                className="text-[9px] text-gray-400 font-bold uppercase">No Expiry</span>
+                                        )}
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-3 items-center">
+                                            {view === "trash" && role !== 'viewer' && (
+                                                <>
+                                                    <button onClick={() => {
+                                                        setSelectedAd(ad);
+                                                        setModalType("restore");
+                                                    }} title="Restore"
+                                                            className="text-emerald-600 group flex flex-col items-center gap-1">
+                                                        <RotateCcw size={14}/>
+                                                        <span
+                                                            className="text-[7px] font-bold uppercase text-emerald-600">Restore</span>
+                                                    </button>
+                                                    {role === 'super-admin' && (
+                                                        <button onClick={() => {
+                                                            setSelectedAd(ad);
+                                                            setModalType("delete");
+                                                        }} title="Purge"
+                                                                className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1">
+                                                            <Trash2 size={14}/>
+                                                            <span
+                                                                className="text-[7px] font-bold uppercase text-red-600">Purge</span>
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+
+                                            {view === "archive" && role !== 'viewer' && (
+                                                <>
+                                                    <button onClick={() => {
+                                                        setSelectedAd(ad);
+                                                        setModalType("archive");
+                                                    }} title="Restore"
+                                                            className="text-emerald-600 flex flex-col items-center gap-1">
+                                                        <RotateCcw size={14}/>
+                                                        <span
+                                                            className="text-[7px] font-bold uppercase text-emerald-600">Restore</span>
+                                                    </button>
                                                     <button onClick={() => {
                                                         setSelectedAd(ad);
                                                         setModalType("delete");
-                                                    }} title="Purge"
-                                                            className="text-red-400 hover:text-red-600 flex flex-col items-center gap-1">
+                                                    }} title="Trash"
+                                                            className="text-red-400 flex flex-col items-center gap-1">
                                                         <Trash2 size={14}/>
                                                         <span
-                                                            className="text-[7px] font-bold uppercase text-red-600">Purge</span>
+                                                            className="text-[7px] font-bold uppercase text-red-400">Trash</span>
                                                     </button>
-                                                )}
-                                            </>
-                                        )}
+                                                </>
+                                            )}
 
-                                        {view === "archive" && role !== 'viewer' && (
-                                            <>
-                                                <button onClick={() => {
-                                                    setSelectedAd(ad);
-                                                    setModalType("archive");
-                                                }} title="Restore"
-                                                        className="text-emerald-600 flex flex-col items-center gap-1">
-                                                    <RotateCcw size={14}/>
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase text-emerald-600">Restore</span>
-                                                </button>
-                                                <button onClick={() => {
-                                                    setSelectedAd(ad);
-                                                    setModalType("delete");
-                                                }} title="Trash"
-                                                        className="text-red-400 flex flex-col items-center gap-1">
-                                                    <Trash2 size={14}/>
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase text-red-400">Trash</span>
-                                                </button>
-                                            </>
-                                        )}
-
-                                        {(view === "active" || view === "inactive") && role !== 'viewer' && (
-                                            <>
-                                                <button onClick={() => toggleAdStatus(ad)}
-                                                        title={view === 'active' ? 'Pause' : 'Resume'}
-                                                        className={`${view === 'active' ? 'text-amber-500' : 'text-emerald-500'} flex flex-col items-center gap-1 hover:scale-110 transition-transform`}>
-                                                    {view === 'active' ? <PauseCircle size={14}/> :
-                                                        <PlayCircle size={14}/>}
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase">{view === 'active' ? 'Pause' : 'Resume'}</span>
-                                                </button>
-                                                <button onClick={() => {
-                                                    setSelectedAd(ad);
-                                                    setModalType("archive");
-                                                }} title="Archive"
-                                                        className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1">
-                                                    <Archive size={14}/>
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase text-slate-500">Arch</span>
-                                                </button>
-                                                <Link href={`/admin/ads/edit/${ad.id}`} title="Edit"
-                                                      className="text-brand-primary flex flex-col items-center gap-1 hover:scale-110 transition-transform">
-                                                    <Edit3 size={14}/>
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
-                                                </Link>
-                                                <button onClick={() => {
-                                                    setSelectedAd(ad);
-                                                    setModalType("delete");
-                                                }} title="Trash"
-                                                        className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
-                                                    <Trash2 size={14}/>
-                                                    <span
-                                                        className="text-[7px] font-bold uppercase text-red-400">Trash</span>
-                                                </button>
-                                            </>
-                                        )}
+                                            {(view === "active" || view === "inactive") && role !== 'viewer' && (
+                                                <>
+                                                    <button onClick={() => toggleAdStatus(ad)}
+                                                            title={view === 'active' ? 'Pause' : 'Resume'}
+                                                            className={`${view === 'active' ? 'text-amber-500' : 'text-emerald-500'} flex flex-col items-center gap-1 hover:scale-110 transition-transform`}>
+                                                        {view === 'active' ? <PauseCircle size={14}/> :
+                                                            <PlayCircle size={14}/>}
+                                                        <span
+                                                            className="text-[7px] font-bold uppercase">{view === 'active' ? 'Pause' : 'Resume'}</span>
+                                                    </button>
+                                                    <button onClick={() => {
+                                                        setSelectedAd(ad);
+                                                        setModalType("archive");
+                                                    }} title="Archive"
+                                                            className="text-slate-400 hover:text-slate-600 flex flex-col items-center gap-1">
+                                                        <Archive size={14}/>
+                                                        <span
+                                                            className="text-[7px] font-bold uppercase text-slate-500">Arch</span>
+                                                    </button>
+                                                    <Link href={`/admin/ads/edit/${ad.id}`} title="Edit"
+                                                          className="text-brand-primary flex flex-col items-center gap-1 hover:scale-110 transition-transform">
+                                                        <Edit3 size={14}/>
+                                                        <span
+                                                            className="text-[7px] font-bold uppercase text-brand-primary">Edit</span>
+                                                    </Link>
+                                                    <button onClick={() => {
+                                                        setSelectedAd(ad);
+                                                        setModalType("delete");
+                                                    }} title="Trash"
+                                                            className="text-red-300 hover:text-red-600 flex flex-col items-center gap-1">
+                                                        <Trash2 size={14}/>
+                                                        <span
+                                                            className="text-[7px] font-bold uppercase text-red-400">Trash</span>
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {ads.length === 0 && !loading && (
@@ -528,8 +539,7 @@ function AdsDashboardContent() {
 
 export default function AdsDashboardPage() {
     return (
-        <Suspense fallback={<div className="p-20 text-center font-bold text-brand-primary min-h-screen">Loading
-            Campaigns...</div>}>
+        <Suspense fallback={<AdminSkeletonLoader variant="ads-dashboard"/>}>
             <AdsDashboardContent/>
         </Suspense>
     );

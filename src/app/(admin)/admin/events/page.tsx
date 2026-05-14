@@ -31,6 +31,7 @@ import {
     User
 } from "lucide-react";
 import {UploadButton} from "@/utils/uploadthing";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const SPECIAL_PAGE_SIZE = 11;
 
@@ -70,6 +71,7 @@ export default function EventsDashboardPage() {
         const d = new Date();
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     });
+
     const formattedThemeMonth = React.useMemo(() => {
         const [y, m] = themeMonthInput.split('-');
         return new Date(parseInt(y), parseInt(m) - 1).toLocaleString('default', {month: 'long', year: 'numeric'});
@@ -422,7 +424,7 @@ export default function EventsDashboardPage() {
         );
     };
 
-    // FIX: Converted from a Component to a render function to avoid the remounting bug
+    // Converted from a Component to a render function to avoid the remounting bug
     const renderEventListItem = (event: any) => {
         const isExpanded = expandedId === event.id;
 
@@ -505,7 +507,15 @@ export default function EventsDashboardPage() {
         );
     };
 
-    // FIX: Removed the @ts-ignore
+    if (loading && events.length === 0) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-4 md:p-12">
+                <AdminSkeletonLoader variant="events-dashboard"/>
+            </div>
+        );
+    }
+
+    // Removed the @ts-ignore
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-6xl mx-auto">

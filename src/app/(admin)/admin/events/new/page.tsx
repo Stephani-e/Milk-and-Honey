@@ -6,12 +6,14 @@ import Link from "next/link";
 import {UploadButton} from "@/utils/uploadthing";
 import {toast} from "sonner";
 import {ArrowLeft, Calendar, ImageIcon, Layers, MapPin, Plus, RefreshCw, Star, Trash2, Users,} from "lucide-react";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const DRAFT_EVENT_STORAGE_KEY = "milk_and_honey_event_draft";
 
 export default function NewEventPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [isCheckingDraft, setIsCheckingDraft] = useState(true);
 
     // Step 1: The Branching State
     const [eventType, setEventType] = useState<"recurring" | "single_day" | "multi_day" | null>(null);
@@ -37,7 +39,7 @@ export default function NewEventPage() {
     const [startTime, setStartTime] = useState("08:00");
     const [endTime, setEndTime] = useState("10:00");
 
-    // --- NEW: DYNAMIC SUNDAY CONFIGURATION STATE ---
+    // --- DYNAMIC SUNDAY CONFIGURATION STATE ---
     const [sundayFactions, setSundayFactions] = useState({
         second_sunday: "Excellent Men",
         third_sunday: "The Lord's Garnet",
@@ -56,7 +58,6 @@ export default function NewEventPage() {
         {name: "First Service", start_time: "07:30", end_time: "09:30", flyer_url: ""},
         {name: "Second Service", start_time: "09:30", end_time: "11:30", flyer_url: ""}
     ]);
-    // ------------------------------------------------
 
     // Single-Day Specific State
     const [singleDate, setSingleDate] = useState("");
@@ -95,6 +96,7 @@ export default function NewEventPage() {
                 console.error("Failed to parse draft", e);
             }
         }
+        setIsCheckingDraft(false)
     }, []);
 
     // DYNAMIC CATEGORY LOGIC
@@ -189,6 +191,14 @@ export default function NewEventPage() {
         }
     };
 
+    if (isCheckingDraft) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+                <AdminSkeletonLoader variant="events-form"/>
+            </div>
+        );
+    }
+    
     if (!eventType) {
         return (
             <div

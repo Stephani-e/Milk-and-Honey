@@ -6,6 +6,7 @@ import Link from "next/link";
 import {UploadButton} from "@/utils/uploadthing";
 import {toast} from "sonner";
 import {Film, LinkIcon, X} from "lucide-react";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 interface MediaItem {
     url: string;
@@ -143,6 +144,14 @@ export default function NewGalleryPage() {
 
     const todayObj = new Date();
     const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+                <AdminSkeletonLoader variant="gallery-form"/>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">

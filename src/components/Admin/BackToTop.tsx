@@ -8,7 +8,7 @@ export default function BackToTop() {
     // Listen for scroll events to show/hide the button
     useEffect(() => {
         const handleScroll = () => {
-            setShowBackToTop(window.scrollY > 1000);
+            setShowBackToTop(window.scrollY > 400);
         };
 
         window.addEventListener("scroll", handleScroll);
