@@ -67,9 +67,9 @@ export default function NewAdPage() {
             } catch (e) {
                 console.error("Failed to parse draft", e);
             }
-
-            setIsInitializing(false);
         }
+        setIsInitializing(false);
+
     }, []);
 
     useEffect(() => {
