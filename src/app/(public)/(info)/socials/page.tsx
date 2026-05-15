@@ -1,7 +1,8 @@
 import React from "react";
-import {ArrowRight, Headphones, PlayCircle, Radio, Smartphone} from "lucide-react";
-import {CHURCH_INFO} from "@/lib/constants";
+import {ArrowRight, Headphones, Mic, PlayCircle, Radio, Smartphone} from "lucide-react";
+import {supabase} from "@/lib/supabase";
 
+// --- SVG Icons ---
 const FacebookIcon = ({size = 20, className = ""}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -35,7 +36,14 @@ const TwitterIcon = ({size = 20, className = ""}) => (
     </svg>
 );
 
-export default function SocialsPage() {
+export default async function SocialsPage() {
+
+    // --- Fetch Settings Securely ---
+    const {data: settings} = await supabase
+        .from('site_settings')
+        .select('*')
+        .single();
+
     return (
         <div className="bg-slate-50 min-h-screen pb-24">
 
@@ -68,7 +76,7 @@ export default function SocialsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
 
                     {/* Instagram */}
-                    <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer"
+                    <a href={settings?.instagram_url || "#"} target="_blank" rel="noreferrer"
                        className="bg-white p-8 rounded-[2rem] shadow-lg border border-gray-100 flex flex-col items-center text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
                         <div
                             className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
@@ -88,7 +96,7 @@ export default function SocialsPage() {
                     </a>
 
                     {/* YouTube */}
-                    <a href={CHURCH_INFO.socialMedia.youtube} target="_blank" rel="noreferrer"
+                    <a href={settings?.youtube_url || "#"} target="_blank" rel="noreferrer"
                        className="bg-white p-8 rounded-[2rem] shadow-lg border border-gray-100 flex flex-col items-center text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
                         <div
                             className="absolute inset-0 bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
@@ -108,7 +116,7 @@ export default function SocialsPage() {
                     </a>
 
                     {/* Facebook */}
-                    <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer"
+                    <a href={settings?.facebook_url || "#"} target="_blank" rel="noreferrer"
                        className="bg-white p-8 rounded-[2rem] shadow-lg border border-gray-100 flex flex-col items-center text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
                         <div
                             className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
@@ -128,7 +136,7 @@ export default function SocialsPage() {
                     </a>
 
                     {/* X (Twitter) */}
-                    <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer"
+                    <a href={settings?.twitter_url || "#"} target="_blank" rel="noreferrer"
                        className="bg-white p-8 rounded-[2rem] shadow-lg border border-gray-100 flex flex-col items-center text-center group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
                         <div
                             className="absolute inset-0 bg-slate-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
@@ -163,29 +171,45 @@ export default function SocialsPage() {
                         <h2 className="text-3xl md:text-4xl font-serif font-black text-brand-primary mb-4">Listen on the
                             Go</h2>
                         <p className="text-gray-600 leading-relaxed mb-8">
-                            Take the word with you anywhere. We upload our Sunday messages and Digging Deep sessions to
-                            all major audio platforms weekly.
+                            Whether you want to catch us live during service or revisit a profound message during your
+                            commute, our audio streams are always available.
                         </p>
                     </div>
 
-                    <div className="lg:w-1/2 w-full grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <a href="https://spotify.com" target="_blank" rel="noreferrer"
+                    <div className="lg:w-1/2 w-full grid grid-cols-2 gap-4">
+                        {/* Live Broadcast Option */}
+                        <a href={settings?.mixlr_url || "#"} target="_blank" rel="noreferrer"
+                           className="bg-white p-6 rounded-2xl flex flex-col items-center text-center hover:shadow-lg border border-transparent hover:border-amber-500 transition-all group relative overflow-hidden">
+                            <div
+                                className="absolute top-3 right-3 flex items-center gap-1 bg-red-50 text-red-600 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest animate-pulse border border-red-100">
+                                Live
+                            </div>
+                            <Mic size={32} className="text-amber-500 mb-3 group-hover:scale-110 transition-transform"/>
+                            <span className="font-bold text-brand-primary text-sm mb-1">Mixlr</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Live Broadcast</span>
+                        </a>
+
+                        {/* On-Demand Options */}
+                        <a href={settings?.spotify_url || "#"} target="_blank" rel="noreferrer"
                            className="bg-white p-6 rounded-2xl flex flex-col items-center text-center hover:shadow-lg border border-transparent hover:border-[#1DB954] transition-all group">
                             <Headphones size={32}
                                         className="text-[#1DB954] mb-3 group-hover:scale-110 transition-transform"/>
-                            <span className="font-bold text-brand-primary text-sm">Spotify</span>
+                            <span className="font-bold text-brand-primary text-sm mb-1">Spotify</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Audio Archive</span>
                         </a>
-                        <a href="https://apple.com/podcasts" target="_blank" rel="noreferrer"
+                        <a href={settings?.apple_podcasts_url || "#"} target="_blank" rel="noreferrer"
                            className="bg-white p-6 rounded-2xl flex flex-col items-center text-center hover:shadow-lg border border-transparent hover:border-purple-600 transition-all group">
                             <Headphones size={32}
                                         className="text-purple-600 mb-3 group-hover:scale-110 transition-transform"/>
-                            <span className="font-bold text-brand-primary text-sm">Apple</span>
+                            <span className="font-bold text-brand-primary text-sm mb-1">Apple Podcasts</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Audio Archive</span>
                         </a>
-                        <a href="https://music.youtube.com" target="_blank" rel="noreferrer"
+                        <a href={settings?.youtube_music_url || "#"} target="_blank" rel="noreferrer"
                            className="bg-white p-6 rounded-2xl flex flex-col items-center text-center hover:shadow-lg border border-transparent hover:border-red-600 transition-all group">
                             <PlayCircle size={32}
                                         className="text-red-600 mb-3 group-hover:scale-110 transition-transform"/>
-                            <span className="font-bold text-brand-primary text-sm">YT Music</span>
+                            <span className="font-bold text-brand-primary text-sm mb-1">YT Music</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Audio Archive</span>
                         </a>
                     </div>
 

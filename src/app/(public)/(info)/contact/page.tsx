@@ -4,6 +4,7 @@ import Link from "next/link";
 import {toast} from "sonner";
 import {Calendar, Clock, Info, Mail, MapPin, Phone, Send} from "lucide-react";
 import {CHURCH_INFO} from "@/lib/constants";
+import {supabase} from "@/lib/supabase";
 
 const FacebookIcon = ({size = 20, className = ""}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -29,7 +30,7 @@ const TwitterIcon = ({size = 20, className = ""}) => (
     </svg>
 );
 
-export default function ContactPage() {
+export default async function ContactPage() {
     const [loading, setLoading] = useState(false);
 
     // Form State
@@ -86,6 +87,13 @@ export default function ContactPage() {
         }
     };
 
+    // --- Fetch Settings Securely ---
+    const {data: settings} = await supabase
+        .from('site_settings')
+        .select('*')
+        .single();
+
+
     return (
         <div className="flex flex-col bg-slate-50 min-h-screen">
 
@@ -129,9 +137,9 @@ export default function ContactPage() {
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Our Sanctuary</h4>
                                     <p className="text-sm text-gray-500 leading-relaxed">
-                                        {CHURCH_INFO.address.street}, <br/>
-                                        {CHURCH_INFO.parish}, <br/>
-                                        {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}.
+                                        {settings?.address_street || "Address Not Set"}, <br/>
+                                        {settings?.parish_name || "Parish"}, <br/>
+                                        {settings?.address_city}, {settings?.address_country}.
                                     </p>
                                     <a href={CHURCH_INFO.address.googleMapsLink} target="_blank" rel="noreferrer"
                                        className="text-xs font-bold text-brand-primary uppercase tracking-widest mt-3 inline-block hover:text-amber-600 transition-colors">
@@ -147,9 +155,9 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Phone</h4>
-                                    <a href={`tel:${CHURCH_INFO.contact.phoneLink}`}
+                                    <a href={`tel:${settings?.phone_link}`}
                                        className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
-                                        {CHURCH_INFO.contact.phone}
+                                        {settings?.phone_primary}
                                     </a>
                                 </div>
                             </div>
@@ -161,9 +169,9 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Email</h4>
-                                    <a href={`mailto:${CHURCH_INFO.contact.email}`}
+                                    <a href={`mailto:${settings?.email_public}`}
                                        className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
-                                        {CHURCH_INFO.contact.email}
+                                        {settings?.email_public}
                                     </a>
                                 </div>
                             </div>
@@ -176,15 +184,15 @@ export default function ContactPage() {
                         <p className="text-sm text-gray-500 mb-6">Send us a direct message on our social channels for
                             quick inquiries.</p>
                         <div className="flex gap-4">
-                            <a href={CHURCH_INFO.socialMedia.instagram} target="_blank" rel="noreferrer"
+                            <a href={settings?.instagram_url} target="_blank" rel="noreferrer"
                                className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-pink-50 border border-gray-100 hover:border-pink-200 text-gray-600 hover:text-pink-600 py-4 rounded-xl font-bold transition-all">
                                 <InstagramIcon/> Instagram
                             </a>
-                            <a href={CHURCH_INFO.socialMedia.facebook} target="_blank" rel="noreferrer"
+                            <a href={settings?.facebook_url} target="_blank" rel="noreferrer"
                                className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 text-gray-600 hover:text-blue-600 py-4 rounded-xl font-bold transition-all">
                                 <FacebookIcon/> Facebook
                             </a>
-                            <a href={CHURCH_INFO.socialMedia.twitter} target="_blank" rel="noreferrer"
+                            <a href={settings?.twitter_url} target="_blank" rel="noreferrer"
                                className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-green-50 border border-gray-100 hover:border-green-200 text-gray-600 hover:text-green-600 py-4 rounded-xl font-bold transition-all">
                                 <TwitterIcon/> Twitter
                             </a>

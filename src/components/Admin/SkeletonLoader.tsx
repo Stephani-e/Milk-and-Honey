@@ -18,7 +18,8 @@ type AdminSkeletonVariant =
     | "personnel-management"
     | "ads-dashboard"
     | "ads-list"
-    | "ads-form";
+    | "ads-form"
+    | "settings-form";
 
 interface AdminSkeletonProps {
     variant: AdminSkeletonVariant;
@@ -731,6 +732,94 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                     </div>
                 );
 
+
+            case "settings-form":
+                return (
+                    <div className="max-w-5xl mx-auto p-4 md:p-8 pb-24 w-full">
+                        {/* Header Skeleton */}
+                        <div
+                            className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 mb-8">
+                            <div className="space-y-3">
+                                <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse"></div>
+                                <div className="h-4 w-72 max-w-full bg-gray-100 rounded-md animate-pulse"></div>
+                            </div>
+                            <div className="h-12 w-40 bg-gray-200 rounded-xl animate-pulse flex-shrink-0"></div>
+                        </div>
+
+                        {/* Cards Grid Skeleton */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                            {/* Card 1 Skeleton */}
+                            <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 h-fit space-y-6">
+                                <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+                                    <div className="h-6 w-6 rounded-full bg-gray-200 animate-pulse"></div>
+                                    <div className="h-6 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
+                                </div>
+                                {/* Input Skeletons */}
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="space-y-2">
+                                        <div className="h-3 w-24 bg-gray-200 rounded-md animate-pulse"></div>
+                                        <div
+                                            className="h-12 w-full bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Card 2 Skeleton (With a 2-column grid inside) */}
+                            <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 h-fit space-y-6">
+                                <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+                                    <div className="h-6 w-6 rounded-full bg-gray-200 animate-pulse"></div>
+                                    <div className="h-6 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="h-3 w-24 bg-gray-200 rounded-md animate-pulse"></div>
+                                    <div
+                                        className="h-12 w-full bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                                </div>
+
+                                {/* Inner Grid for City/Country style inputs */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <div className="h-3 w-16 bg-gray-200 rounded-md animate-pulse"></div>
+                                        <div
+                                            className="h-12 w-full bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="h-3 w-16 bg-gray-200 rounded-md animate-pulse"></div>
+                                        <div
+                                            className="h-12 w-full bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 mt-6">
+                                    <div className="h-3 w-32 bg-gray-200 rounded-md animate-pulse"></div>
+                                    <div
+                                        className="h-12 w-full bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                                </div>
+                            </div>
+
+                            {/* Full Width Card Skeleton (for Socials) */}
+                            <div
+                                className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 lg:col-span-2 space-y-6">
+                                <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+                                    <div className="h-6 w-6 rounded-full bg-gray-200 animate-pulse"></div>
+                                    <div className="h-6 w-40 bg-gray-200 rounded-lg animate-pulse"></div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {[1, 2, 3, 4].map((i) => (
+                                        <div key={`social-${i}`} className="space-y-2">
+                                            <div className="h-3 w-24 bg-gray-200 rounded-md animate-pulse"></div>
+                                            <div
+                                                className="h-12 w-full bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                );
         }
     };
 

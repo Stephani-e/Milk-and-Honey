@@ -1,7 +1,7 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import Link from "next/link";
-import {Home, Loader2, LogOut, ShieldCheck, Users, X} from "lucide-react";
+import {Home, Loader2, LogOut, Settings, ShieldCheck, Users, X} from "lucide-react";
 import {supabase} from "@/lib/supabase";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
@@ -148,6 +148,16 @@ export default function Navbar() {
                         >
                             <Home size={18} className="md:w-5 md:h-5"/>
                         </Link>
+
+                        {profile?.role === 'super-admin' && (
+                            <Link
+                                href="/admin/settings"
+                                className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-surface rounded-lg md:rounded-xl transition-all"
+                                title="Site Settings"
+                            >
+                                <Settings size={15} className="md:w-5 md:h-5"/>
+                            </Link>
+                        )}
 
                         <button
                             onClick={() => setIsLogoutOpen(true)}
