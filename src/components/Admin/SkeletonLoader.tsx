@@ -19,7 +19,9 @@ type AdminSkeletonVariant =
     | "ads-dashboard"
     | "ads-list"
     | "ads-form"
-    | "settings-form";
+    | "settings-form"
+    | "newsletter-library"
+    | "newsletter-form";
 
 interface AdminSkeletonProps {
     variant: AdminSkeletonVariant;
@@ -728,6 +730,71 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                                 <SkeletonLoader variant="text-block" className="h-14 w-32 rounded-2xl"/>
                                 <SkeletonLoader variant="text-block" className="h-14 w-56 rounded-2xl"/>
                             </div>
+                        </div>
+                    </div>
+                );
+
+            case "newsletter-library":
+                return (
+                    <div className="max-w-6xl mx-auto w-full">
+                        {/* 1. Fake Breadcrumb & Tabs */}
+                        <div className="mb-8">
+                            <div className={`h-4 w-32 ${shimmer} rounded-md mb-8`}/>
+                            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className={`h-8 w-24 bg-white/60 rounded-lg ${shimmer}`}/>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 2. Header & Action Button */}
+                        <div className="flex justify-between items-center mb-10">
+                            <div className={`h-10 w-48 ${shimmer} rounded-lg`}/>
+                            <div className={`h-12 w-32 ${shimmer} rounded-xl`}/>
+                        </div>
+
+                        {/* 3. Filter Bar */}
+                        <div
+                            className={`h-20 w-full bg-white border border-gray-100 rounded-2xl mb-10 ${shimmer} opacity-50`}/>
+
+                        {/* 4. Desktop Table Skeleton */}
+                        <div
+                            className="hidden md:block bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                            <div className="h-12 bg-slate-50 border-b border-gray-100 p-5 flex gap-20">
+                                <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
+                                <div className={`h-3 w-40 ${shimmer} rounded-md`}/>
+                            </div>
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <div key={i} className="p-6 border-b border-gray-50 flex items-center justify-between">
+                                    <div className="flex flex-col gap-3 flex-1">
+                                        <div className={`h-3 w-20 ${shimmer} rounded-full`}/>
+                                        <div className={`h-5 w-64 ${shimmer} rounded-md`}/>
+                                        <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
+                                    </div>
+                                    <div className="flex flex-col gap-3 flex-1">
+                                        <div className={`h-4 w-32 ${shimmer} rounded-md`}/>
+                                        <div className="flex gap-2">
+                                            <div className={`h-4 w-4 ${shimmer} rounded-sm`}/>
+                                            <div className={`h-4 w-4 ${shimmer} rounded-sm`}/>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                        <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* 5. Mobile Cards Skeleton */}
+                        <div className="md:hidden space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm h-48">
+                                    <div className={`h-4 w-20 ${shimmer} rounded-md mb-4`}/>
+                                    <div className={`h-6 w-3/4 ${shimmer} rounded-md mb-2`}/>
+                                    <div className={`h-4 w-1/2 ${shimmer} rounded-md`}/>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );

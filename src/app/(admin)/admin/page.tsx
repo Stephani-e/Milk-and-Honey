@@ -16,11 +16,14 @@ export default function AdminDashboard() {
     const goToSermon = () => router.push("/admin/sermons");
     const goToMedia = () => router.push("/admin/gallery");
     const goToEvents = () => router.push("/admin/events");
+
+    const goToNewsletters = () => router.push("/admin/newsletters");
+    const goToAds = () => router.push("/admin/ads")
+
     const goToDepartments = () => router.push("/admin/departments")
     const goToLifeStages = () => router.push("/admin/life-stages")
     const goToLeadership = () => router.push("/admin/leadership")
     const goToParishes = () => router.push("/admin/parishes")
-    const goToAds = () => router.push("/admin/ads")
 
     if (initialLoading) {
         return (
@@ -117,6 +120,75 @@ export default function AdminDashboard() {
                         className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
                             <div
+                                className="h-12 w-12 bg-indigo-100 text-indigo-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-indigo-900 mb-2">Newsletters</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Draft, schedule, and publish
+                                updates to the church family.</p>
+                        </div>
+                        <button
+                            onClick={goToNewsletters}
+                            className="w-full bg-indigo-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                        >
+                            Manage Newsletters
+                        </button>
+                    </div>
+
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div
+                                className="h-12 w-12 bg-indigo-100 text-indigo-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-indigo-900 mb-2">Newsletters</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Draft, schedule, and publish
+                                updates to the church family.</p>
+                        </div>
+                        <button
+                            onClick={goToNewsletters}
+                            className="w-full bg-indigo-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                        >
+                            Manage Newsletters
+                        </button>
+                    </div>
+
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div
+                                className="h-12 w-12 bg-pink-100 text-pink-900 rounded-xl flex items-center justify-center mb-6">
+                                {/* Megaphone Icon */}
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                          d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-pink-900 mb-2">Ad Engine</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Publish banners and videos for
+                                internal events or external businesses.</p>
+                        </div>
+                        <button onClick={goToAds}
+                                className="w-full bg-pink-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            Manage Ads
+                        </button>
+                    </div>
+
+
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div
                                 className="h-12 w-12 bg-emerald-100 text-emerald-900 rounded-xl flex items-center justify-center mb-6">
                                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
                                      viewBox="0 0 24 24">
@@ -177,7 +249,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-2">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-3">
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 h-full">
                             <div
                                 className="h-16 w-16 bg-mauve-100 text-mauve-900 border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
@@ -202,28 +274,6 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* 2. THE NEW ADVERTISEMENT ENGINE CARD (Takes the 3rd column) */}
-                    <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
-                        <div>
-                            <div
-                                className="h-12 w-12 bg-pink-100 text-pink-900 rounded-xl flex items-center justify-center mb-6">
-                                {/* Megaphone Icon */}
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round"
-                                          d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
-                                </svg>
-                            </div>
-                            <h3 className="text-xl font-serif font-bold text-pink-900 mb-2">Ad Engine</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Publish banners and videos for
-                                internal events or external businesses.</p>
-                        </div>
-                        <button onClick={goToAds}
-                                className="w-full bg-pink-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
-                            Manage Ads
-                        </button>
-                    </div>
                 </div>
 
                 <div
