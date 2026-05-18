@@ -1,5 +1,5 @@
-"use client";
-import React, {useState} from "react";
+"use client"
+import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {toast} from "sonner";
 import {Calendar, Clock, Info, Mail, MapPin, Phone, Send} from "lucide-react";
@@ -30,8 +30,9 @@ const TwitterIcon = ({size = 20, className = ""}) => (
     </svg>
 );
 
-export default async function ContactPage() {
+export default function ContactPage() {
     const [loading, setLoading] = useState(false);
+    const [settings, setSettings] = useState<any>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -87,12 +88,18 @@ export default async function ContactPage() {
         }
     };
 
-    // --- Fetch Settings Securely ---
-    const {data: settings} = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const {data} = await supabase
+                .from('site_settings')
+                .select('*')
+                .single();
 
+            if (data) setSettings(data);
+        };
+
+        fetchSettings().catch(console.error);
+    }, []);
 
     return (
         <div className="flex flex-col bg-slate-50 min-h-screen">

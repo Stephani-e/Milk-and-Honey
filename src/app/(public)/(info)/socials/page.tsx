@@ -208,7 +208,7 @@ export default async function SocialsPage() {
                            className="bg-white p-6 rounded-2xl flex flex-col items-center text-center hover:shadow-lg border border-transparent hover:border-red-600 transition-all group">
                             <PlayCircle size={32}
                                         className="text-red-600 mb-3 group-hover:scale-110 transition-transform"/>
-                            <span className="font-bold text-brand-primary text-sm mb-1">YT Music</span>
+                            <span className="font-bold text-brand-primary text-sm mb-1">YT Podcast</span>
                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Audio Archive</span>
                         </a>
                     </div>
