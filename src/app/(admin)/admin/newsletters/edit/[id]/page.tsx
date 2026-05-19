@@ -14,13 +14,12 @@ const ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false});
 
 export default function EditNewsletterPage({params}: { params: Promise<{ id: string }> }) {
     const router = useRouter();
-
-    // Unwrapping the params properly for Next 15 Client Components
     const resolvedParams = use(params);
     const id = resolvedParams.id;
 
     const [loading, setLoading] = useState(false);
     const [initialFetchDone, setInitialFetchDone] = useState(false);
+    const [originalData, setOriginalData] = useState<any>(null);
 
     // Modal & Media State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -56,7 +55,12 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
         ],
     };
 
-    // Load Existing Data
+    const formatToLocalDatetime = (utcString: string) => {
+        const d = new Date(utcString);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 16);
+    };
+
     useEffect(() => {
         async function fetchNewsletter() {
             const {data, error} = await supabase
@@ -71,6 +75,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                 return;
             }
 
+            setOriginalData(data);
             setFormData({
                 title: data.title || "",
                 slug: data.slug || "",
@@ -82,21 +87,20 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
 
             if (data.cover_image_url) setImageUploaded(true);
 
-            if (data.is_published) {
-                setPublishStatus("publish_now");
-            } else if (data.published_at && new Date(data.published_at) > new Date()) {
+            if (data.is_published && data.published_at && new Date(data.published_at) > new Date()) {
                 setPublishStatus("schedule");
-                setScheduleDate(new Date(data.published_at).toISOString().slice(0, 16));
+                setScheduleDate(formatToLocalDatetime(data.published_at));
+            } else if (data.is_published) {
+                setPublishStatus("publish_now");
             } else {
                 setPublishStatus("draft");
+                if (data.published_at) setScheduleDate(formatToLocalDatetime(data.published_at));
             }
 
             setInitialFetchDone(true);
         }
 
-        if (id) {
-            fetchNewsletter().catch(console.error);
-        }
+        if (id) fetchNewsletter().catch(console.error);
     }, [id, router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -129,41 +133,38 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
 
         setLoading(true);
 
-        const is_published = targetAction === 'publish';
-        let published_at = null;
+        const updatePayload: any = {...formData};
 
-        if (targetAction === 'publish') {
-            if (publishStatus === "publish_now") {
-                published_at = publishStatus === "publish_now" && formData.slug ? undefined : new Date().toISOString();
-            } else if (publishStatus === "schedule") {
-                published_at = new Date(scheduleDate).toISOString();
+        if (targetAction === 'draft') {
+            updatePayload.is_published = false;
+            updatePayload.published_at = null;
+        } else {
+            updatePayload.is_published = true;
+            if (publishStatus === "schedule") {
+                updatePayload.published_at = new Date(scheduleDate).toISOString();
+            } else {
+                // If moving from draft/scheduled to Live, update date now.
+                // If already live, keep the original date.
+                if (!originalData?.is_published || new Date(originalData.published_at) > new Date()) {
+                    updatePayload.published_at = new Date().toISOString();
+                }
             }
         }
-
-        const updatePayload: any = {
-            ...formData,
-            is_published,
-        };
-
-        if (published_at !== undefined) updatePayload.published_at = published_at;
 
         const {error} = await supabase.from("newsletters").update(updatePayload).eq("id", id);
 
         if (error) {
-            if (error.code === '23505') toast.error("A newsletter with this URL slug already exists.");
-            else toast.error(`Database Error: ${error.message}`);
+            toast.error(`Database Error: ${error.message}`);
             setLoading(false);
         } else {
-            toast.success("Newsletter Updated Successfully!");
-            router.push(targetAction === 'publish' ? "/admin/newsletters" : "/admin/newsletters?tab=draft");
+            toast.success(targetAction === 'draft' ? "Moved to Drafts" : "Newsletter Updated!");
+            router.push(targetAction === 'draft' ? "/admin/newsletters?tab=draft" : "/admin/newsletters");
             router.refresh();
         }
     };
 
-    if (!initialFetchDone) {
-        return <div className="min-h-screen bg-brand-surface p-6 md:p-12"><AdminSkeletonLoader variant="sermon-form"/>
-        </div>;
-    }
+    if (!initialFetchDone) return <div className="min-h-screen bg-brand-surface p-6 md:p-12"><AdminSkeletonLoader
+        variant="sermon-form"/></div>;
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
@@ -178,7 +179,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-accent">
                     <h1 className="text-3xl font-serif font-bold text-brand-primary mb-8">Edit Newsletter</h1>
 
-                    <form className="space-y-10">
+                    <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
                         {/* Step 1: General Info */}
                         <div className="space-y-6">
                             <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 1:
@@ -188,14 +189,14 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Newsletter
                                         Title</label>
                                     <input required name="title"
-                                           className="w-full p-3 border rounded-lg text-brand-primary font-bold"
+                                           className="w-full p-3 border rounded-lg text-brand-primary font-bold outline-none focus:border-brand-primary"
                                            value={formData.title} onChange={handleTitleChange}/>
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Author
                                         Name</label>
                                     <input required name="author_name"
-                                           className="w-full p-3 border rounded-lg text-brand-primary"
+                                           className="w-full p-3 border rounded-lg text-brand-primary outline-none focus:border-brand-primary"
                                            value={formData.author_name} onChange={handleChange}/>
                                 </div>
                             </div>
@@ -283,8 +284,8 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
 
                         {/* Step 4: Publishing Strategy */}
                         <div className="pt-10 border-t border-gray-100 space-y-6">
-                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 4:
-                                Update Publishing</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2 block">Step
+                                4: Update Strategy</label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <label
                                     className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${publishStatus === "publish_now" ? "border-green-500 bg-green-50/50" : "border-gray-100"}`}>
@@ -292,7 +293,8 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                            onChange={() => setPublishStatus("publish_now")}
                                            className="mt-1 accent-green-600"/>
                                     <div>
-                                        <div className="font-bold text-gray-900 text-sm">Keep Published / Publish Now
+                                        <div className="font-bold text-gray-900 text-sm">Publish Now / Keep Live</div>
+                                        <div className="text-[10px] text-gray-500">Updates are visible immediately.
                                         </div>
                                     </div>
                                 </label>
@@ -303,12 +305,14 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                            className="mt-1 accent-blue-600"/>
                                     <div>
                                         <div className="font-bold text-gray-900 text-sm">Schedule / Reschedule</div>
+                                        <div className="text-[10px] text-gray-500">Goes live at your chosen time.</div>
                                     </div>
                                 </label>
                             </div>
 
                             {publishStatus === "schedule" && (
-                                <div className="mt-4 p-4 bg-slate-50 border border-gray-100 rounded-xl max-w-sm">
+                                <div
+                                    className="mt-4 p-4 bg-slate-50 border border-gray-100 rounded-xl max-w-sm animate-in slide-in-from-top-2">
                                     <label
                                         className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Select
                                         Date & Time</label>
@@ -319,16 +323,24 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                             )}
                         </div>
 
-                        {/* Save Buttons */}
+                        {/* Save Buttons (Side-by-Side) */}
                         <div className="pt-10 border-t border-gray-100">
-                            <div className="flex flex-col md:flex-row gap-4 pt-1">
-                                <button type="button" disabled={loading} onClick={() => handleSubmit('draft')}
-                                        className="flex-1 bg-white border-2 border-brand-primary text-brand-primary py-5 rounded-2xl font-bold hover:bg-brand-primary/5 transition-all">
-                                    {loading ? "Saving..." : "Revert to Draft"}
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <button
+                                    type="button"
+                                    disabled={loading}
+                                    onClick={() => handleSubmit('draft')}
+                                    className="flex-1 bg-white border-2 border-brand-primary text-brand-primary py-5 rounded-2xl font-bold hover:bg-brand-primary/5 transition-all disabled:opacity-50"
+                                >
+                                    {loading ? "Saving..." : "Save as Draft"}
                                 </button>
-                                <button type="button" disabled={loading} onClick={() => handleSubmit('publish')}
-                                        className="flex-[2] bg-brand-primary text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all">
-                                    {loading ? "Processing..." : "Update Newsletter"}
+                                <button
+                                    type="button"
+                                    disabled={loading}
+                                    onClick={() => handleSubmit('publish')}
+                                    className="flex-[2] bg-brand-primary text-white py-5 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50"
+                                >
+                                    {loading ? "Processing..." : publishStatus === 'schedule' ? "Update Schedule" : "Update Newsletter"}
                                 </button>
                             </div>
                         </div>

@@ -124,6 +124,32 @@ export default function PublicNavbar({settings}: { settings: any }) {
 
                 {/* Socials & CTA Button */}
                 <div className="hidden md:flex items-center gap-6 z-50">
+                    {/* Updates Link with Shaking Icon */}
+                    <Link
+                        href="/newsletters"
+                        className="flex items-center gap-1.5 font-bold text-sm text-brand-primary group hover:text-amber-600 transition-colors"
+                    >
+                        <span className="relative flex items-center justify-center">
+                            {/* The Bell Icon with Animation */}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18" height="18"
+                                viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" strokeWidth="2.5"
+                                strokeLinecap="round" strokeLinejoin="round"
+                                className="animate-bell-shake group-hover:animate-none"
+                            >
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                            {/* Small Notification Dot */}
+                            <span
+                                className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                        </span>
+                        Church Updates
+                    </Link>
+
+                    <div className="h-6 w-[1px] bg-gray-200"></div>
                     <div className="flex items-center gap-4 text-gray-400">
                         {/* Desktop Navbar Social Icons */}
                         {settings?.instagram_url && (

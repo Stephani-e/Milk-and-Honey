@@ -1,53 +1,87 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --background: #ffffff;
+    --foreground: #171717;
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 
 @theme {
-  --color-brand-primary: #11222E;
-  --color-brand-secondary: #C5A059;
-  --color-brand-accent: #E5E7EB;
-  --color-brand-surface: #F9FAFB;
-  --color-brand-text: #374151;
+    --color-brand-primary: #11222E;
+    --color-brand-secondary: #C5A059;
+    --color-brand-accent: #E5E7EB;
+    --color-brand-surface: #F9FAFB;
+    --color-brand-text: #374151;
 
-  /* Default Fonts */
-  --font-serif: var(--font-lora), "Times New Roman", Times, serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
+    /* Default Fonts */
+    --font-serif: var(--font-lora), "Times New Roman", Times, serif;
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
 }
 
 body {
-  font-family: var(--font-lora), Serif;
-  background: var(--background);
-  color: var(--foreground);
+    font-family: var(--font-lora), Serif;
+    background: var(--background);
+    color: var(--foreground);
 }
 
 @layer components {
-  /* The standard "MHC" Button */
-  .btn-primary {
-    @apply bg-brand-primary text-white px-6 py-3 rounded-lg font-bold hover:opacity-90 transition-all active:scale-95;
-  }
+    /* The standard "MHC" Button */
+    .btn-primary {
+        @apply bg-brand-primary text-white px-6 py-3 rounded-lg font-bold hover:opacity-90 transition-all active:scale-95;
+    }
 
-  /* The standard "MHC" Card */
-  .church-card {
-    @apply bg-white border border-brand-accent rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6;
-  }
+    /* The standard "MHC" Card */
+    .church-card {
+        @apply bg-white border border-brand-accent rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6;
+    }
 
-  /* Section Headings */
-  .heading-lg {
-    @apply text-3xl font-bold text-brand-primary tracking-tight;
-  }
+    /* Section Headings */
+    .heading-lg {
+        @apply text-3xl font-bold text-brand-primary tracking-tight;
+    }
+}
+
+@keyframes bell-shake {
+    0% {
+        transform: rotate(0deg);
+    }
+    10% {
+        transform: rotate(15deg);
+    }
+    20% {
+        transform: rotate(-15deg);
+    }
+    30% {
+        transform: rotate(10deg);
+    }
+    40% {
+        transform: rotate(-10deg);
+    }
+    50% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+.animate-bell-shake {
+    animation: bell-shake 3s ease-in-out infinite;
 }
 
 /* =========================================
@@ -56,16 +90,16 @@ body {
 
 /* Force center on mobile screens */
 @media (max-width: 640px) {
-  [data-sonner-toaster] {
-    left: 0 !important;
-    right: 0 !important;
-    justify-content: center !important;
-    width: 100% !important;
-    padding: 12px !important; /* Tighter edge spacing */
-  }
-  
-  [data-sonner-toast] {
-    width: 100% !important;
-    max-width: 340px !important; /* Matches the new compact desktop width */
-  }
+    [data-sonner-toaster] {
+        left: 0 !important;
+        right: 0 !important;
+        justify-content: center !important;
+        width: 100% !important;
+        padding: 12px !important; /* Tighter edge spacing */
+    }
+
+    [data-sonner-toast] {
+        width: 100% !important;
+        max-width: 340px !important; /* Matches the new compact desktop width */
+    }
 }

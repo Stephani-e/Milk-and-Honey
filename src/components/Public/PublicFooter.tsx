@@ -97,6 +97,9 @@ export default function PublicFooter({settings}: { settings: any }) {
                 <div>
                     <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs">Media & Info</h4>
                     <ul className="space-y-3 text-sm text-gray-500 font-medium">
+                        <li><Link href="/newsletters"
+                                  className="hover:text-amber-600 transition-colors font-bold text-white">Church
+                            Updates</Link></li>
                         <li><Link href="/sermons" className="hover:text-amber-600 transition-colors">Watch
                             Sermons</Link></li>
                         <li><Link href="/gallery" className="hover:text-amber-600 transition-colors">Church
