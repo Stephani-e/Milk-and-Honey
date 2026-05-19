@@ -10,6 +10,7 @@ import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import {
     Archive,
+    Calendar,
     CheckCircle2,
     ChevronLeft,
     ChevronRight,
@@ -17,6 +18,7 @@ import {
     FileText,
     Inbox,
     RotateCcw,
+    Send,
     Trash2
 } from "lucide-react";
 
@@ -43,6 +45,11 @@ export default function NewslettersPage() {
 
     const [modalType, setModalType] = useState<"delete" | "archive" | "restore" | null>(null);
     const [selectedNewsletter, setSelectedNewsletter] = useState<any | null>(null);
+
+    const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+    const [publishMode, setPublishMode] = useState<"now" | "schedule">("now");
+    const [scheduleDate, setScheduleDate] = useState("");
+    const [isPublishing, setIsPublishing] = useState(false);
 
     useEffect(() => {
         fetchNewsletters().catch(error => console.error("Error fetching newsletters:", error));
@@ -174,17 +181,37 @@ export default function NewslettersPage() {
         setModalType("archive");
     };
 
-    const handleQuickPublish = async (n: any) => {
+    const triggerPublishModal = (n: any) => {
+        setSelectedNewsletter(n);
+        setPublishMode("now");
+        setScheduleDate("");
+        setIsPublishModalOpen(true);
+    };
+
+    const executePublish = async () => {
+        if (!selectedNewsletter) return;
+
+        if (publishMode === "schedule" && !scheduleDate) {
+            return toast.error("Please select a date and time.");
+        }
+
+        setIsPublishing(true);
+        const published_at = publishMode === "now" ? new Date().toISOString() : new Date(scheduleDate).toISOString();
+
         const {error} = await supabase
             .from("newsletters")
-            .update({is_published: true, published_at: new Date().toISOString()})
-            .eq("id", n.id);
+            .update({is_published: true, published_at})
+            .eq("id", selectedNewsletter.id);
 
         if (error) toast.error("Failed to publish: " + error.message);
         else {
-            toast.success("Newsletter is now live!");
+            toast.success(publishMode === "now" ? "Newsletter is now live!" : "Newsletter Scheduled!");
             await fetchNewsletters();
         }
+
+        setIsPublishing(false);
+        setIsPublishModalOpen(false);
+        setSelectedNewsletter(null);
     };
 
     const handleRestoreFromArchive = async (destination: 'active' | 'draft') => {
@@ -397,7 +424,7 @@ export default function NewslettersPage() {
                                                 onArchive={triggerArchive}
                                                 onDelete={triggerDelete}
                                                 onRestore={triggerRestore}
-                                                onQuickPublish={handleQuickPublish}
+                                                onQuickPublish={triggerPublishModal}
                                                 view={view}
                                                 role={role}
                                             />
@@ -454,7 +481,7 @@ export default function NewslettersPage() {
                                             onArchive={triggerArchive}
                                             onDelete={triggerDelete}
                                             onRestore={triggerRestore}
-                                            onQuickPublish={handleQuickPublish}
+                                            onQuickPublish={triggerPublishModal}
                                             view={view}
                                             role={role}
                                         />
@@ -572,6 +599,83 @@ export default function NewslettersPage() {
                         <button onClick={() => setModalType(null)}
                                 className="w-full mt-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-brand-primary transition-colors">Cancel
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {isPublishModalOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-brand-accent">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Send className="text-indigo-600" size={24}/>
+                            <h2 className="text-2xl font-serif font-bold text-brand-primary">Publish Newsletter</h2>
+                        </div>
+                        <p className="text-gray-500 text-sm mb-6">How would you like to publish <span
+                            className="font-bold text-brand-primary">"{selectedNewsletter?.title}"</span>?</p>
+
+                        <div className="space-y-3 mb-6">
+                            <label
+                                className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${publishMode === "now" ? "border-green-500 bg-green-50/50" : "border-gray-100 hover:border-green-200"}`}>
+                                <input
+                                    type="radio"
+                                    checked={publishMode === "now"}
+                                    onChange={() => setPublishMode("now")}
+                                    className="mt-1 accent-green-600"
+                                />
+                                <div>
+                                    <div className="font-bold text-gray-900 text-sm">Publish Immediately</div>
+                                    <div className="text-[10px] text-gray-500 mt-0.5">Make live instantly.</div>
+                                </div>
+                            </label>
+
+                            <label
+                                className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${publishMode === "schedule" ? "border-blue-500 bg-blue-50/50" : "border-gray-100 hover:border-blue-200"}`}>
+                                <input
+                                    type="radio"
+                                    checked={publishMode === "schedule"}
+                                    onChange={() => setPublishMode("schedule")}
+                                    className="mt-1 accent-blue-600"
+                                />
+                                <div>
+                                    <div className="font-bold text-gray-900 text-sm">Schedule for Later</div>
+                                    <div className="text-[10px] text-gray-500 mt-0.5">Set a future date to go live.
+                                    </div>
+                                </div>
+                            </label>
+
+                            {publishMode === "schedule" && (
+                                <div
+                                    className="mt-3 p-4 bg-slate-50 border border-gray-100 rounded-xl animate-in slide-in-from-top-2">
+                                    <label
+                                        className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 mb-2">
+                                        <Calendar size={12}/> Select Date & Time
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        value={scheduleDate}
+                                        onChange={(e) => setScheduleDate(e.target.value)}
+                                        className="w-full p-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsPublishModalOpen(false)}
+                                className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-xl transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={executePublish}
+                                disabled={isPublishing}
+                                className="flex-[2] py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-70"
+                            >
+                                {isPublishing ? "Processing..." : publishMode === "now" ? "Publish Now" : "Schedule Post"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

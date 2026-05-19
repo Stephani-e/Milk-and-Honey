@@ -5,23 +5,24 @@ import SkeletonLoader from "@/components/UI/SkeletonLoader";
 type AdminSkeletonVariant =
     | "navbar"
     | "module-grid"
-    | "sermon-library"
     | "table"
     | "table-body-only"
     | "list-item"
+    | "sermon-library"
     | "sermon-form"
     | "gallery-library"
     | "gallery-table"
     | "gallery-form"
     | "events-dashboard"
     | "events-form"
-    | "personnel-management"
     | "ads-dashboard"
     | "ads-list"
     | "ads-form"
-    | "settings-form"
     | "newsletter-library"
-    | "newsletter-form";
+    | "newsletter-form"
+    | "personnel-management"
+    | "settings-form";
+
 
 interface AdminSkeletonProps {
     variant: AdminSkeletonVariant;
@@ -89,71 +90,6 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    </div>
-                );
-
-            case "sermon-library":
-                return (
-                    <div className="max-w-6xl mx-auto w-full">
-                        {/* 1. Fake Breadcrumb & Tabs */}
-                        <div className="mb-8">
-                            <div className={`h-4 w-32 ${shimmer} rounded-md mb-8`}/>
-                            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-                                {[1, 2, 3, 4].map(i => (
-                                    <div key={i} className={`h-8 w-24 bg-white/60 rounded-lg ${shimmer}`}/>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* 2. Header & Action Button */}
-                        <div className="flex justify-between items-center mb-10">
-                            <div className={`h-10 w-48 ${shimmer} rounded-lg`}/>
-                            <div className={`h-12 w-32 ${shimmer} rounded-xl`}/>
-                        </div>
-
-                        {/* 3. Filter Bar */}
-                        <div
-                            className={`h-20 w-full bg-white border border-gray-100 rounded-2xl mb-10 ${shimmer} opacity-50`}/>
-
-                        {/* 4. Desktop Table Skeleton */}
-                        <div
-                            className="hidden md:block bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                            <div className="h-12 bg-slate-50 border-b border-gray-100 p-5 flex gap-20">
-                                <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
-                                <div className={`h-3 w-40 ${shimmer} rounded-md`}/>
-                            </div>
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <div key={i} className="p-6 border-b border-gray-50 flex items-center justify-between">
-                                    <div className="flex flex-col gap-3 flex-1">
-                                        <div className={`h-3 w-20 ${shimmer} rounded-full`}/>
-                                        <div className={`h-5 w-64 ${shimmer} rounded-md`}/>
-                                        <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
-                                    </div>
-                                    <div className="flex flex-col gap-3 flex-1">
-                                        <div className={`h-4 w-32 ${shimmer} rounded-md`}/>
-                                        <div className="flex gap-2">
-                                            <div className={`h-4 w-4 ${shimmer} rounded-sm`}/>
-                                            <div className={`h-4 w-4 ${shimmer} rounded-sm`}/>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
-                                        <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* 5. Mobile Cards Skeleton */}
-                        <div className="md:hidden space-y-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm h-48">
-                                    <div className={`h-4 w-20 ${shimmer} rounded-md mb-4`}/>
-                                    <div className={`h-6 w-3/4 ${shimmer} rounded-md mb-2`}/>
-                                    <div className={`h-4 w-1/2 ${shimmer} rounded-md`}/>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 );
@@ -251,6 +187,71 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                 );
 
 
+            case "sermon-library":
+                return (
+                    <div className="max-w-6xl mx-auto w-full">
+                        {/* 1. Fake Breadcrumb & Tabs */}
+                        <div className="mb-8">
+                            <div className={`h-4 w-32 ${shimmer} rounded-md mb-8`}/>
+                            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className={`h-8 w-24 bg-white/60 rounded-lg ${shimmer}`}/>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 2. Header & Action Button */}
+                        <div className="flex justify-between items-center mb-10">
+                            <div className={`h-10 w-48 ${shimmer} rounded-lg`}/>
+                            <div className={`h-12 w-32 ${shimmer} rounded-xl`}/>
+                        </div>
+
+                        {/* 3. Filter Bar */}
+                        <div
+                            className={`h-20 w-full bg-white border border-gray-100 rounded-2xl mb-10 ${shimmer} opacity-50`}/>
+
+                        {/* 4. Desktop Table Skeleton */}
+                        <div
+                            className="hidden md:block bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                            <div className="h-12 bg-slate-50 border-b border-gray-100 p-5 flex gap-20">
+                                <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
+                                <div className={`h-3 w-40 ${shimmer} rounded-md`}/>
+                            </div>
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <div key={i} className="p-6 border-b border-gray-50 flex items-center justify-between">
+                                    <div className="flex flex-col gap-3 flex-1">
+                                        <div className={`h-3 w-20 ${shimmer} rounded-full`}/>
+                                        <div className={`h-5 w-64 ${shimmer} rounded-md`}/>
+                                        <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
+                                    </div>
+                                    <div className="flex flex-col gap-3 flex-1">
+                                        <div className={`h-4 w-32 ${shimmer} rounded-md`}/>
+                                        <div className="flex gap-2">
+                                            <div className={`h-4 w-4 ${shimmer} rounded-sm`}/>
+                                            <div className={`h-4 w-4 ${shimmer} rounded-sm`}/>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                        <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* 5. Mobile Cards Skeleton */}
+                        <div className="md:hidden space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm h-48">
+                                    <div className={`h-4 w-20 ${shimmer} rounded-md mb-4`}/>
+                                    <div className={`h-6 w-3/4 ${shimmer} rounded-md mb-2`}/>
+                                    <div className={`h-4 w-1/2 ${shimmer} rounded-md`}/>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+
             case "sermon-form":
                 return (
                     <div className="max-w-4xl mx-auto w-full animate-in fade-in duration-500">
@@ -297,6 +298,7 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                         </div>
                     </div>
                 );
+
 
             case "gallery-library":
                 return (
@@ -415,6 +417,7 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                     </div>
                 );
 
+
             case "events-dashboard":
                 return (
                     <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-500">
@@ -524,76 +527,6 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                     </div>
                 );
 
-            case "personnel-management":
-                return (
-                    <div className="p-4 md:p-12 max-w-6xl mx-auto w-full animate-in fade-in duration-500">
-                        {/* 1. Header & Slot Tracker */}
-                        <div
-                            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-                            <div className="w-full md:w-auto">
-                                <SkeletonLoader variant="text-block" className="h-10 w-64 mb-2"/>
-                                <SkeletonLoader variant="text-block" className="h-4 w-48"/>
-                            </div>
-                            <div className="flex flex-col w-full md:w-auto items-center md:items-end gap-3">
-                                <SkeletonLoader variant="text-block" className="h-12 w-full md:w-56 rounded-2xl"/>
-                                <div className="flex items-center gap-3 w-full md:w-auto">
-                                    <div className="flex-1 md:w-32 h-1.5 bg-gray-100 rounded-full overflow-hidden"/>
-                                    <SkeletonLoader variant="text-block" className="h-3 w-16"/>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 2. Tabs & Search */}
-                        <div className={`h-12 w-48 bg-gray-100 rounded-2xl mb-8 ${shimmer} opacity-40`}/>
-                        <div className="flex flex-col md:flex-row gap-4 mb-8">
-                            <div
-                                className={`h-14 flex-1 bg-white border border-gray-100 rounded-2xl ${shimmer} opacity-20`}/>
-                            <div className="flex gap-2">
-                                <div
-                                    className={`h-14 w-32 bg-white border border-gray-100 rounded-2xl ${shimmer} opacity-20`}/>
-                                <div
-                                    className={`h-14 w-32 bg-white border border-gray-100 rounded-2xl ${shimmer} opacity-20`}/>
-                            </div>
-                        </div>
-
-                        {/* 3. Table Skeleton */}
-                        <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
-                            <div className="hidden md:block">
-                                <div className="bg-slate-50 border-b border-gray-100 h-14"/>
-                                {[1, 2, 3, 4, 5].map(i => (
-                                    <div key={i}
-                                         className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
-                                        <div className="space-y-2">
-                                            <div className={`h-5 w-48 ${shimmer} rounded-md`}/>
-                                            <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
-                                        </div>
-                                        <div className={`h-6 w-24 ${shimmer} rounded-full`}/>
-                                        <div className="flex gap-2">
-                                            <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
-                                            <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
-                                            <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            {/* Mobile View */}
-                            <div className="md:hidden p-5 space-y-8">
-                                {[1, 2].map(i => (
-                                    <div key={i} className="space-y-4">
-                                        <div className="flex justify-between">
-                                            <div className={`h-5 w-32 ${shimmer} rounded-md`}/>
-                                            <div className={`h-6 w-16 ${shimmer} rounded-full`}/>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className={`h-12 flex-1 ${shimmer} rounded-xl`}/>
-                                            <div className={`h-12 flex-1 ${shimmer} rounded-xl`}/>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                );
 
             case "ads-dashboard":
                 return (
@@ -799,6 +732,124 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                     </div>
                 );
 
+            case "newsletter-form":
+                return (
+                    <div className="max-w-4xl mx-auto w-full animate-in fade-in duration-500">
+                        {/* Fake Breadcrumb */}
+                        <SkeletonLoader variant="text-block" className="h-4 w-48 mb-12"/>
+
+                        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
+                            <SkeletonLoader variant="text-block" className="h-10 w-64 mb-10"/>
+
+                            {/* Step 1: Categories */}
+                            <div className="space-y-4 mb-12">
+                                <SkeletonLoader variant="text-block" className="h-3 w-32"/>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className={`h-24 w-full ${shimmer} rounded-2xl`}/>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Step 2: Input Grid */}
+                            <div className="space-y-6">
+                                <SkeletonLoader variant="text-block" className="h-3 w-40"/>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <SkeletonLoader variant="text-block" className="h-12 rounded-lg"/>
+                                    <SkeletonLoader variant="text-block" className="h-12 rounded-lg"/>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <SkeletonLoader variant="text-block" className="h-12 rounded-lg"/>
+                                    <SkeletonLoader variant="text-block" className="h-12 rounded-lg"/>
+                                </div>
+                            </div>
+
+                            {/* Step 3: Editor Area */}
+                            <div className="mt-12">
+                                <SkeletonLoader variant="text-block" className="h-3 w-32 mb-4"/>
+                                <SkeletonLoader variant="text-block" className="h-64 rounded-xl"/>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex gap-4 mt-12">
+                                <SkeletonLoader variant="text-block" className="h-14 flex-1 rounded-2xl"/>
+                                <SkeletonLoader variant="text-block" className="h-14 flex-[2] rounded-2xl"/>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+
+            case "personnel-management":
+                return (
+                    <div className="p-4 md:p-12 max-w-6xl mx-auto w-full animate-in fade-in duration-500">
+                        {/* 1. Header & Slot Tracker */}
+                        <div
+                            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                            <div className="w-full md:w-auto">
+                                <SkeletonLoader variant="text-block" className="h-10 w-64 mb-2"/>
+                                <SkeletonLoader variant="text-block" className="h-4 w-48"/>
+                            </div>
+                            <div className="flex flex-col w-full md:w-auto items-center md:items-end gap-3">
+                                <SkeletonLoader variant="text-block" className="h-12 w-full md:w-56 rounded-2xl"/>
+                                <div className="flex items-center gap-3 w-full md:w-auto">
+                                    <div className="flex-1 md:w-32 h-1.5 bg-gray-100 rounded-full overflow-hidden"/>
+                                    <SkeletonLoader variant="text-block" className="h-3 w-16"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Tabs & Search */}
+                        <div className={`h-12 w-48 bg-gray-100 rounded-2xl mb-8 ${shimmer} opacity-40`}/>
+                        <div className="flex flex-col md:flex-row gap-4 mb-8">
+                            <div
+                                className={`h-14 flex-1 bg-white border border-gray-100 rounded-2xl ${shimmer} opacity-20`}/>
+                            <div className="flex gap-2">
+                                <div
+                                    className={`h-14 w-32 bg-white border border-gray-100 rounded-2xl ${shimmer} opacity-20`}/>
+                                <div
+                                    className={`h-14 w-32 bg-white border border-gray-100 rounded-2xl ${shimmer} opacity-20`}/>
+                            </div>
+                        </div>
+
+                        {/* 3. Table Skeleton */}
+                        <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+                            <div className="hidden md:block">
+                                <div className="bg-slate-50 border-b border-gray-100 h-14"/>
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <div key={i}
+                                         className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
+                                        <div className="space-y-2">
+                                            <div className={`h-5 w-48 ${shimmer} rounded-md`}/>
+                                            <div className={`h-3 w-32 ${shimmer} rounded-md`}/>
+                                        </div>
+                                        <div className={`h-6 w-24 ${shimmer} rounded-full`}/>
+                                        <div className="flex gap-2">
+                                            <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                            <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                            <div className={`h-10 w-10 ${shimmer} rounded-xl`}/>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Mobile View */}
+                            <div className="md:hidden p-5 space-y-8">
+                                {[1, 2].map(i => (
+                                    <div key={i} className="space-y-4">
+                                        <div className="flex justify-between">
+                                            <div className={`h-5 w-32 ${shimmer} rounded-md`}/>
+                                            <div className={`h-6 w-16 ${shimmer} rounded-full`}/>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <div className={`h-12 flex-1 ${shimmer} rounded-xl`}/>
+                                            <div className={`h-12 flex-1 ${shimmer} rounded-xl`}/>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
 
             case "settings-form":
                 return (

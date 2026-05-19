@@ -156,7 +156,7 @@ export default function EditEventPage() {
         e.preventDefault();
         setLoading(true);
 
-        const finalLocation = locationSelection === "Custom" ? customLocation : locationSelection;
+        // const finalLocation = locationSelection === "Custom" ? customLocation : locationSelection;
 
         const payload: any = {
             title, description, location,

@@ -64,7 +64,7 @@ export default function GlobalSettingsPage() {
             setLoading(false);
         };
 
-        fetchSettings();
+        fetchSettings().catch(error => console.error("Error fetching settings:", error));
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,7 +195,7 @@ export default function GlobalSettingsPage() {
                         <label className="text-xs font-black text-gray-400 uppercase ml-1">Google Maps Link</label>
                         <input name="google_maps_link" value={formData.google_maps_link} onChange={handleChange}
                                placeholder="https://maps.google.com/..."
-                               className="w-full p-3 mt-1 bg-blue-50/50 text-black border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-blue-900"/>
+                               className="w-full p-3 mt-1 bg-blue-50/50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-blue-900"/>
                     </div>
                 </div>
 

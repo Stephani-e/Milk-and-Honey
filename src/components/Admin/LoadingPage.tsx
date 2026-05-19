@@ -11,7 +11,6 @@ interface LoadingProps {
 export default function LoadingState({
                                          message = "Loading...",
                                          variant = "full",
-                                         LogoUrl
                                      }: LoadingProps) {
 
     //Used for initial entry or big actions

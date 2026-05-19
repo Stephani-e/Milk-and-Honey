@@ -8,12 +8,6 @@ import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
-interface UserProfile {
-    full_name?: string;
-    email?: string;
-    role?: string;
-}
-
 export default function Navbar() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);

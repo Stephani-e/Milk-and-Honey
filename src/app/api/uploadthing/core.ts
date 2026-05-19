@@ -9,20 +9,20 @@ export const ourFileRouter = {
         .onUploadComplete(async ({file}) => {
             console.log("Upload complete for file:", file.name);
             // Swapped file.url for file.appUrl
-            return {url: file.url};
+            return {url: file.ufsUrl};
         }),
 
     // This endpoint is for the Sermon Video Clip
     videoUploader: f({video: {maxFileSize: "32MB"}})
         .onUploadComplete(async ({file}) => {
-            return {url: file.url};
+            return {url: file.ufsUrl};
         }),
 
     mediaGalleryUploader: f({
         image: {maxFileSize: "8MB", maxFileCount: 20},
         video: {maxFileSize: "64MB", maxFileCount: 5},
     }).onUploadComplete(async ({file}) => {
-        return {url: file.url, type: file.type};
+        return {url: file.ufsUrl, type: file.type};
     }),
 } satisfies FileRouter;
 

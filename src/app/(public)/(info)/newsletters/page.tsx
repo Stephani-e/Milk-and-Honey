@@ -1,10 +1,12 @@
-import React from "react";
+"use client";
+import React, {Suspense, useEffect, useState} from "react";
 import Link from "next/link";
 import {ArrowRight, Calendar, ChevronLeft, ChevronRight, Clock, Mail, Megaphone, Newspaper,} from "lucide-react";
 import {supabase} from "@/lib/supabase";
+import SkeletonLoader from "@/components/UI/SkeletonLoader";
+import {useSearchParams} from "next/navigation";
 
-export const dynamic = 'force-dynamic';
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 7;
 
 // --- SVG Icons ---
 const Instagram = ({size = 20, className = ""}) => (
@@ -24,7 +26,7 @@ const Twitter = ({size = 20, className = ""}) => (
     </svg>
 );
 
-// --- DATE MATH ENGINE (Server Side) ---
+// --- DATE MATH ENGINE ---
 const getFirstFriday = (year: number, month: number) => {
     let d = new Date(year, month, 1);
     while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
@@ -81,16 +83,13 @@ const calculateMonthlyDate = (rule: string, year: number, month: number): Date |
     }
 };
 
-// Calculates the next time an event happens from RIGHT NOW
 const getNextOccurrence = (event: any, now: Date) => {
     const year = now.getFullYear();
     const month = now.getMonth();
-
     if (event.event_type === 'single_day' && event.start_datetime) {
         const d = new Date(event.start_datetime);
         return d > now ? d : null;
     }
-
     if (event.event_type === 'multi_day' && event.multi_day_schedule) {
         const schedule = typeof event.multi_day_schedule === 'string' ? JSON.parse(event.multi_day_schedule) : event.multi_day_schedule;
         for (let day of schedule) {
@@ -99,10 +98,8 @@ const getNextOccurrence = (event: any, now: Date) => {
         }
         return null;
     }
-
     if (event.event_type === 'recurring' && event.recurrence_rules) {
         const rules = typeof event.recurrence_rules === 'string' ? JSON.parse(event.recurrence_rules) : event.recurrence_rules;
-
         if (rules.pattern_type === 'weekly') {
             const dayMap: Record<string, number> = {
                 "sunday": 0,
@@ -115,30 +112,20 @@ const getNextOccurrence = (event: any, now: Date) => {
             };
             const targetDay = dayMap[rules.day?.toLowerCase()];
             if (targetDay === undefined) return null;
-
             let d = new Date(now);
             const [hours, minutes] = (rules.start_time || "00:00").split(':');
             d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-            // If it's today and hasn't happened yet
             if (d.getDay() === targetDay && d > now) return d;
-
-            // Otherwise, find the next occurrence
             d.setDate(d.getDate() + ((targetDay + 7 - d.getDay()) % 7 || 7));
             return d;
         }
-
         if (rules.pattern_type === 'monthly') {
             const [hours, minutes] = (rules.start_time || "00:00").split(':');
-
-            // Try current month
             let d = calculateMonthlyDate(rules.rule, year, month);
             if (d) {
                 d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
                 if (d > now) return d;
             }
-
-            // Try next month
             let nextMonth = month === 11 ? 0 : month + 1;
             let nextYear = month === 11 ? year + 1 : year;
             let dNext = calculateMonthlyDate(rules.rule, nextYear, nextMonth);
@@ -151,77 +138,81 @@ const getNextOccurrence = (event: any, now: Date) => {
     return null;
 };
 
+function NewsletterContent() {
+    const searchParams = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1");
 
-export default async function PublicNewslettersPage({
-                                                        searchParams,
-                                                    }: {
-    searchParams: Promise<{ page?: string }>
-}) {
-    // 1. Resolve Params for Next.js 15
-    const resolvedSearchParams = await searchParams;
-    const currentPage = resolvedSearchParams.page ? parseInt(resolvedSearchParams.page) : 1;
-    const now = new Date();
-    const nowIso = now.toISOString();
+    const [newsletters, setNewsletters] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [settings, setSettings] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [totalCount, setTotalCount] = useState(0);
 
-    // 2. Fetch Events from proper table and process them
-    const {data: allEvents} = await supabase
-        .from('church_events')
-        .select('*')
-        .eq('is_active', true)
-        .is('deleted_at', null);
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            const now = new Date();
+            const nowIso = now.toISOString();
 
-    let processedEvents: any[] = [];
-    if (allEvents) {
-        allEvents.forEach(event => {
-            const nextDate = getNextOccurrence(event, now);
-            if (nextDate) {
-                processedEvents.push({
-                    ...event,
-                    nextDate: nextDate,
-                    timeString: nextDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
-                });
+            const [eventsRes, settingsRes, newsRes] = await Promise.all([
+                supabase.from('church_events').select('*').eq('is_active', true).is('deleted_at', null),
+                supabase.from('site_settings').select('*').single(),
+                supabase.from('newsletters')
+                    .select('*', {count: 'exact'})
+                    .eq('is_published', true)
+                    .lte('published_at', nowIso)
+                    .order('is_pinned', {ascending: false})
+                    .order('published_at', {ascending: false})
+                    .range((currentPage - 1) * ITEMS_PER_PAGE, (currentPage * ITEMS_PER_PAGE) - 1)
+            ]);
+
+            setEvents(eventsRes.data || []);
+            setSettings(settingsRes.data);
+            setNewsletters(newsRes.data || []);
+            setTotalCount(newsRes.count || 0);
+            setLoading(false);
+        }
+
+        loadData().catch(error => console.error('Error loading data:', error));
+    }, [currentPage]);
+
+    // Process events
+// --- UPDATED EVENT PROCESSING LOGIC ---
+    const processedEvents = events
+        .map(event => {
+            const nextDate = getNextOccurrence(event, new Date());
+            if (!nextDate) return null;
+
+            let timeString = nextDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+            // Logic: Check for the multi-session array
+            const rules = typeof event.recurrence_rules === 'string'
+                ? JSON.parse(event.recurrence_rules)
+                : event.recurrence_rules;
+
+            if (event.event_type === 'multi_day') {
+                timeString = "Multi-Day Event";
             }
-        });
-    }
+            // If it's recurring and has an array of sessions, show "Multiple Sessions"
+            else if (event.event_type === 'recurring' && rules?.standard_sessions && rules.standard_sessions.length > 0) {
+                timeString = "Multiple Sessions";
+            }
+            // If it has a specific rule (like "Holy Ghost Service" at 6pm), use that rule's time
+            else if (rules?.start_time) {
+                timeString = rules.start_time;
+            }
 
-    // Sort by soonest and grab the top 4
-    processedEvents.sort((a, b) => a.nextDate.getTime() - b.nextDate.getTime());
-    const top4Events = processedEvents.slice(0, 4);
+            return {...event, nextDate, timeString};
+        })
+        .filter(Boolean)
+        .sort((a, b) => a!.nextDate.getTime() - b!.nextDate.getTime())
+        .slice(0, 4);
 
+    if (loading) return <div className="min-h-screen bg-slate-50 p-12"><SkeletonLoader variant="newsletter"/></div>;
 
-    // 3. Logic for the FEATURED Newsletter (Pinned or Newest)
-    let featuredNewsletter = null;
-    const {data: pinnedData} = await supabase.from('newsletters').select('*').eq('is_published', true).lte('published_at', nowIso).eq('is_pinned', true).limit(1);
-
-    if (pinnedData && pinnedData.length > 0) {
-        featuredNewsletter = pinnedData[0];
-    } else {
-        const {data: latestData} = await supabase.from('newsletters').select('*').eq('is_published', true).lte('published_at', nowIso).order('published_at', {ascending: false}).limit(1);
-        if (latestData && latestData.length > 0) featuredNewsletter = latestData[0];
-    }
-
-    // 4. Logic for the PAGINATED TABLE (Exclude featured post)
-    const featuredId = featuredNewsletter?.id || '00000000-0000-0000-0000-000000000000';
-    const from = (currentPage - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-
-    const {data: olderNewsletters, count} = await supabase
-        .from('newsletters')
-        .select('*', {count: 'exact'})
-        .eq('is_published', true)
-        .lte('published_at', nowIso)
-        .neq('id', featuredId)
-        .order('published_at', {ascending: false})
-        .range(from, to);
-
-    const safeOlderNewsletters = olderNewsletters || [];
-    const totalPages = count ? Math.ceil(count / ITEMS_PER_PAGE) : 1;
-
-    // --- Fetch Settings Securely ---
-    const {data: settings} = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
+    const featuredNewsletter = newsletters[0];
+    const olderNewsletters = newsletters.slice(1);
+    const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
     return (
         <div className="bg-slate-50 min-h-screen pb-24 font-sans">
@@ -232,7 +223,7 @@ export default async function PublicNewslettersPage({
                     className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1504052434569-70ad5836ab65?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <span
-                        className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block flex items-center gap-2">
+                        className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 flex items-center gap-2">
                         <Newspaper size={16}/> Church Updates
                     </span>
                     <h1 className="text-4xl md:text-6xl font-serif font-black text-white leading-tight max-w-2xl">
@@ -259,7 +250,7 @@ export default async function PublicNewslettersPage({
                             </Link>
                         </div>
 
-                        {top4Events.length === 0 ? (
+                        {processedEvents.length === 0 ? (
                             <div
                                 className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-gray-200">
                                 <p className="text-sm font-bold text-gray-400 italic">No major upcoming events listed at
@@ -267,7 +258,7 @@ export default async function PublicNewslettersPage({
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {top4Events.map((event: any, idx: number) => (
+                                {processedEvents.map((event: any, idx: number) => (
                                     <div key={idx}
                                          className="flex gap-4 p-4 rounded-2xl bg-slate-50 hover:bg-brand-surface border border-transparent hover:border-brand-accent transition-all group">
                                         <div
@@ -337,7 +328,7 @@ export default async function PublicNewslettersPage({
                                     type="email"
                                     placeholder="Enter your email address"
                                     required
-                                    className="w-full py-4 pl-12 pr-4 bg-slate-50 border border-gray-200 rounded-xl outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all text-sm font-medium"
+                                    className="w-full py-4 pl-12 pr-4 bg-slate-50 border border-gray-200 text-brand-primary rounded-xl outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all text-sm font-medium"
                                 />
                             </div>
                             <button type="submit"
@@ -382,7 +373,7 @@ export default async function PublicNewslettersPage({
                                     )}
                                     <div
                                         className="absolute top-4 left-4 bg-amber-400 text-amber-950 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-1.5">
-                                        {featuredNewsletter.is_pinned ? "📌 Pinned Update" : "Latest Update"}
+                                        {featuredNewsletter.is_pinned ? " Pinned Update" : "Latest Update"}
                                     </div>
                                 </div>
                                 <div className="p-8 md:p-12 flex flex-col justify-center">
@@ -407,7 +398,7 @@ export default async function PublicNewslettersPage({
                             </Link>
 
                             {/* 2. THE TABLE ARCHIVE (Paginated) */}
-                            {safeOlderNewsletters.length > 0 && (
+                            {olderNewsletters.length > 0 && (
                                 <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                                     <div
                                         className="px-6 py-5 border-b border-gray-100 bg-slate-50/50 flex justify-between items-center">
@@ -418,7 +409,7 @@ export default async function PublicNewslettersPage({
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                             <tr className="border-b border-gray-100">
-                                                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-400 w-32">Date</th>
+                                                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-400 w-36">Date</th>
                                                 <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-400">Newsletter
                                                     Details
                                                 </th>
@@ -427,7 +418,7 @@ export default async function PublicNewslettersPage({
                                             </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-50">
-                                            {safeOlderNewsletters.map((newsletter) => (
+                                            {olderNewsletters.map((newsletter) => (
                                                 <tr key={newsletter.id}
                                                     className="hover:bg-slate-50 transition-colors group cursor-pointer relative">
                                                     <td className="p-5 align-top">
@@ -501,5 +492,13 @@ export default async function PublicNewslettersPage({
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function PublicNewslettersPage() {
+    return (
+        <Suspense fallback={<SkeletonLoader variant="newsletter"/>}>
+            <NewsletterContent/>
+        </Suspense>
     );
 }
