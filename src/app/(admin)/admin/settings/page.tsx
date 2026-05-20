@@ -28,9 +28,12 @@ export default function GlobalSettingsPage() {
         // Contact
         phone_primary: "",
         phone_link: "",
-        email_public: "",
+        media_email_support: "",
         whatsapp_number: "",
-        email_tech_support: "",
+        church_admin_email: "",
+        pastoral_email: "",
+        developer_email_support: "",
+        developer_email_support_admin: "",
         // Socials (Main)
         instagram_url: "",
         facebook_url: "",
@@ -39,7 +42,6 @@ export default function GlobalSettingsPage() {
         // Socials (Dynamic)
         extra_social_links: [] as ExtraSocial[],
         // Audio
-        mixlr_url: "",
         spotify_url: "",
         apple_podcasts_url: "",
         youtube_music_url: ""
@@ -112,7 +114,7 @@ export default function GlobalSettingsPage() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 pb-24">
+        <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 pb-24">
 
             <div className="mb-6 md:mb-8">
                 <Link
@@ -225,7 +227,7 @@ export default function GlobalSettingsPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs font-black text-gray-400 uppercase ml-1">Public Email</label>
-                            <input name="email_public" value={formData.email_public} onChange={handleChange}
+                            <input name="church_admin_email" value={formData.church_admin_email} onChange={handleChange}
                                    className="w-full p-3 mt-1 bg-gray-50 text-black border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/20 outline-none"/>
                         </div>
                         <div>
@@ -237,19 +239,73 @@ export default function GlobalSettingsPage() {
                         </div>
                     </div>
 
-                    {/* Developer Lock Section */}
-                    <div
-                        className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-500 uppercase">
-                                <Lock size={12}/> Tech Support Route
-                            </div>
-                            <p className="text-[10px] text-slate-400 mt-1">System errors are forwarded to the Dev
-                                Team.</p>
+                            <label className="text-xs font-black text-gray-400 uppercase ml-1">Pastors Email</label>
+                            <input name="pastoral_email" value={formData.pastoral_email} onChange={handleChange}
+                                   className="w-full p-3 mt-1 bg-gray-50 text-black border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/20 outline-none"/>
                         </div>
+                        <div>
+                            <label className="text-xs font-black text-gray-400 uppercase ml-1">Media Email for
+                                Complaints</label>
+                            <input name="media_email_support" value={formData.media_email_support}
+                                   onChange={handleChange}
+                                   className="w-full p-3 mt-1 bg-gray-50 text-black border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary/20 outline-none"/>
+                        </div>
+                    </div>
+
+                    {/* Developer & Tech Support Section */}
+                    <div
+                        className="mt-8 p-6 md:p-8 bg-slate-900 rounded-[2rem] border border-slate-800 flex flex-col gap-6 relative overflow-hidden shadow-2xl">
+
+                        {/* Subtle decorative background element */}
                         <div
-                            className="px-4 py-2 bg-slate-200 text-slate-600 font-medium text-sm rounded-lg w-full sm:w-auto text-center cursor-not-allowed">
-                            {formData.email_tech_support || "Dev Email Locked"}
+                            className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
+
+                        <div
+                            className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Lock className="text-amber-500" size={18}/>
+                                    <h3 className="text-white font-bold uppercase tracking-widest text-xs">Developer &
+                                        System Support</h3>
+                                </div>
+                                <p className="text-[10px] text-slate-400">Configure technical routing and contact the
+                                    dev team for system issues.</p>
+                            </div>
+
+                            {/* The Direct Contact Button */}
+                            <a
+                                href={`mailto:${formData.developer_email_support_admin || 'byteandsecurity.support+admin@gmail.com'}?cc=${formData.developer_email_support}&subject=Milk & Honey Admin - Support Request&body=Hello Dev Team,%0D%0A%0D%0AI need assistance with...`}
+                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-amber-500/20 active:scale-95"
+                            >
+                                Contact Developer
+                            </a>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                            <div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Primary Dev
+                                    Email</label>
+                                <input
+                                    name="developer_email_support"
+                                    value={formData.developer_email_support}
+                                    onChange={handleChange}
+                                    placeholder="support@..."
+                                    className="w-full p-3 mt-1 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 cursor-not-allowed"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Secondary /
+                                    Admin Dev Email</label>
+                                <input
+                                    name="developer_email_support_admin"
+                                    value={formData.developer_email_support_admin}
+                                    onChange={handleChange}
+                                    placeholder="admin@..."
+                                    className="w-full p-3 mt-1 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 cursor-not-allowed"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,12 +315,6 @@ export default function GlobalSettingsPage() {
                     <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
                         <Radio className="text-brand-secondary" size={22}/>
                         <h2 className="text-xl font-bold text-brand-primary">Audio Ministries</h2>
-                    </div>
-                    <div>
-                        <label className="text-xs font-black text-amber-600 uppercase ml-1">Mixlr Link (Live
-                            Radio)</label>
-                        <input name="mixlr_url" value={formData.mixlr_url} onChange={handleChange}
-                               className="w-full p-3 mt-1 bg-amber-50/50 text-amber-400 border border-amber-100 rounded-xl focus:ring-2 focus:ring-amber-500/20 outline-none"/>
                     </div>
                     <div>
                         <label className="text-xs font-black text-[#1DB954] uppercase ml-1">Spotify Podcast</label>

@@ -1,9 +1,26 @@
-import React from "react";
+"use client"
+import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {ArrowLeft, Camera, Database, Eye, Lock, ShieldCheck} from "lucide-react";
-import {CHURCH_INFO} from "@/lib/constants";
+import {supabase} from "@/lib/supabase";
 
 export default function PrivacyPolicyPage() {
+
+    const [settings, setSettings] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const {data} = await supabase
+                .from('site_settings')
+                .select('*')
+                .single();
+
+            if (data) setSettings(data);
+        };
+
+        fetchSettings().catch(console.error);
+    }, []);
+
     return (
         <div className="flex flex-col bg-slate-50 min-h-screen pb-24">
 
@@ -44,7 +61,8 @@ export default function PrivacyPolicyPage() {
                                 Introduction</h2>
                             <p>
                                 Welcome to the official website
-                                of <strong>{CHURCH_INFO.name}</strong>, {CHURCH_INFO.parish}. We respect your privacy
+                                of <strong>{settings?.church_name}</strong>, {settings?.parish_name}. We respect your
+                                privacy
                                 and are committed to protecting your personal data. This privacy policy will inform you
                                 as to how we look after your personal data when you visit our website and tell you about
                                 your privacy rights.
@@ -117,7 +135,8 @@ export default function PrivacyPolicyPage() {
                             <ul className="list-disc pl-6 space-y-3">
                                 <li>
                                     <strong>Implied Consent:</strong> By attending our public services and events
-                                    at {CHURCH_INFO.name}, you consent to the capture and use of your image, likeness,
+                                    at {settings?.church_name}, you consent to the capture and use of your image,
+                                    likeness,
                                     and voice for these stated ministry purposes.
                                 </li>
                                 <li>
@@ -176,12 +195,25 @@ export default function PrivacyPolicyPage() {
                                 request, please contact our administrative team:
                             </p>
                             <div className="space-y-2 text-sm">
-                                <p><strong>Entity:</strong> {CHURCH_INFO.name} ({CHURCH_INFO.parish})</p>
-                                <p><strong>Email Address:</strong> <a href={`mailto:${CHURCH_INFO.contact.email}`}
-                                                                      className="text-brand-primary font-bold hover:underline">{CHURCH_INFO.contact.email}</a>
+                                <p><strong>Entity:</strong> {settings?.church_name} ({settings?.parish_name})</p>
+                                <p className='flex flex-col gap-1'>
+                                    <strong>Email Address(es):</strong>
+                                    <a href={`mailto:${settings?.church_admin_email}`}
+                                       className="text-brand-primary font-bold hover:underline">
+                                        {settings?.church_admin_email}
+                                    </a>
+
+                                    <a href={`mailto:${settings?.media_email_support}`}
+                                       className="text-brand-primary font-bold hover:underline">
+                                        {settings?.media_email_support}
+                                    </a>
                                 </p>
                                 <p><strong>Physical
-                                    Address:</strong> {CHURCH_INFO.address.street}, {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}
+                                    Address:
+                                </strong>
+                                    {settings?.address_street},
+                                    {settings?.address_city},
+                                    {settings?.address_country}
                                 </p>
                             </div>
                         </div>

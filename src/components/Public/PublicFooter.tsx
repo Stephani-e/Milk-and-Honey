@@ -132,10 +132,10 @@ export default function PublicFooter({settings}: { settings: any }) {
                             </a>
                         </li>
                         <li>
-                            <a href={`mailto:${settings?.email_public}`}
+                            <a href={`mailto:${settings?.church_admin_email}`}
                                className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
                                 {/* SVG Mail Icon */}
-                                {settings?.email_public || "Email Not Set"}
+                                {settings?.church_admin_email || "Email Not Set"}
                             </a>
                         </li>
                         <li>

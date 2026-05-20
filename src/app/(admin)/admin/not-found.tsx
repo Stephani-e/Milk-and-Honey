@@ -46,7 +46,7 @@ export default function AdminNotFound() {
                 </Link>
 
                 <a
-                    href={`mailto:${settings?.email_tech_support || 'support@yourbrand.com'}?subject=Admin Broken Link Report&body=I encountered an error at: ${currentUrl}`}
+                    href={`mailto:${settings?.email_tech_support || 'byteandsecurity.support+admin@gmail.com'}?subject=Admin Broken Link Report&body=I encountered an error at: ${currentUrl}`}
                     className="flex items-center justify-center gap-2 w-full bg-slate-800 text-slate-300 py-4 rounded-xl font-bold hover:bg-slate-700 transition-all"
                 >
                     <Mail size={18}/> Contact Admin Support

@@ -3,7 +3,6 @@ import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {toast} from "sonner";
 import {Calendar, Clock, Info, Mail, MapPin, Phone, Send} from "lucide-react";
-import {CHURCH_INFO} from "@/lib/constants";
 import {supabase} from "@/lib/supabase";
 
 const FacebookIcon = ({size = 20, className = ""}) => (
@@ -33,6 +32,19 @@ const TwitterIcon = ({size = 20, className = ""}) => (
 export default function ContactPage() {
     const [loading, setLoading] = useState(false);
     const [settings, setSettings] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const {data} = await supabase
+                .from('site_settings')
+                .select('*')
+                .single();
+
+            if (data) setSettings(data);
+        };
+
+        fetchSettings().catch(console.error);
+    }, []);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -88,19 +100,6 @@ export default function ContactPage() {
         }
     };
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            const {data} = await supabase
-                .from('site_settings')
-                .select('*')
-                .single();
-
-            if (data) setSettings(data);
-        };
-
-        fetchSettings().catch(console.error);
-    }, []);
-
     return (
         <div className="flex flex-col bg-slate-50 min-h-screen">
 
@@ -148,7 +147,7 @@ export default function ContactPage() {
                                         {settings?.parish_name || "Parish"}, <br/>
                                         {settings?.address_city}, {settings?.address_country}.
                                     </p>
-                                    <a href={CHURCH_INFO.address.googleMapsLink} target="_blank" rel="noreferrer"
+                                    <a href={settings?.googleMapsLink} target="_blank" rel="noreferrer"
                                        className="text-xs font-bold text-brand-primary uppercase tracking-widest mt-3 inline-block hover:text-amber-600 transition-colors">
                                         Get Directions →
                                     </a>
@@ -176,9 +175,9 @@ export default function ContactPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Email</h4>
-                                    <a href={`mailto:${settings?.email_public}`}
+                                    <a href={`mailto:${settings?.church_admin_email}`}
                                        className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
-                                        {settings?.email_public}
+                                        {settings?.church_admin_email}
                                     </a>
                                 </div>
                             </div>
