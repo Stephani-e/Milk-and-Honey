@@ -156,7 +156,7 @@ export default function NewNewsletterPage() {
                         body: JSON.stringify({
                             title: `New Update: ${formData.title}`,
                             body: formData.excerpt || "Tap to read the latest from Milk & Honey.",
-                            url: `/newsletters/${formData.slug}`
+                            url: `${window.location.origin}/newsletters/${formData.slug}`
                         })
                     });
 

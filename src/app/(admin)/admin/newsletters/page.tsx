@@ -217,7 +217,7 @@ export default function NewslettersPage() {
                         body: JSON.stringify({
                             title: `New Update: ${selectedNewsletter.title}`,
                             body: selectedNewsletter.excerpt || "Tap to read the latest from Milk & Honey.",
-                            url: `/newsletters/${selectedNewsletter.slug}`
+                            url: `${window.location.origin}/newsletters/${selectedNewsletter.slug}`
                         })
                     });
 
