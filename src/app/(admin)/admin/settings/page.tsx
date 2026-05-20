@@ -300,7 +300,6 @@ export default function GlobalSettingsPage() {
                                 <input
                                     name="developer_email_support"
                                     value={formData.developer_email_support}
-                                    onChange={handleChange}
                                     placeholder="support@..."
                                     className="w-full p-3 mt-1 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 cursor-not-allowed"
                                 />
@@ -311,7 +310,6 @@ export default function GlobalSettingsPage() {
                                 <input
                                     name="developer_email_support_admin"
                                     value={formData.developer_email_support_admin}
-                                    onChange={handleChange}
                                     placeholder="admin@..."
                                     className="w-full p-3 mt-1 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 cursor-not-allowed"
                                 />
