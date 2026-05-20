@@ -103,6 +103,7 @@ export default function NewNewsletterPage() {
     };
 
     // Submit Handler
+    // Submit Handler
     const handleSubmit = async (targetAction: 'draft' | 'publish') => {
         if (!formData.title || !formData.content) {
             return toast.error("Title and Content are required.");
@@ -134,6 +135,7 @@ export default function NewNewsletterPage() {
             push_notification_sent: false
         };
 
+        // 1. Save to Database
         const {error} = await supabase.from("newsletters").insert([submission]);
 
         if (error) {
@@ -144,7 +146,36 @@ export default function NewNewsletterPage() {
             }
             setLoading(false);
         } else {
-            toast.success(targetAction === 'publish' ? "Newsletter Published Successfully!" : 'Saved to Drafts');
+
+            // 2. TRIGGER NOTIFICATION BLAST (Only for Immediate Publishing)
+            if (targetAction === 'publish' && publishStatus === "publish_now") {
+                try {
+                    const pushRes = await fetch("/api/push/send", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            title: `New Update: ${formData.title}`,
+                            body: formData.excerpt || "Tap to read the latest from Milk & Honey.",
+                            url: `/newsletters/${formData.slug}`
+                        })
+                    });
+
+                    const pushData = await pushRes.json();
+
+                    if (pushData.success && pushData.count > 0) {
+                        toast.success(`Live! Push notification sent to ${pushData.count} subscribers 🚀`);
+                    } else {
+                        toast.success("Newsletter Published! (No subscribers to notify yet)");
+                    }
+                } catch (err) {
+                    console.error("Push blast failed:", err);
+                    toast.success("Newsletter Published! (But push notification failed to send)");
+                }
+            } else {
+                toast.success(targetAction === 'publish' ? "Newsletter Scheduled Successfully!" : 'Saved to Drafts');
+            }
+
+            // 3. Cleanup and Redirect
             localStorage.removeItem("newsletter_draft"); // Clear cache on success
 
             const targetPath = targetAction === 'publish' ? "/admin/newsletters" : "/admin/newsletters?tab=draft";

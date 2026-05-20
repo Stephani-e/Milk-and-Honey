@@ -198,14 +198,45 @@ export default function NewslettersPage() {
         setIsPublishing(true);
         const published_at = publishMode === "now" ? new Date().toISOString() : new Date(scheduleDate).toISOString();
 
+        // 1. Update the database first
         const {error} = await supabase
             .from("newsletters")
             .update({is_published: true, published_at})
             .eq("id", selectedNewsletter.id);
 
-        if (error) toast.error("Failed to publish: " + error.message);
-        else {
-            toast.success(publishMode === "now" ? "Newsletter is now live!" : "Newsletter Scheduled!");
+        if (error) {
+            toast.error("Failed to publish: " + error.message);
+        } else {
+
+            // 2. TRIGGER NOTIFICATION BLAST (Only for Immediate Publishing)
+            if (publishMode === "now") {
+                try {
+                    const pushRes = await fetch("/api/push/send", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            title: `New Update: ${selectedNewsletter.title}`,
+                            body: selectedNewsletter.excerpt || "Tap to read the latest from Milk & Honey.",
+                            url: `/newsletters/${selectedNewsletter.slug}`
+                        })
+                    });
+
+                    const pushData = await pushRes.json();
+
+                    if (pushData.success && pushData.count > 0) {
+                        toast.success(`Live! Push notification sent to ${pushData.count} subscribers 🚀`);
+                    } else {
+                        toast.success("Newsletter is live! (No subscribers to notify yet)");
+                    }
+                } catch (err) {
+                    console.error("Push blast failed:", err);
+                    toast.success("Live! (But push notification failed to send)");
+                }
+            } else {
+                toast.success("Newsletter Scheduled!");
+            }
+
+            // 3. Refresh the UI
             await fetchNewsletters();
         }
 
