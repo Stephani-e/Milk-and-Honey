@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {ArrowRight, Camera, Globe, Heart, Mail, MapPin, Phone, PlayCircle, Users} from "lucide-react";
-import {CHURCH_INFO} from "@/lib/constants";
+import {supabase} from "@/lib/supabase";
 
 const storyImages = [
     "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=1200", // Photo 1
@@ -14,6 +14,20 @@ const storyImages = [
 
 export default function AboutPage() {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [settings, setSettings] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const {data} = await supabase
+                .from('site_settings')
+                .select('*')
+                .single();
+
+            if (data) setSettings(data);
+        };
+
+        fetchSettings().catch(console.error);
+    }, []);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -294,15 +308,20 @@ export default function AboutPage() {
 
             {/* 5. THE BIG MAP SECTION */}
             <section className="relative w-full h-[500px] md:h-[650px] bg-slate-100 group">
-                {/* Visual Placeholder for Google Maps Embed */}
                 <div className="absolute inset-0 bg-slate-200 flex items-center justify-center overflow-hidden">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d832.2053568590655!2d3.373985169507433!3d6.569560031888077!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103b927f269e1105%3A0xefd56a17bce5ff1e!2sThe%20Redeemed%20Christian%20Church%20Of%20God%2C%20Milk%20%26%20Honey!5e1!3m2!1sen!2snl!4v1777332651414!5m2!1sen!2snl"
-                        className="w-full h-full grayscale-[0.5] contrast-[1.1]"
-                        style={{border: 0}}
-                        allowFullScreen={true}
-                        loading="lazy"
-                    ></iframe>
+                    {settings?.google_maps_link_embed ? (
+                        <iframe
+                            src={settings.google_maps_link_embed}
+                            title="Church Location Map"
+                            className="w-full h-full grayscale-[0.5] contrast-[1.1]"
+                            style={{border: 0}}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                        ></iframe>
+                    ) : (
+                        <span className="text-slate-400 font-medium text-sm">Location map not available</span>
+                    )}
                 </div>
 
                 {/* Floating Map Card */}
@@ -317,32 +336,32 @@ export default function AboutPage() {
                                 className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0">
                                 <MapPin size={20}/></div>
                             <p className="text-sm text-gray-500 leading-relaxed">
-                                {CHURCH_INFO.address.street}, <br/>
-                                {CHURCH_INFO.parish}, <br/>
-                                {CHURCH_INFO.address.city}, {CHURCH_INFO.address.country}.
+                                {settings?.address_street}, <br/>
+                                {settings?.parish_name}, <br/>
+                                {settings?.address_city}, {settings?.address_country}.
                             </p>
                         </div>
                         <div className="flex items-center gap-4  hover:text-amber-600 transition-colors group">
-                            <a href={`tel:${CHURCH_INFO.contact.phoneLink}`}
+                            <a href={`tel:${settings?.phone_link}`}
                                className="flex items-center gap-2 hover:text-amber-600 transition-colors group">
                                 <div
                                     className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0">
                                     <Phone size={20}/></div>
-                                <p className="text-sm text-gray-500">{CHURCH_INFO.contact.phone}</p>
+                                <p className="text-sm text-gray-500">{settings?.phone_primary}</p>
                             </a>
                         </div>
                         <div className="flex items-center gap-4  hover:text-amber-600 transition-colors group">
-                            <a href={`mailto:${CHURCH_INFO.contact.email}`} className="flex items-center gap-2">
+                            <a href={`mailto:${settings?.church_admin_email}`} className="flex items-center gap-2">
                                 <div
                                     className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0">
                                     <Mail size={20}/></div>
-                                <p className="text-sm text-gray-500"> {CHURCH_INFO.contact.email}</p>
+                                <p className="text-sm text-gray-500"> {settings?.church_admin_email}</p>
                             </a>
                         </div>
                     </div>
 
                     <a
-                        href={CHURCH_INFO.address.googleMapsLink}
+                        href={settings?.google_maps_link}
                         target="_blank"
                         className="mt-10 w-full bg-brand-primary text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-lg shadow-brand-primary/20"
                     >

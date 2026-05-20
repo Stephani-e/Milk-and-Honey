@@ -25,6 +25,7 @@ export default function GlobalSettingsPage() {
         address_city: "",
         address_country: "",
         google_maps_link: "",
+        google_maps_link_embed: "",
         // Contact
         phone_primary: "",
         phone_link: "",
@@ -199,6 +200,15 @@ export default function GlobalSettingsPage() {
                                placeholder="https://maps.google.com/..."
                                className="w-full p-3 mt-1 bg-blue-50/50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-blue-900"/>
                     </div>
+
+                    <div>
+                        <label className="text-xs font-black text-gray-400 uppercase ml-1">Google Maps Link
+                            Embed</label>
+                        <input name="google_maps_link_embed" value={formData.google_maps_link_embed}
+                               onChange={handleChange}
+                               placeholder="https://maps.google.com/..."
+                               className="w-full p-3 mt-1 bg-blue-50/50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-blue-900"/>
+                    </div>
                 </div>
 
                 {/* 4. CONTACT CARD */}
@@ -283,7 +293,7 @@ export default function GlobalSettingsPage() {
                             </a>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                        <div className="grid grid-cols-1 sm:grid-rows-2 gap-4 relative z-10">
                             <div>
                                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Primary Dev
                                     Email</label>
