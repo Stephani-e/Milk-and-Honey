@@ -2,6 +2,9 @@
 import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {Camera, ChevronDown, Menu, X} from "lucide-react";
+import {subscribeToPushNotifications} from "@/lib/push";
+import {toast} from "sonner";
+import {useRouter} from "next/navigation";
 
 const FacebookIcon = ({size = 20, className = ""}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -33,6 +36,7 @@ const TwitterIcon = ({size = 20, className = ""}) => (
     </svg>);
 
 export default function PublicNavbar({settings}: { settings: any }) {
+    const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -42,6 +46,54 @@ export default function PublicNavbar({settings}: { settings: any }) {
             document.body.style.overflow = 'unset';
         };
     }, [mobileMenuOpen]);
+
+    const handleSubscribeClick = async (e: React.MouseEvent) => {
+        e.preventDefault();
+
+        // Close the mobile menu if it's open so it doesn't cover the toast
+        setMobileMenuOpen(false);
+
+        // SMART CHECK: If they already granted permission, take them straight to the page!
+        if (typeof window !== "undefined" && "Notification" in window) {
+            if (Notification.permission === "granted") {
+                router.push("/newsletters");
+                return;
+            }
+        }
+
+        // INTERACTIVE TOAST: Ask nicely before triggering the browser prompt
+        toast("Enable Notifications?", {
+            description: "Want to get instantly alerted on your device when new updates drop?",
+            duration: 8000, // Keep open a bit longer so they can read and decide
+            action: {
+                label: "Yes, enable",
+                onClick: async () => {
+                    const toastId = toast.loading("Setting up notifications...");
+                    const success = await subscribeToPushNotifications();
+
+                    if (success) {
+                        toast.success("Notifications Enabled!", {
+                            id: toastId,
+                            description: "You're all set to receive church updates.",
+                        });
+                    } else {
+                        toast.error("Action cancelled.", {
+                            id: toastId,
+                            description: "Notifications were denied or failed to load.",
+                        });
+                    }
+                    setTimeout(() => router.push("/newsletters"), 1500);
+                },
+            },
+            cancel: {
+                label: "No, just read",
+                onClick: () => {
+                    // Just take them to the page without asking for permission
+                    router.push("/newsletters");
+                },
+            },
+        });
+    };
 
     return (
         <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
@@ -127,7 +179,8 @@ export default function PublicNavbar({settings}: { settings: any }) {
                     {/* Updates Link with Shaking Icon */}
                     <Link
                         href="/newsletters"
-                        className="flex items-center gap-1.5 font-bold text-sm text-brand-primary group hover:text-amber-600 transition-colors"
+                        onClick={handleSubscribeClick}
+                        className="flex items-center gap-1.5 font-bold text-sm text-brand-primary group hover:text-amber-600 transition-colors cursor-pointer"
                     >
                         <span className="relative flex items-center justify-center">
                             {/* The Bell Icon with Animation */}
@@ -189,7 +242,6 @@ export default function PublicNavbar({settings}: { settings: any }) {
                         <Link href="/" onClick={() => setMobileMenuOpen(false)}
                               className="py-2 border-b border-gray-50">Home</Link>
 
-                        {/* ... (Mobile Dropdown internals ... */}
                         <div className="py-2 border-b border-gray-50">
                                 <span
                                     className="text-gray-400 text-[10px] uppercase tracking-widest mb-2 block">About</span>
@@ -223,6 +275,34 @@ export default function PublicNavbar({settings}: { settings: any }) {
                                 </Link>
                             </div>
                         </div>
+
+                        {/* NEW MOBILE UPDATES BELL */}
+                        <Link
+                            href="/newsletters"
+                            onClick={handleSubscribeClick}
+                            className="py-3 border-b border-gray-50 flex items-center justify-between text-brand-primary cursor-pointer"
+                        >
+                            <div className="flex items-center gap-2">
+                                <span className="relative flex items-center justify-center">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18" height="18"
+                                        viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="2.5"
+                                        strokeLinecap="round" strokeLinejoin="round"
+                                        className="animate-bell-shake"
+                                    >
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                    </svg>
+                                    <span
+                                        className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                                </span>
+                                Church Updates
+                            </div>
+                            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">New</span>
+                        </Link>
+
                         <Link href="/events" onClick={() => setMobileMenuOpen(false)}
                               className="py-2 border-b border-gray-50">Events</Link>
                         <Link href="/contact" onClick={() => setMobileMenuOpen(false)}
@@ -264,8 +344,6 @@ export default function PublicNavbar({settings}: { settings: any }) {
                     </div>
                 </div>
             )}
-
-
         </header>
     );
 }
