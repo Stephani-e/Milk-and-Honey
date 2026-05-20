@@ -501,7 +501,7 @@ export default function SermonsPage() {
                                                     {s.link_ytmusic &&
                                                         <a href={s.link_ytmusic} target="_blank" rel="noreferrer"
                                                            className="text-red-500 hover:scale-110 transition-transform"
-                                                           title="Listen on YT Music"
+                                                           title="Listen on YT Podcasts"
                                                            onClick={(e) => e.stopPropagation()}><Headphones size={14}/></a>}
                                                 </div>
                                             )}

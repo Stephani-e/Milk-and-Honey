@@ -648,7 +648,7 @@ export default function NewSermonPage() {
                                                     </div>
                                                     <div className="relative">
                                                         <span
-                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">YT Music:</span>
+                                                            className="absolute left-3 top-3.5 text-xs font-bold text-gray-400 w-20">YT Podcasts:</span>
                                                         <input type="url" placeholder="https://music.youtube.com/..."
                                                                className="w-full p-3 pl-24 border rounded-lg bg-white text-brand-primary text-sm"
                                                                value={formData.link_ytmusic || ""}

@@ -281,7 +281,7 @@ export default function SermonsPage() {
                             <a href={`/sermons/${featuredSermon.id}`}
                                className="bg-white rounded-[20px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col lg:flex-row group cursor-pointer max-w-5xl mx-auto">
                                 <div
-                                    className="w-full lg:w-[55%] h-48 md:h-72 lg:h-80 relative overflow-hidden bg-slate-900 shrink-0">
+                                    className="w-full lg:w-[50%] h-48 md:h-72 lg:h-80 relative overflow-hidden bg-slate-900 shrink-0">
                                     <div
                                         className="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
                                     <img src={getThumbnail(featuredSermon)} alt={featuredSermon.title}
@@ -298,7 +298,7 @@ export default function SermonsPage() {
                                 </div>
 
                                 <div
-                                    className="w-full lg:w-[45%] p-6 md:p-8 lg:p-10 flex flex-col justify-center my-auto">
+                                    className="w-full lg:w-[50%] p-6 md:p-8 lg:p-10 flex flex-col justify-center my-auto">
                                     <div
                                         className="flex items-center gap-2 text-amber-600 mb-2 md:mb-3 text-[10px] md:text-[11px] font-bold uppercase tracking-widest">
                                         <BookOpen size={14}/> {getSermonBadge(featuredSermon)}

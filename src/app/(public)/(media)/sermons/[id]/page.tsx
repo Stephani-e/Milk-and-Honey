@@ -319,7 +319,7 @@ export default function SermonDetailPage() {
                                                    className="flex items-center justify-center gap-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-4 py-3.5 rounded-xl font-bold transition-all text-sm group">
                                                     <PlayCircle size={18}
                                                                 className="group-hover:scale-110 transition-transform"/> YouTube
-                                                    Music
+                                                    Podcasts
                                                 </a>
                                             )}
                                         </div>
