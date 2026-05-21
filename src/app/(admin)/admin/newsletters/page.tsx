@@ -201,7 +201,11 @@ export default function NewslettersPage() {
         // 1. Update the database first
         const {error} = await supabase
             .from("newsletters")
-            .update({is_published: true, published_at})
+            .update({
+                is_published: true,
+                published_at,
+                push_notification_sent: publishMode === "now"
+            })
             .eq("id", selectedNewsletter.id);
 
         if (error) {
@@ -250,7 +254,11 @@ export default function NewslettersPage() {
             ? {is_archived: false, is_published: true, deleted_at: null}
             : {is_archived: false, is_published: false, deleted_at: null};
 
-        const {error} = await supabase.from("newsletters").update(payload).eq("id", selectedNewsletter.id);
+        const {error} =
+            await supabase
+                .from("newsletters")
+                .update(payload)
+                .eq("id", selectedNewsletter.id);
 
         if (error) {
             toast.error("Restore failed: " + error.message);
@@ -289,7 +297,7 @@ export default function NewslettersPage() {
         }
         setModalType(null);
     };
-    
+
     const handleConfirmAction = async () => {
         if (!selectedNewsletter) return;
 

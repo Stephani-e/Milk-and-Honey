@@ -17,6 +17,9 @@ webpush.setVapidDetails(
 export async function GET(req: Request) {
     // 2. Security Check: Block anyone who doesn't have the secret CRON password
     const authHeader = req.headers.get('authorization');
+
+    console.log("Received Auth Header:", authHeader);
+
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return new Response('Unauthorized Access', {status: 401});
     }

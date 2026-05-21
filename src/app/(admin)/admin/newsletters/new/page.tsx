@@ -103,7 +103,6 @@ export default function NewNewsletterPage() {
     };
 
     // Submit Handler
-    // Submit Handler
     const handleSubmit = async (targetAction: 'draft' | 'publish') => {
         if (!formData.title || !formData.content) {
             return toast.error("Title and Content are required.");
@@ -132,7 +131,7 @@ export default function NewNewsletterPage() {
             is_published,
             published_at,
             is_archived: false,
-            push_notification_sent: false
+            push_notification_sent: (targetAction === 'publish' && publishStatus === "publish_now")
         };
 
         // 1. Save to Database

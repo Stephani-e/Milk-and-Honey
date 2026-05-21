@@ -142,11 +142,14 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
             updatePayload.is_published = true;
             if (publishStatus === "schedule") {
                 updatePayload.published_at = new Date(scheduleDate).toISOString();
+                // Let the CRON job handle it later
+                updatePayload.push_notification_sent = false;
             } else {
                 // If moving from draft/scheduled to Live, update date now.
-                // If already live, keep the original date.
                 if (!originalData?.is_published || new Date(originalData.published_at) > new Date()) {
                     updatePayload.published_at = new Date().toISOString();
+                    // We are blasting it right now!
+                    updatePayload.push_notification_sent = true;
                 }
             }
         }
