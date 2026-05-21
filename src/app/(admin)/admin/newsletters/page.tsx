@@ -252,15 +252,44 @@ export default function NewslettersPage() {
 
         const {error} = await supabase.from("newsletters").update(payload).eq("id", selectedNewsletter.id);
 
-        if (error) toast.error("Restore failed: " + error.message);
-        else {
-            toast.success(`Moved to ${destination === 'active' ? 'Published' : 'Drafts'}`);
+        if (error) {
+            toast.error("Restore failed: " + error.message);
+        } else {
+            // TRIGGER NOTIFICATION BLAST (Only if restoring directly to LIVE/Published)
+            if (destination === 'active') {
+                try {
+                    const pushRes = await fetch("/api/push/send", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            title: `New Update: ${selectedNewsletter.title}`,
+                            body: selectedNewsletter.excerpt || "Tap to read the latest from Milk & Honey.",
+                            url: `${window.location.origin}/newsletters/${selectedNewsletter.slug}`
+                        })
+                    });
+
+                    const pushData = await pushRes.json();
+
+                    if (pushData.success && pushData.count > 0) {
+                        toast.success(`Restored & Live! Push notification sent to ${pushData.count} subscribers 🚀`);
+                    } else {
+                        toast.success("Restored & Live! (No subscribers to notify yet)");
+                    }
+                } catch (err) {
+                    console.error("Push blast failed:", err);
+                    toast.success("Restored & Live! (But push notification failed to send)");
+                }
+            } else {
+                // If they just restored it to Drafts, no notification is sent.
+                toast.success("Moved to Drafts safely.");
+            }
+
             setView(destination);
             await fetchNewsletters();
         }
         setModalType(null);
     };
-
+    
     const handleConfirmAction = async () => {
         if (!selectedNewsletter) return;
 

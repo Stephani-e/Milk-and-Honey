@@ -157,7 +157,43 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
             toast.error(`Database Error: ${error.message}`);
             setLoading(false);
         } else {
-            toast.success(targetAction === 'draft' ? "Moved to Drafts" : "Newsletter Updated!");
+
+            // --- SMART NOTIFICATION LOGIC ---
+            // Only send a blast if it is moving from Draft/Scheduled -> LIVE right now.
+            // We DO NOT want to spam users if the admin is just fixing a typo on an already live post!
+            const isFirstTimePublishingNow =
+                targetAction === 'publish' &&
+                publishStatus === "publish_now" &&
+                (!originalData?.is_published || new Date(originalData.published_at) > new Date());
+
+            if (isFirstTimePublishingNow) {
+                try {
+                    const pushRes = await fetch("/api/push/send", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            title: `New Update: ${formData.title}`,
+                            body: formData.excerpt || "Tap to read the latest from Milk & Honey.",
+                            url: `${window.location.origin}/newsletters/${formData.slug}`
+                        })
+                    });
+
+                    const pushData = await pushRes.json();
+
+                    if (pushData.success && pushData.count > 0) {
+                        toast.success(`Published! Push sent to ${pushData.count} subscribers 🚀`);
+                    } else {
+                        toast.success("Newsletter Published! (No subscribers to notify yet)");
+                    }
+                } catch (err) {
+                    console.error("Push blast failed:", err);
+                    toast.success("Newsletter Published! (But push notification failed to send)");
+                }
+            } else {
+                // Standard toast for drafts or simple text edits
+                toast.success(targetAction === 'draft' ? "Moved to Drafts" : "Newsletter Updated!");
+            }
+
             router.push(targetAction === 'draft' ? "/admin/newsletters?tab=draft" : "/admin/newsletters");
             router.refresh();
         }
