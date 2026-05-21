@@ -52,7 +52,7 @@ export async function GET(req: Request) {
             const payload = JSON.stringify({
                 title: `New Update: ${post.title}`,
                 body: post.excerpt || "Tap to read the latest from Milk & Honey.",
-                url: `https://milk-and-honey-admin.vercel.app/newsletters/${post.slug}`
+                url: `https://milk-and-honey-rho.vercel.app/newsletters/${post.slug}`
             });
 
             const notifications = subscribers.map(async (sub) => {
