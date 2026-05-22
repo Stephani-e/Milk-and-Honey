@@ -336,7 +336,7 @@ export default function EditEventPage() {
                                                             onClientUploadComplete={(res) => {
                                                                 setThanksgivingSession({
                                                                     ...thanksgivingSession,
-                                                                    flyer_url: res[0].url
+                                                                    flyer_url: res[0].ufsUrl
                                                                 });
                                                                 toast.success("Thanksgiving flyer uploaded!");
                                                             }}
@@ -380,7 +380,7 @@ export default function EditEventPage() {
                                                                     endpoint="imageUploader"
                                                                     appearance={{button: "bg-slate-800 text-white text-[10px] px-4 py-2 rounded-lg w-full"}}
                                                                     onClientUploadComplete={(res) => {
-                                                                        updateSessionFlyer(index, res[0].url);
+                                                                        updateSessionFlyer(index, res[0].ufsUrl);
                                                                         toast.success(`${session.name} flyer uploaded!`);
                                                                     }}
                                                                     onUploadError={(error) => {
@@ -422,7 +422,7 @@ export default function EditEventPage() {
                                                 <UploadButton endpoint="imageUploader"
                                                               appearance={{button: "bg-brand-primary text-white text-xs px-6 py-4 rounded-xl after:bg-brand-secondary w-full sm:w-auto"}}
                                                               onClientUploadComplete={(res) => {
-                                                                  setFlyerUrl(res[0].url);
+                                                                  setFlyerUrl(res[0].ufsUrl);
                                                                   toast.success("Flyer uploaded!");
                                                               }}
                                                               onUploadError={(error) => {

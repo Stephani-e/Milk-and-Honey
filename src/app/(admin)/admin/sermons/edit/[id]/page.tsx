@@ -464,7 +464,7 @@ export default function EditSermonPage() {
                                                             },
                                                         }}
                                                         onClientUploadComplete={(res) => {
-                                                            setFormData({...formData, banner_url: res[0].url});
+                                                            setFormData({...formData, banner_url: res[0].ufsUrl});
                                                             setBannerUploaded(true);
                                                         }}
                                                         onUploadError={(error) => {
@@ -537,7 +537,7 @@ export default function EditSermonPage() {
                                                             },
                                                         }}
                                                         onClientUploadComplete={(res) => {
-                                                            setFormData({...formData, clip_url: res[0].url});
+                                                            setFormData({...formData, clip_url: res[0].ufsUrl});
                                                             setClipUploaded(true);
                                                         }}
                                                         onUploadError={(error) => {

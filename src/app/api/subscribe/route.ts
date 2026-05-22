@@ -19,7 +19,7 @@ export async function POST(req: Request) {
             body: JSON.stringify({
                 email: email,
                 // Optional: You can tag them so you know they came from the website
-                groups: []
+                groups: ["188197025494337139"]
             })
         });
 

@@ -409,69 +409,60 @@ export default function SkeletonLoader({variant, count = 1, className = ""}: Ske
 
                         <main className="max-w-7xl mx-auto px-6 -mt-10 relative z-20 space-y-12">
 
-                            {/* TOP SECTION: Split View Skeleton */}
+                            {/* MAIN GRID: Newsletters (Left) & Sidebar (Right) */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                {/* Left: Events Skeleton */}
-                                <div
-                                    className="lg:col-span-2 bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-brand-primary/5 border border-gray-100">
+
+                                {/* LEFT SIDE: Newsletter Feed (Takes up 2 columns) */}
+                                <div className="lg:col-span-2 space-y-12">
+                                    {/* Featured Newsletter Skeleton */}
                                     <div
-                                        className="flex items-center justify-between mb-6 border-b border-gray-50 pb-4">
-                                        <div className="w-48 h-6 bg-gray-200 rounded animate-pulse"></div>
+                                        className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm animate-pulse">
+                                        <div className="aspect-video md:aspect-auto bg-gray-200"></div>
+                                        <div className="p-8 md:p-12 flex flex-col justify-center space-y-4">
+                                            <div className="h-3 bg-gray-200 rounded w-24"></div>
+                                            <div className="h-8 bg-gray-200 rounded w-full"></div>
+                                            <div className="h-8 bg-gray-200 rounded w-5/6"></div>
+                                            <div className="h-4 bg-gray-200 rounded w-full mt-4"></div>
+                                            <div className="h-4 bg-gray-200 rounded w-full"></div>
+                                            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <div key={i}
-                                                 className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-gray-100 animate-pulse">
-                                                <div className="w-14 h-14 bg-gray-200 rounded-xl flex-shrink-0"></div>
-                                                <div className="flex flex-col justify-center space-y-2 w-full">
-                                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+
+                                    {/* Table Skeleton */}
+                                    <div
+                                        className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                                        <div className="px-6 py-5 border-b border-gray-100 bg-slate-50/50">
+                                            <div className="w-48 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        </div>
+                                        <div className="p-6 space-y-4">
+                                            {[1, 2, 3, 4].map((i) => (
+                                                <div key={i}
+                                                     className="flex gap-4 pb-4 border-b border-gray-50 last:border-0 animate-pulse">
+                                                    <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                                                    <div className="flex-1 space-y-2">
+                                                        <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                                                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                                                    </div>
+                                                    <div className="w-20 h-4 bg-gray-200 rounded hidden sm:block"></div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Right: Ad Skeleton */}
-                                <div className="bg-slate-200 rounded-3xl p-8 animate-pulse"></div>
+                                {/* RIGHT SIDE: Sidebar (Events & Ads - Takes up 1 column) */}
+                                <div className="lg:col-span-1 space-y-8">
+                                    {/* Upcoming Highlights */}
+                                    <div
+                                        className="bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-brand-primary/5 border border-gray-100"></div>
+                                    {/* Right: Ad Skeleton */}
+                                    <div className="bg-slate-200 rounded-3xl p-8 animate-pulse"></div>
+                                </div>
                             </div>
 
                             {/* BOTTOM SECTION: Newsletter Feed Skeleton */}
                             <div className="pt-8 space-y-12">
 
-                                {/* Featured Newsletter Skeleton */}
-                                <div
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-white rounded-[2rem] overflow-hidden border border-gray-100 shadow-sm animate-pulse">
-                                    <div className="aspect-video md:aspect-auto bg-gray-200"></div>
-                                    <div className="p-8 md:p-12 flex flex-col justify-center space-y-4">
-                                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                                        <div className="h-8 bg-gray-200 rounded w-full"></div>
-                                        <div className="h-8 bg-gray-200 rounded w-5/6"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-full mt-4"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-full"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                                    </div>
-                                </div>
-
-                                {/* Table Skeleton */}
-                                <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                                    <div className="px-6 py-5 border-b border-gray-100 bg-slate-50/50">
-                                        <div className="w-48 h-4 bg-gray-200 rounded animate-pulse"></div>
-                                    </div>
-                                    <div className="p-6 space-y-4">
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <div key={i}
-                                                 className="flex gap-4 pb-4 border-b border-gray-50 last:border-0 animate-pulse">
-                                                <div className="w-24 h-4 bg-gray-200 rounded"></div>
-                                                <div className="flex-1 space-y-2">
-                                                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                                                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                                                </div>
-                                                <div className="w-20 h-4 bg-gray-200 rounded hidden sm:block"></div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
 
                             </div>
                         </main>

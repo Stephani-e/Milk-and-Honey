@@ -35,6 +35,7 @@ export default function NewNewsletterPage() {
         author_name: "Admin Team",
         cover_image_url: "",
         is_celebration: false,
+        send_as_email: false,
     });
 
     // Quill Toolbar Configuration
@@ -58,10 +59,18 @@ export default function NewNewsletterPage() {
         const savedDraft = localStorage.getItem("newsletter_draft");
         if (savedDraft) {
             const draft = JSON.parse(savedDraft);
-            setFormData(draft.formData);
+
+            // Safely merge the draft so missing fields default to 'false' instead of 'undefined'
+            setFormData(prev => ({
+                ...prev,
+                ...draft.formData,
+                is_celebration: draft.formData?.is_celebration ?? false,
+                send_as_email: draft.formData?.send_as_email ?? false
+            }));
+
             setPublishStatus(draft.publishStatus || "draft");
             setScheduleDate(draft.scheduleDate || "");
-            if (draft.formData.cover_image_url) setImageUploaded(true);
+            if (draft.formData?.cover_image_url) setImageUploaded(true);
         }
         setInitialFetchDone(true);
     }, []);
@@ -174,10 +183,12 @@ export default function NewNewsletterPage() {
             is_archived: false,
             push_notification_sent: (targetAction === 'publish' && publishStatus === "publish_now"),
             is_celebration: formData.is_celebration,
+            send_as_email: formData.send_as_email,
+            email_sent: false,
         };
 
-        // 1. Save to Database
-        const {error} = await supabase.from("newsletters").insert([submission]);
+        // 1. Save to Database (Added .select() to get the ID back!)
+        const {data, error} = await supabase.from("newsletters").insert([submission]).select();
 
         if (error) {
             if (error.code === '23505') {
@@ -188,8 +199,12 @@ export default function NewNewsletterPage() {
             setLoading(false);
         } else {
 
+            const newNewsletter = data[0]; // Grab the newly created database row
+
             // 2. TRIGGER NOTIFICATION BLAST (Only for Immediate Publishing)
             if (targetAction === 'publish' && publishStatus === "publish_now") {
+
+                // A. Web Push Notification
                 try {
                     const pushRes = await fetch("/api/push/send", {
                         method: "POST",
@@ -204,13 +219,35 @@ export default function NewNewsletterPage() {
                     const pushData = await pushRes.json();
 
                     if (pushData.success && pushData.count > 0) {
-                        toast.success(`Live! Push notification sent to ${pushData.count} subscribers `);
+                        toast.success(`Live! Push sent to ${pushData.count} subscribers 🚀`);
                     } else {
-                        toast.success("Newsletter Published! (No subscribers to notify yet)");
+                        toast.success("Newsletter Published! (No push subscribers yet)");
                     }
                 } catch (err) {
                     console.error("Push blast failed:", err);
                     toast.success("Newsletter Published! (But push notification failed to send)");
+                }
+
+                // B. Email Blast (Only if toggled ON)
+                if (formData.send_as_email) {
+                    try {
+                        toast.info("Preparing email blast...");
+                        const emailRes = await fetch("/api/email/send-blast", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({
+                                newsletterId: newNewsletter.id // Use the new ID we just grabbed
+                            })
+                        });
+
+                        if (emailRes.ok) {
+                            toast.success("Email blast successfully sent to subscribers! 📩");
+                        } else {
+                            toast.error("Failed to send email blast.");
+                        }
+                    } catch (err) {
+                        toast.error("Network error while sending emails.");
+                    }
                 }
             } else {
                 toast.success(targetAction === 'publish' ? "Newsletter Scheduled Successfully!" : 'Saved to Drafts');
@@ -295,6 +332,26 @@ export default function NewNewsletterPage() {
                                         </div>
                                     </div>
                                 </div>
+                                <div>
+                                    <label
+                                        className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.send_as_email ? "border-indigo-500 bg-indigo-50/50" : "border-gray-100 hover:border-indigo-200"}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.send_as_email}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                send_as_email: e.target.checked
+                                            })}
+                                            className="mt-1 w-5 h-5 accent-indigo-600 rounded"
+                                        />
+                                        <div>
+                                            <div className="font-bold text-gray-900 text-sm">Blast to Mailing List</div>
+                                            <div className="text-[10px] text-gray-500 mt-0.5">Sends a formatted email to
+                                                all subscribers when published.
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
 
                             <div>
@@ -365,7 +422,7 @@ export default function NewNewsletterPage() {
                                             },
                                         }}
                                         onClientUploadComplete={(res) => {
-                                            setFormData({...formData, cover_image_url: res[0].url});
+                                            setFormData({...formData, cover_image_url: res[0].ufsUrl});
                                             setImageUploaded(true);
                                             toast.success("Cover image uploaded successfully");
                                         }}

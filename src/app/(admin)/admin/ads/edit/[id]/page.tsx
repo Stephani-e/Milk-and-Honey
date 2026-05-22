@@ -266,7 +266,7 @@ export default function EditAdPage() {
                                                 endpoint={mediaType === 'image' ? "imageUploader" : "videoUploader"}
                                                 appearance={{button: "bg-pink-600 text-white text-xs px-6 py-4 rounded-xl after:bg-pink-700 w-full sm:w-auto"}}
                                                 onClientUploadComplete={(res) => {
-                                                    setMediaUrl(res[0].url);
+                                                    setMediaUrl(res[0].ufsUrl);
                                                     toast.success("Creative uploaded!");
                                                 }}
                                                 onUploadError={(error) => {
@@ -307,7 +307,7 @@ export default function EditAdPage() {
                                                     endpoint="imageUploader"
                                                     appearance={{button: "bg-slate-800 text-white text-[10px] px-4 py-2 rounded-lg w-full sm:w-auto"}}
                                                     onClientUploadComplete={(res) => {
-                                                        setFallbackImageUrl(res[0].url);
+                                                        setFallbackImageUrl(res[0].ufsUrl);
                                                         toast.success("Fallback image uploaded!");
                                                     }}
                                                     onUploadError={(error) => {

@@ -198,7 +198,7 @@ export default function NewEventPage() {
             </div>
         );
     }
-    
+
     if (!eventType) {
         return (
             <div
@@ -336,7 +336,7 @@ export default function NewEventPage() {
                                             endpoint="imageUploader"
                                             appearance={{button: "bg-brand-primary text-white text-xs px-6 py-4 rounded-xl after:bg-brand-secondary w-full sm:w-auto"}}
                                             onClientUploadComplete={(res) => {
-                                                setFlyerUrl(res[0].url);
+                                                setFlyerUrl(res[0].ufsUrl);
                                                 toast.success("Flyer uploaded!");
                                             }} onUploadError={(error) => {
                                             toast.error(`Upload Failed: ${error.message}`);

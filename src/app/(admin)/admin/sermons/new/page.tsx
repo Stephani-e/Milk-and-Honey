@@ -494,7 +494,10 @@ export default function NewSermonPage() {
                                                                     },
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
-                                                                    setFormData({...formData, banner_url: res[0].url});
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        banner_url: res[0].ufsUrl
+                                                                    });
                                                                     setBannerUploaded(true);
                                                                     toast.success("Banner image uploaded successfully");
                                                                 }}
@@ -564,7 +567,7 @@ export default function NewSermonPage() {
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
-                                                                    setFormData({...formData, clip_url: res[0].url});
+                                                                    setFormData({...formData, clip_url: res[0].ufsUrl});
                                                                     setClipUploaded(true);
                                                                     toast.success("Video clip uploaded successfully");
                                                                 }}

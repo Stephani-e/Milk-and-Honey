@@ -39,6 +39,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
         author_name: "Admin Team",
         cover_image_url: "",
         is_celebration: false,
+        send_as_email: false,
     });
 
     const quillModules = {
@@ -85,6 +86,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                 author_name: data.author_name || "Admin Team",
                 cover_image_url: data.cover_image_url || "",
                 is_celebration: data.is_celebration || false,
+                send_as_email: data.send_as_email || false,
             });
 
             if (data.cover_image_url) setImageUploaded(true);
@@ -184,13 +186,13 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
             updatePayload.is_published = true;
             if (publishStatus === "schedule") {
                 updatePayload.published_at = new Date(scheduleDate).toISOString();
-                // Let the CRON job handle it later
+                // Let the CRON job handle push notifications later
                 updatePayload.push_notification_sent = false;
             } else {
                 // If moving from draft/scheduled to Live, update date now.
                 if (!originalData?.is_published || new Date(originalData.published_at) > new Date()) {
                     updatePayload.published_at = new Date().toISOString();
-                    // We are blasting it right now!
+                    // We are blasting push notifications right now!
                     updatePayload.push_notification_sent = true;
                 }
             }
@@ -204,7 +206,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
         } else {
 
             // --- SMART NOTIFICATION LOGIC ---
-            // Only send a blast if it is moving from Draft/Scheduled -> LIVE right now.
+            // Only send blasts if it is moving from Draft/Scheduled -> LIVE right now.
             // We DO NOT want to spam users if the admin is just fixing a typo on an already live post!
             const isFirstTimePublishingNow =
                 targetAction === 'publish' &&
@@ -212,6 +214,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                 (!originalData?.is_published || new Date(originalData.published_at) > new Date());
 
             if (isFirstTimePublishingNow) {
+                // A. Push Notification
                 try {
                     const pushRes = await fetch("/api/push/send", {
                         method: "POST",
@@ -228,7 +231,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                     if (pushData.success && pushData.count > 0) {
                         toast.success(`Published! Push sent to ${pushData.count} subscribers 🚀`);
                     } else {
-                        toast.success("Newsletter Published! (No subscribers to notify yet)");
+                        toast.success("Newsletter Published! (No push subscribers to notify yet)");
                     }
                 } catch (err) {
                     console.error("Push blast failed:", err);
@@ -237,6 +240,35 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
             } else {
                 // Standard toast for drafts or simple text edits
                 toast.success(targetAction === 'draft' ? "Moved to Drafts" : "Newsletter Updated!");
+            }
+
+            // B. Email Blast (Works independently of Push Notifications)
+            // Checks if it's set to publish now, the toggle is ON, and it hasn't been sent yet!
+            const shouldSendEmailNow =
+                targetAction === 'publish' &&
+                publishStatus === "publish_now" &&
+                formData.send_as_email &&
+                !originalData?.email_sent;
+
+            if (shouldSendEmailNow) {
+                try {
+                    toast.info("Preparing email blast...");
+                    const emailRes = await fetch("/api/email/send-blast", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            newsletterId: id // Grab the ID straight from the page parameters
+                        })
+                    });
+
+                    if (emailRes.ok) {
+                        toast.success("Email blast successfully sent to subscribers! 📩");
+                    } else {
+                        toast.error("Failed to send email blast.");
+                    }
+                } catch (err) {
+                    toast.error("Network error while sending emails.");
+                }
             }
 
             router.push(targetAction === 'draft' ? "/admin/newsletters?tab=draft" : "/admin/newsletters");
@@ -302,6 +334,30 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                     </div>
                                 </div>
 
+                                <div>
+                                    <label
+                                        className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all ${originalData?.email_sent ? "border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed" : formData.send_as_email ? "border-indigo-500 bg-indigo-50/50 cursor-pointer" : "border-gray-100 hover:border-indigo-200 cursor-pointer"}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={originalData?.email_sent || formData.send_as_email}
+                                            onChange={(e) => {
+                                                if (!originalData?.email_sent) {
+                                                    setFormData({...formData, send_as_email: e.target.checked});
+                                                }
+                                            }}
+                                            disabled={originalData?.email_sent}
+                                            className="mt-1 w-5 h-5 accent-indigo-600 rounded disabled:accent-gray-400"
+                                        />
+                                        <div>
+                                            <div className="font-bold text-gray-900 text-sm">Blast to Mailing List</div>
+                                            <div className="text-[10px] text-gray-500 mt-0.5">
+                                                {originalData?.email_sent
+                                                    ? "🔒 Locked: This email has already been successfully sent to subscribers."
+                                                    : "Sends a formatted email to all subscribers when published."}
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
 
                             <div>
@@ -360,7 +416,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                             }
                                         }}
                                         onClientUploadComplete={(res) => {
-                                            setFormData({...formData, cover_image_url: res[0].url});
+                                            setFormData({...formData, cover_image_url: res[0].ufsUrl});
                                             setImageUploaded(true);
                                             toast.success("Cover image uploaded!");
                                         }}
@@ -372,7 +428,6 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        {/* Step 3: Content */}
                         {/* Step 3: Content */}
                         <div className="pt-10 border-t border-gray-100 space-y-6">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">

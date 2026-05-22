@@ -415,9 +415,9 @@ export default function NewGalleryPage() {
                                         onClientUploadComplete={(res) => {
                                             const newItems: MediaItem[] = res.map(file => {
                                                 const fileName = (file.name || "").toLowerCase();
-                                                const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || file.url.includes('.mp4');
+                                                const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || file.ufsUrl.includes('.mp4');
                                                 return {
-                                                    url: file.url,
+                                                    url: file.ufsUrl,
                                                     key: file.key,
                                                     type: isVideo ? "video" : "image",
                                                     caption: ""
