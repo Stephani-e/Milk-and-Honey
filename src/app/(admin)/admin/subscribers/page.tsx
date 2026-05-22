@@ -11,7 +11,7 @@ export default function SubscribersAdminPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchSubscribers();
+        fetchSubscribers().catch((err) => console.error("Failed to fetch subscribers:", err))
     }, []);
 
     async function fetchSubscribers() {
@@ -26,10 +26,16 @@ export default function SubscribersAdminPage() {
         setLoading(false);
     }
 
-    const copyAllEmails = () => {
+    const copyAllEmails = async () => {
         const emailList = subscribers.map(sub => sub.email).join(", ");
-        navigator.clipboard.writeText(emailList);
-        toast.success(`Copied ${subscribers.length} emails to clipboard!`);
+
+        try {
+            await navigator.clipboard.writeText(emailList);
+            toast.success(`Copied ${subscribers.length} emails to clipboard!`);
+        } catch (err) {
+            console.error("Clipboard error:", err);
+            toast.error("Failed to copy emails to clipboard. Please grant browser permissions.");
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -42,8 +48,14 @@ export default function SubscribersAdminPage() {
         }
     };
 
-    if (loading) return <div className="p-6 md:p-12 min-h-screen bg-brand-surface"><AdminSkeletonLoader
-        variant="table-body-only"/></div>;
+    if (loading) {
+        return (
+            <div className="p-6 md:p-12 min-h-screen bg-brand-surface">
+                <AdminSkeletonLoader
+                    variant="table-body-only"/>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">

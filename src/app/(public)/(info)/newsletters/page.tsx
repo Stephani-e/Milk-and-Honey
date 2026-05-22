@@ -219,15 +219,29 @@ function NewsletterContent() {
             .from("newsletter_subscribers")
             .insert([{email}]);
 
-        if (error) {
-            if (error.code === '23505') { // 23505 is the SQL code for "Unique Violation"
-                toast.info("You are already on the mailing list! 🎉");
+        if (error && error.code !== '23505') {
+            // If it's an error, and NOT a "Unique Violation" (already subscribed) error
+            toast.error("Subscription failed. Please try again.");
+            setIsSubscribing(false);
+            return;
+        }
+
+        // 2. Send to MailerLite securely via our API route
+        try {
+            const mlResponse = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email})
+            });
+
+            if (mlResponse.ok) {
+                toast.success("Successfully subscribed to the mailing list! 🚀");
+                setEmail("");
             } else {
-                toast.error("Subscription failed. Please try again.");
+                toast.error("Saved locally, but failed to sync to the mailing list.");
             }
-        } else {
-            toast.success("Successfully subscribed to the mailing list! 🚀");
-            setEmail("");
+        } catch (err) {
+            toast.error("Network error. Please try again.");
         }
         setIsSubscribing(false);
     };
