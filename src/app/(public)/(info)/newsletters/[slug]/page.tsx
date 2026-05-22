@@ -97,9 +97,14 @@ export default async function NewsletterArticlePage({
                         )}
                     </div>
 
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-black text-white leading-tight mb-6">
-                        {newsletter.title}
-                    </h1>
+                    {newsletter.is_celebration && (
+                        <div
+                            className="inline-block bg-pink-500/20 text-pink-100 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-pink-500/30 flex items-center gap-2 w-max">
+                            <span>Celebration</span>
+                        </div>
+                    )}
+
+                    <h1>{newsletter.title}</h1>
 
                     <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-slate-300">
                         <span className="flex items-center gap-2"><User size={16}

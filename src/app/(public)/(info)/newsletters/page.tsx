@@ -5,6 +5,7 @@ import {ArrowRight, Calendar, ChevronLeft, ChevronRight, Clock, Mail, Megaphone,
 import {supabase} from "@/lib/supabase";
 import SkeletonLoader from "@/components/UI/SkeletonLoader";
 import {useSearchParams} from "next/navigation";
+import {toast} from "sonner";
 
 const ITEMS_PER_PAGE = 7;
 
@@ -147,6 +148,8 @@ function NewsletterContent() {
     const [settings, setSettings] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
+    const [email, setEmail] = useState("");
+    const [isSubscribing, setIsSubscribing] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -203,11 +206,39 @@ function NewsletterContent() {
         .sort((a, b) => a!.nextDate.getTime() - b!.nextDate.getTime())
         .slice(0, 4);
 
-    if (loading) return <div className="min-h-screen bg-slate-50 p-12"><SkeletonLoader variant="newsletter"/></div>;
-
     const featuredNewsletter = newsletters[0];
     const olderNewsletters = newsletters.slice(1);
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+    const handleSubscribe = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!email) return;
+
+        setIsSubscribing(true);
+        const {error} = await supabase
+            .from("newsletter_subscribers")
+            .insert([{email}]);
+
+        if (error) {
+            if (error.code === '23505') { // 23505 is the SQL code for "Unique Violation"
+                toast.info("You are already on the mailing list! 🎉");
+            } else {
+                toast.error("Subscription failed. Please try again.");
+            }
+        } else {
+            toast.success("Successfully subscribed to the mailing list! 🚀");
+            setEmail("");
+        }
+        setIsSubscribing(false);
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 p-12">
+                <SkeletonLoader variant="newsletter"/>
+            </div>
+        )
+    }
 
     return (
         <div className="bg-slate-50 min-h-screen pb-24 font-sans">
@@ -263,9 +294,17 @@ function NewsletterContent() {
                                                 <Newspaper size={64}/>
                                             </div>
                                         )}
-                                        <div
-                                            className="absolute top-4 left-4 bg-amber-400 text-amber-950 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-1.5">
-                                            {featuredNewsletter.is_pinned ? " Pinned Update" : "Latest Update"}
+                                        <div className="absolute top-4 left-4 flex flex-col gap-2">
+                                            <div
+                                                className="bg-amber-400 text-amber-950 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-1.5 w-max">
+                                                {featuredNewsletter.is_pinned ? " Pinned Update" : "Latest Update"}
+                                            </div>
+                                            {featuredNewsletter.is_celebration && (
+                                                <div
+                                                    className="bg-pink-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm flex items-center gap-1.5 w-max border border-pink-400">
+                                                    Celebration
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="p-8 flex flex-col justify-center">
@@ -328,7 +367,16 @@ function NewsletterContent() {
                                                             </span>
                                                         </td>
                                                         <td className="p-5 align-top">
-                                                            <h4 className="font-bold text-brand-primary text-base mb-1 group-hover:text-brand-secondary transition-colors line-clamp-1">{newsletter.title}</h4>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                {newsletter.is_celebration && (
+                                                                    <span
+                                                                        className="bg-pink-100 text-pink-600 text-[10px] px-1.5 py-0.5 rounded font-black uppercase tracking-widest flex-shrink-0"
+                                                                        title="Celebratory News">🎉</span>
+                                                                )}
+                                                                <h4 className="font-bold text-brand-primary text-base group-hover:text-brand-secondary transition-colors line-clamp-1">
+                                                                    {newsletter.title}
+                                                                </h4>
+                                                            </div>
                                                             <p className="text-xs text-gray-500 line-clamp-1">{newsletter.excerpt}</p>
                                                         </td>
                                                         <td className="p-5 align-top hidden sm:table-cell">
@@ -472,19 +520,23 @@ function NewsletterContent() {
                             sermons, announcements, and family news directly in your inbox.</p>
                     </div>
                     <div className="md:w-1/2 w-full">
-                        <form className="flex flex-col sm:flex-row gap-3">
+                        {/* EMAIL SUBSCRIPTION BANNER (Full Width Bottom) */}
+                        <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
                             <div className="relative flex-grow">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18}/>
                                 <input
                                     type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Enter your email address"
                                     required
-                                    className="w-full py-4 pl-12 pr-4 bg-slate-50 border border-gray-200 text-brand-primary rounded-xl outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all text-sm font-medium"
+                                    disabled={isSubscribing}
+                                    className="w-full py-4 pl-12 pr-4 bg-slate-50 border border-gray-200 text-brand-primary rounded-xl outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 transition-all text-sm font-medium disabled:opacity-50"
                                 />
                             </div>
-                            <button type="submit"
-                                    className="bg-brand-primary text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95 flex-shrink-0">
-                                Subscribe
+                            <button type="submit" disabled={isSubscribing}
+                                    className="bg-brand-primary text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition-all active:scale-95 flex-shrink-0 disabled:opacity-70">
+                                {isSubscribing ? "Joining..." : "Subscribe"}
                             </button>
                         </form>
                         <p className="text-[10px] text-gray-400 mt-2 text-center md:text-left">* We respect your

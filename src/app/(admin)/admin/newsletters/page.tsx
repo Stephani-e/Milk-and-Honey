@@ -228,7 +228,7 @@ export default function NewslettersPage() {
                     const pushData = await pushRes.json();
 
                     if (pushData.success && pushData.count > 0) {
-                        toast.success(`Live! Push notification sent to ${pushData.count} subscribers 🚀`);
+                        toast.success(`Live! Push notification sent to ${pushData.count} subscribers `);
                     } else {
                         toast.success("Newsletter is live! (No subscribers to notify yet)");
                     }
@@ -254,11 +254,13 @@ export default function NewslettersPage() {
             ? {is_archived: false, is_published: true, deleted_at: null}
             : {is_archived: false, is_published: false, deleted_at: null};
 
-        const {error} =
-            await supabase
-                .from("newsletters")
-                .update(payload)
-                .eq("id", selectedNewsletter.id);
+        const {error} = await supabase
+            .from("newsletters")
+            .update(payload)
+            .eq("id", selectedNewsletter.id);
+
+        // Close modal immediately
+        setModalType(null);
 
         if (error) {
             toast.error("Restore failed: " + error.message);
@@ -279,7 +281,7 @@ export default function NewslettersPage() {
                     const pushData = await pushRes.json();
 
                     if (pushData.success && pushData.count > 0) {
-                        toast.success(`Restored & Live! Push notification sent to ${pushData.count} subscribers 🚀`);
+                        toast.success(`Restored & Live! Push notification sent to ${pushData.count} subscribers`);
                     } else {
                         toast.success("Restored & Live! (No subscribers to notify yet)");
                     }
@@ -288,23 +290,25 @@ export default function NewslettersPage() {
                     toast.success("Restored & Live! (But push notification failed to send)");
                 }
             } else {
-                // If they just restored it to Drafts, no notification is sent.
+                // If restored to Drafts, no notification is sent.
                 toast.success("Moved to Drafts safely.");
             }
-
+            
             setView(destination);
-            await fetchNewsletters();
         }
-        setModalType(null);
     };
 
     const handleConfirmAction = async () => {
         if (!selectedNewsletter) return;
 
+        // 1. Close modal immediately so the UI feels fast
+        setModalType(null);
+
         if (modalType === "delete") {
             if (view === 'trash') {
                 const {error} = await supabase.from("newsletters").delete().eq("id", selectedNewsletter.id);
                 if (!error) toast.error("Newsletter Permanently Deleted.");
+                await fetchNewsletters();
             } else {
                 const {error} = await supabase.from('newsletters').update({deleted_at: new Date()}).eq("id", selectedNewsletter.id);
                 if (!error) {
@@ -312,7 +316,6 @@ export default function NewslettersPage() {
                     setView("trash");
                 }
             }
-            await fetchNewsletters();
         } else if (modalType === "archive") {
             const newArchiveStatus = !selectedNewsletter.is_archived;
             const {error} = await supabase.from("newsletters").update({is_archived: newArchiveStatus}).eq("id", selectedNewsletter.id);
@@ -322,9 +325,6 @@ export default function NewslettersPage() {
                 setView(newArchiveStatus ? "archive" : "active");
             }
         }
-
-        await fetchNewsletters();
-        setModalType(null);
     };
 
     const getEmptyStateMessage = () => {

@@ -38,6 +38,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
         content: "",
         author_name: "Admin Team",
         cover_image_url: "",
+        is_celebration: false,
     });
 
     const quillModules = {
@@ -83,6 +84,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                 content: data.content || "",
                 author_name: data.author_name || "Admin Team",
                 cover_image_url: data.cover_image_url || "",
+                is_celebration: data.is_celebration || false,
             });
 
             if (data.cover_image_url) setImageUploaded(true);
@@ -111,6 +113,46 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
         const title = e.target.value;
         const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         setFormData({...formData, title, slug});
+    };
+
+    // --- LOAD TEMPLATE CONTENT ---
+    const loadWeeklyTemplate = () => {
+        const templateHTML = `
+            <h2><strong>This Week at Milk &amp; Honey</strong></h2>
+            <p>Happy Sunday family! Here is a quick look back at what God did this week, and everything you need to stay connected.</p>
+            <p><br></p>
+            <h3><strong> A Look Back</strong></h3>
+            <p>[Write 2–3 sentences here summarizing the week's main message, a special moment from worship, or a community highlight...]</p>
+            <p><br></p>
+            <h3><strong>🎧 Catch Up on the Word</strong></h3>
+            <p>Did you miss this week's message or just want to hear it again?</p>
+            <ul>
+                <li><a href="${window.location.origin}/sermons" rel="noopener noreferrer" target="_blank">Listen to the latest Sermon here</a></li>
+            </ul>
+            <p><br></p>
+            <h3><strong>Family Moments</strong></h3>
+            <p>We've uploaded new photos from our latest gatherings.</p>
+            <ul>
+                <li><a href="${window.location.origin}/gallery" rel="noopener noreferrer" target="_blank">View the Event Gallery here</a></li>
+            </ul>
+            <p><br></p>
+            <h3><strong>Stay Connected Mid-Week</strong></h3>
+            <p>Follow us for daily encouragement and updates:</p>
+            <ul>
+                <li><a href="https://instagram.com/yourhandle" rel="noopener noreferrer" target="_blank">Instagram</a></li>
+                <li><a href="https://twitter.com/yourhandle" rel="noopener noreferrer" target="_blank">X (Twitter)</a></li>
+            </ul>
+        `;
+
+        // Update both the content and suggest a title
+        setFormData(prev => ({
+            ...prev,
+            content: templateHTML,
+            title: prev.title || "Weekly Family Update",
+            author_name: prev.author_name || "Admin Team"
+        }));
+
+        toast.success("Weekly template loaded!");
     };
 
     const triggerMediaAction = (action: 'delete' | 'change') => {
@@ -202,8 +244,13 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
         }
     };
 
-    if (!initialFetchDone) return <div className="min-h-screen bg-brand-surface p-6 md:p-12"><AdminSkeletonLoader
-        variant="sermon-form"/></div>;
+    if (!initialFetchDone) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+                <AdminSkeletonLoader variant="sermon-form"/>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
@@ -238,6 +285,23 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                            className="w-full p-3 border rounded-lg text-brand-primary outline-none focus:border-brand-primary"
                                            value={formData.author_name} onChange={handleChange}/>
                                 </div>
+
+                                <div
+                                    className="flex items-center gap-3 p-4 bg-pink-50 rounded-xl border border-pink-100">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.is_celebration}
+                                        onChange={handleChange}
+                                        className="w-5 h-5 accent-pink-500"
+                                    />
+                                    <div>
+                                        <div className="font-bold text-pink-900 text-sm">Celebratory News</div>
+                                        <div className="text-[10px] text-pink-700">Birthday, Wedding, Birth
+                                            announcement. Changes the post style!
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             <div>
@@ -309,9 +373,30 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                         </div>
 
                         {/* Step 3: Content */}
+                        {/* Step 3: Content */}
                         <div className="pt-10 border-t border-gray-100 space-y-6">
-                            <label className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step 3:
-                                Newsletter Content</label>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                                <label className="text-xs font-bold uppercase tracking-widest text-purple-400">Step 3:
+                                    Newsletter Content</label>
+
+                                <button
+                                    type="button"
+                                    onClick={loadWeeklyTemplate}
+                                    className="text-[10px] bg-purple-50 text-purple-600 border border-purple-200 px-3 py-1.5 rounded-lg font-bold uppercase tracking-widest hover:bg-purple-100 transition-colors flex items-center gap-1 w-fit"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                         strokeLinejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    Load Weekly Template
+                                </button>
+                            </div>
+
                             <div
                                 className="bg-white rounded-lg border border-gray-300 w-full flex flex-col overflow-hidden shadow-sm">
                                 <ReactQuill theme="snow" value={formData.content}
@@ -355,9 +440,17 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                                     <label
                                         className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Select
                                         Date & Time</label>
-                                    <input type="datetime-local" value={scheduleDate}
-                                           onChange={(e) => setScheduleDate(e.target.value)}
-                                           className="w-full p-3 bg-white border border-gray-200 rounded-lg text-sm outline-none"/>
+                                    <input
+                                        type="datetime-local"
+                                        value={scheduleDate}
+                                        onChange={(e) => setScheduleDate(e.target.value)}
+                                        className="w-full p-3 bg-white border border-gray-200 rounded-lg text-sm outline-none"
+                                    />
+                                    <p className="text-[10px] text-blue-600 mt-2 font-bold">
+                                        💡 Pro Tip: Schedule for 1:29, 2:29, etc. (at least 1 minute before the top or
+                                        half-hour)
+                                        to ensure notifications go out immediately!
+                                    </p>
                                 </div>
                             )}
                         </div>

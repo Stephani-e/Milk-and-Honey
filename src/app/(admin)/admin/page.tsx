@@ -18,6 +18,7 @@ export default function AdminDashboard() {
     const goToEvents = () => router.push("/admin/events");
 
     const goToNewsletters = () => router.push("/admin/newsletters");
+    const gotToEmailLists = () => router.push("/admin/subscribers");
     const goToAds = () => router.push("/admin/ads")
 
     const goToDepartments = () => router.push("/admin/departments")
@@ -143,22 +144,22 @@ export default function AdminDashboard() {
                         className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
                             <div
-                                className="h-12 w-12 bg-indigo-100 text-indigo-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                className="h-12 w-12 bg-indigo-100 text-lime-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
                                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
                                      viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round"
                                           d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-serif font-bold text-indigo-900 mb-2">Newsletters</h3>
+                            <h3 className="text-xl font-serif font-bold text-lime-900 mb-2">Newsletters</h3>
                             <p className="text-sm text-gray-500 mb-6 leading-relaxed">Draft, schedule, and publish
-                                updates to the church family.</p>
+                                updates to the emails of the church family.</p>
                         </div>
                         <button
-                            onClick={goToNewsletters}
-                            className="w-full bg-indigo-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+                            onClick={gotToEmailLists}
+                            className="w-full bg-lime-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                         >
-                            Manage Newsletters
+                            Manage Email Lists/Messages
                         </button>
                     </div>
 
