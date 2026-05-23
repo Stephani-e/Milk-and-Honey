@@ -49,12 +49,16 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl hover:shadow-brand-primary/5 transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl hover:shadow-brand-primary/5 transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-blue-100 text-blue-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-primary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                 </svg>
                             </div>
@@ -71,12 +75,16 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-orange-100 text-orange-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                                     <circle cx="8.5" cy="8.5" r="1.5"/>
                                     <path d="M21 15l-5-5L5 21"/>
@@ -95,12 +103,16 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-purple-100 text-purple-900 rounded-xl flex items-center justify-center mb-6">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <path d="M16 2v4M8 2v4M3 10h18"/>
                                 </svg>
@@ -118,14 +130,20 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-indigo-100 text-indigo-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round"
-                                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round" strokeLinejoin="round"
+                                        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                                    />
                                 </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-indigo-900 mb-2">Newsletters</h3>
@@ -141,30 +159,37 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
-                                className="h-12 w-12 bg-indigo-100 text-lime-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
+                                className="h-12 w-12 bg-indigo-100 text-lime-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20"
+                            >
+                                {/* Users / Community Icon */}
                                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round"
-                                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                     strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-serif font-bold text-lime-900 mb-2">Newsletters</h3>
-                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Draft, schedule, and publish
-                                updates to the emails of the church family.</p>
+                            <h3 className="text-xl font-serif font-bold text-lime-900 mb-2">Mailing List</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                                View, manage, and securely export the contacts in your digital church family network.
+                            </p>
                         </div>
                         <button
                             onClick={gotToEmailLists}
                             className="w-full bg-lime-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                         >
-                            Manage Email Lists/Messages
+                            Manage Subscribers
                         </button>
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-pink-100 text-pink-900 rounded-xl flex items-center justify-center mb-6">
@@ -185,16 +210,20 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-emerald-100 text-emerald-900 rounded-xl flex items-center justify-center mb-6">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <path
-                                        d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m12-10a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+                                        d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m12-10a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"
+                                    />
                                 </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-emerald-900 mb-2">Workforce Units</h3>
@@ -208,12 +237,16 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-red-100 text-red-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-brand-secondary/20">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <circle cx="12" cy="12" r="10"/>
                                     <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
                                 </svg>
@@ -229,14 +262,19 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between"
+                    >
                         <div>
                             <div
                                 className="h-12 w-12 bg-olive-100 text-olive-900 rounded-xl flex items-center justify-center mb-6">
-                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="24" height="24"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <path
-                                        d="M12 11c0 3.517-1.009 6.799-2.753 9.571m0 0A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10c0 2.478-.897 4.747-2.387 6.5m-3.226 3.123c-1.047.23-2.134.377-3.253.377a10.003 10.003 0 01-4.387-.999"/>
+                                        d="M12 11c0 3.517-1.009 6.799-2.753 9.571m0 0A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10c0 2.478-.897 4.747-2.387 6.5m-3.226 3.123c-1.047.23-2.134.377-3.253.377a10.003 10.003 0 01-4.387-.999"
+                                    />
                                 </svg>
                             </div>
                             <h3 className="text-xl font-serif font-bold text-olive-900 mb-2">Leadership Registry</h3>
@@ -250,12 +288,16 @@ export default function AdminDashboard() {
                     </div>
 
                     <div
-                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-3">
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-3"
+                    >
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 h-full">
                             <div
                                 className="h-16 w-16 bg-mauve-100 text-mauve-900 border border-brand-accent rounded-2xl flex items-center justify-center shrink-0">
-                                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2"
-                                     viewBox="0 0 24 24">
+                                <svg
+                                    width="32" height="32"
+                                    fill="none" stroke="currentColor"
+                                    strokeWidth="2" viewBox="0 0 24 24"
+                                >
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/>
                                     <circle cx="12" cy="10" r="3"/>
                                 </svg>
@@ -278,13 +320,15 @@ export default function AdminDashboard() {
                 </div>
 
                 <div
-                    className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                    className="mt-8 md:mt-12 p-5 bg-white/50 backdrop-blur-sm border border-brand-accent rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left"
+                >
                     {/* Left Side: Status */}
                     <div className="flex items-center gap-3">
                         <div className="relative flex h-2 w-2">
                             {/* Added a ping effect for a more "live" feel */}
                             <span
-                                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+                            ></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </div>
                         <p className="text-[10px] font-sans font-black text-gray-400 uppercase tracking-widest">
@@ -297,7 +341,9 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-4">
                         {/* The divider now only shows on desktop to separate the two pieces of info */}
                         <div className="hidden md:block w-px h-3 bg-gray-200"></div>
-                        <p className="text-[10px] font-sans font-bold text-gray-300 uppercase tracking-widest">
+                        <p
+                            className="text-[10px] font-sans font-bold text-gray-300 uppercase tracking-widest"
+                        >
                             Milk and Honey <span className="text-gray-400">v2.1</span>
                         </p>
                     </div>
@@ -307,7 +353,7 @@ export default function AdminDashboard() {
             {/* Vertical Signature */}
             <div className="fixed hidden xl:flex right-8 bottom-12 flex-col items-center gap-4 z-0">
                 <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gray-400 [writing-mode:vertical-lr] rotate-180">
-                    Design & Maintenance by <span className="text-brand-secondary font-bold">The Media Team</span>
+                    Design & Maintenance by <span className="text-brand-secondary font-bold">Byte & Security</span>
                 </p>
                 <div className="w-[1px] h-12 bg-gray-200"></div>
             </div>

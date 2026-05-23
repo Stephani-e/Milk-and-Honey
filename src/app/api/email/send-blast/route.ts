@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             return NextResponse.json({error: 'Newsletter not found'}, {status: 404});
         }
 
-        // 2. Wrap the ReactQuill content in a beautiful, mobile-friendly HTML email template
+        // 2. Wrap the ReactQuill content in a beautiful HTML email template
         const coverImageHTML = newsletter.cover_image_url
             ? `<img src="${newsletter.cover_image_url}" alt="${newsletter.title}" style="width: 100%; max-width: 100%; height: auto; display: block; border-bottom: 1px solid #e5e7eb;" />`
             : '';
@@ -51,18 +51,7 @@ export async function POST(req: Request) {
             </div>
         `;
 
-        // 3. PRE-FLIGHT CHECK: Dynamically fetch your "Active Subscribers" Segment
-        const segmentsRes = await fetch('https://connect.mailerlite.com/api/segments', {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${process.env.MAILERLITE_API_KEY}`
-            }
-        });
-        const segmentsData = await segmentsRes.json();
-        const activeSegment = segmentsData?.data?.find((s: any) => s.name.toLowerCase().includes('active'));
-        const targetSegments = activeSegment ? [activeSegment.id] : [];
-
-        // 4. Create the Campaign Draft (Now with actual recipients attached!)
+        // 3. Create the Campaign Draft directly connected to your group
         const response = await fetch('https://connect.mailerlite.com/api/campaigns', {
             method: 'POST',
             headers: {
@@ -77,59 +66,34 @@ export async function POST(req: Request) {
                     {
                         subject: newsletter.title,
                         from_name: newsletter.author_name || 'Milk & Honey',
-                        from: 'rccgmilkandhoney29@gmail.com', // MUST MATCH YOUR MAILERLITE VERIFIED EMAIL
+                        from: 'rccgmilkandhoney29@gmail.com',
                         content: emailHTML
                     }
                 ],
-                segments: targetSegments // Attach the recipients here
+                groups: ["188197025494337139"]
             })
         });
 
         const campaignData = await response.json();
         const campaignId = campaignData?.data?.id || campaignData?.id;
 
-        console.log("✅ Campaign Draft Created! ID:", campaignId);
-
         if (!campaignId) {
             console.error("❌ MailerLite Response:", JSON.stringify(campaignData, null, 2));
             return NextResponse.json({error: 'Failed to extract Campaign ID'}, {status: 500});
         }
 
-        // 5. Wait 3 seconds for MailerLite to process the HTML and assign the recipients
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        console.log("✅ Campaign Draft Created! Waiting for manual send in MailerLite.");
 
-        // 6. Trigger the Schedule Endpoint
-        const sendResponse = await fetch(`https://connect.mailerlite.com/api/campaigns/${campaignId}/actions/schedule`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${process.env.MAILERLITE_API_KEY}`
-            },
-            body: JSON.stringify({
-                delivery: "instant"
-            })
-        });
-
-        if (!sendResponse.ok) {
-            const sendErrorText = await sendResponse.text();
-            console.error(`❌ MailerLite Schedule Error (${sendResponse.status}):`, sendErrorText);
-            return NextResponse.json({error: 'Failed to trigger send'}, {status: sendResponse.status});
-        }
-
-        console.log("🚀 Campaign Successfully Scheduled!");
-
-        // 7. Update Supabase to lock the UI toggle
+        // 4. Update Supabase to lock the UI toggle so it doesn't get created twice
         await supabase
             .from('newsletters')
             .update({email_sent: true})
             .eq('id', newsletterId);
 
-        return NextResponse.json({success: true});
+        return NextResponse.json({success: true, message: "Draft successfully created!"});
 
     } catch (error) {
         console.error('Email Blast Endpoint Error:', error);
         return NextResponse.json({error: 'Internal Server Error'}, {status: 500});
     }
 }
-

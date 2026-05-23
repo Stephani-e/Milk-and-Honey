@@ -36,7 +36,10 @@ export default function Navbar() {
                     .select('full_name, role, email')
                     .eq('id', user.id)
                     .single();
-                if (data) setProfile(data);
+                if (data) {
+                    setProfile(data)
+                    setNewName(data.full_name || "");
+                }
             }
             setLoading(false)
         };
