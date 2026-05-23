@@ -176,7 +176,7 @@ export default function ContactPage() {
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-1">Email</h4>
                                     <a href={`mailto:${settings?.church_admin_email}`}
-                                       className="text-sm text-gray-500 hover:text-brand-primary transition-colors">
+                                       className="text-xs md:text-sm text-gray-500 hover:text-brand-primary transition-colors">
                                         {settings?.church_admin_email}
                                     </a>
                                 </div>
@@ -189,7 +189,7 @@ export default function ContactPage() {
                         <h3 className="text-xl font-serif font-bold text-brand-primary mb-2">Quick Connect</h3>
                         <p className="text-sm text-gray-500 mb-6">Send us a direct message on our social channels for
                             quick inquiries.</p>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4">
                             <a href={settings?.instagram_url} target="_blank" rel="noreferrer"
                                className="flex-1 flex items-center justify-center gap-2 bg-slate-50 hover:bg-pink-50 border border-gray-100 hover:border-pink-200 text-gray-600 hover:text-pink-600 py-4 rounded-xl font-bold transition-all">
                                 <InstagramIcon/> Instagram

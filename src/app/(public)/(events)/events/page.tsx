@@ -144,9 +144,38 @@ export default function EventsPage() {
         "thursday": 5, "friday": 6, "saturday": 7
     };
     weeklyEvents.sort((a, b) => {
+        // 1. First, sort by the Day of the Week
         const dayA = a.recurrence_rules?.day?.toLowerCase();
         const dayB = b.recurrence_rules?.day?.toLowerCase();
-        return (dayOrder[dayA] || 99) - (dayOrder[dayB] || 99);
+
+        const dayDiff = (dayOrder[dayA] || 99) - (dayOrder[dayB] || 99);
+
+        if (dayDiff !== 0) {
+            return dayDiff; // Different days, normal sort applies
+        }
+
+        // Helper function to safely extract the earliest start time
+        const getSortTime = (event: any) => {
+            const rules = event.recurrence_rules;
+            if (!rules) return "24:00";
+
+            // A. If it has a standard single start time, use it
+            if (rules.start_time) return rules.start_time;
+
+            // B. If it has multiple sessions, grab the start time of the VERY FIRST session
+            if (rules.standard_sessions && rules.standard_sessions.length > 0) {
+                return rules.standard_sessions[0].start_time || "24:00";
+            }
+
+            // C. Fallback
+            return "24:00";
+        };
+
+        // 2. TIE-BREAKER: If they are on the SAME day, sort chronologically by start time!
+        const timeA = getSortTime(a);
+        const timeB = getSortTime(b);
+
+        return timeA.localeCompare(timeB);
     });
 
     let plottedEvents: any[] = [];
@@ -252,7 +281,8 @@ export default function EventsPage() {
                         className="bg-white rounded-[2rem] shadow-2xl border-4 border-amber-400 p-6 md:p-12 animate-in zoom-in-95 duration-500 overflow-hidden relative">
                         {/* Decorative background glow */}
                         <div
-                            className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
+                            className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"
+                        ></div>
 
                         <div className="flex flex-col md:flex-row gap-8 md:gap-12 relative z-10">
                             {/* Left: Info */}
@@ -319,8 +349,10 @@ export default function EventsPage() {
                                     <h2 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">Our
                                         Weekly Rhythm</h2>
                                 </div>
-                                <Link href="/events/weekly"
-                                      className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md hover:bg-amber-600 transition-all hover:scale-105 active:scale-95">
+                                <Link
+                                    href="/events/weekly"
+                                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-md hover:bg-amber-600 transition-all hover:scale-105 active:scale-95"
+                                >
                                     <Clock size={14}/> View Live Countdowns
                                 </Link>
                             </div>

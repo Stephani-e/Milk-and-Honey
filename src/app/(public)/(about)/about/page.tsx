@@ -355,7 +355,7 @@ export default function AboutPage() {
                                 <div
                                     className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary flex-shrink-0">
                                     <Mail size={20}/></div>
-                                <p className="text-sm text-gray-500"> {settings?.church_admin_email}</p>
+                                <p className="text-xs md:text-sm text-gray-500"> {settings?.church_admin_email}</p>
                             </a>
                         </div>
                     </div>
