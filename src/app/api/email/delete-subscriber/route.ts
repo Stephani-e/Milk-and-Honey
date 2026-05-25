@@ -19,11 +19,11 @@ export async function POST(req: Request) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("❌ MailerLite deletion failed:", errorText);
+            console.error("MailerLite deletion failed:", errorText);
             return NextResponse.json({error: 'Failed to delete from MailerLite'}, {status: response.status});
         }
 
-        console.log(`🧹 Admin UI Sync: Successfully deleted ${email} from MailerLite.`);
+        console.log(`Admin UI Sync: Successfully deleted ${email} from MailerLite.`);
         return NextResponse.json({success: true});
 
     } catch (error) {

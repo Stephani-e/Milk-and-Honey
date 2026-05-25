@@ -78,11 +78,11 @@ export async function POST(req: Request) {
         const campaignId = campaignData?.data?.id || campaignData?.id;
 
         if (!campaignId) {
-            console.error("❌ MailerLite Response:", JSON.stringify(campaignData, null, 2));
+            console.error("MailerLite Response:", JSON.stringify(campaignData, null, 2));
             return NextResponse.json({error: 'Failed to extract Campaign ID'}, {status: 500});
         }
 
-        console.log("✅ Campaign Draft Created! Waiting for manual send in MailerLite.");
+        console.log("Campaign Draft Created! Waiting for manual send in MailerLite.");
 
         // 4. Update Supabase to lock the UI toggle so it doesn't get created twice
         await supabase

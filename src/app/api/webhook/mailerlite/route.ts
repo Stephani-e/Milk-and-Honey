@@ -27,9 +27,9 @@ export async function POST(req: Request) {
                     .eq('email', email);
 
                 if (error) {
-                    console.error(`❌ Webhook Failed to remove ${email}:`, error.message);
+                    console.error(`Webhook Failed to remove ${email}:`, error.message);
                 } else {
-                    console.log(`🧹 Webhook Auto-Cleaned: Removed ${email} due to ${eventType}`);
+                    console.log(`Webhook Auto-Cleaned: Removed ${email} due to ${eventType}`);
                 }
             }
         }
