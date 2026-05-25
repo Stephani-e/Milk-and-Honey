@@ -241,7 +241,10 @@ export default function NewNewsletterPage() {
                         });
 
                         if (emailRes.ok) {
-                            toast.success("Email blast successfully sent to subscribers! 📩");
+                            toast.success("Newsletter Draft Created!", {
+                                description: "Go to MailerLite > Campaign Drafts to review and officially send the email.",
+                                duration: 6000, // Keeps it on screen a bit longer so they can read the instructions
+                            });
                         } else {
                             toast.error("Failed to send email blast.");
                         }

@@ -229,7 +229,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                     const pushData = await pushRes.json();
 
                     if (pushData.success && pushData.count > 0) {
-                        toast.success(`Published! Push sent to ${pushData.count} subscribers 🚀`);
+                        toast.success(`Published! Push sent to ${pushData.count} subscribers.`);
                     } else {
                         toast.success("Newsletter Published! (No push subscribers to notify yet)");
                     }
@@ -245,8 +245,7 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
             // B. Email Blast (Works independently of Push Notifications)
             // Checks if it's set to publish now, the toggle is ON, and it hasn't been sent yet!
             const shouldSendEmailNow =
-                targetAction === 'publish' &&
-                publishStatus === "publish_now" &&
+                isFirstTimePublishingNow &&
                 formData.send_as_email &&
                 !originalData?.email_sent;
 
@@ -262,7 +261,10 @@ export default function EditNewsletterPage({params}: { params: Promise<{ id: str
                     });
 
                     if (emailRes.ok) {
-                        toast.success("Email blast successfully sent to subscribers! 📩");
+                        toast.success("Newsletter Draft Created!", {
+                            description: "Go to MailerLite > Campaign Drafts to review and officially send the email.",
+                            duration: 6000, // Keeps it on screen a bit longer so they can read the instructions
+                        });
                     } else {
                         toast.error("Failed to send email blast.");
                     }
