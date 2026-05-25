@@ -15,10 +15,14 @@ const PAGE_SIZE = 10;
 export default function SermonsPage() {
     const router = useRouter();
     const {role} = useAuth();
-
     const searchParams = useSearchParams();
-    const initialTab = searchParams.get("tab");
-    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(initialTab === "draft" ? "draft" : "active");
+
+    // 1. Safely initialize tab state from URL
+    const initialTab = searchParams.get("tab") as "active" | "trash" | "archive" | "draft" | null;
+    const validTabs = ["active", "trash", "archive", "draft"];
+    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(
+        validTabs.includes(initialTab || "") ? initialTab! : "active"
+    );
 
     const [sermons, setSermons] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -34,113 +38,89 @@ export default function SermonsPage() {
     const [modalType, setModalType] = useState<"delete" | "archive" | "restore" | null>(null);
     const [selectedSermon, setSelectedSermon] = useState<any | null>(null);
 
-    useEffect(() => {
-        fetchSermons().catch(error => console.error("Error fetching sermons:", error));
-    }, [currentPage]);
-
-    useEffect(() => {
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        } else {
-            fetchSermons().catch(error => console.error("Error fetching sermons:", error));
-        }
-    }, [search, sortBy, view]);
-
+    // 2. Debounce Search Input
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            setSearch(searchTerm); // This triggers the database fetch
-        }, 500); // Wait 500ms after user stops typing
+            setSearch(searchTerm);
+        }, 500); // Wait 500ms after typing stops
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
 
+    // 3. The Master Data Fetcher (Reacts to state changes instantly)
     useEffect(() => {
-        // Updates the URL browser history without a full page reload
-        const params = new URLSearchParams(window.location.search);
-        params.set("tab", view);
-        router.replace(`${window.location.pathname}?${params.toString()}`);
-    }, [view]);
+        fetchSermons(view, currentPage, search, sortBy).catch(error => console.error("Error fetching sermons:", error));
+    }, [view, currentPage, search, sortBy]);
 
-    useEffect(() => {
+    // 4. Slick Tab Switcher
+    const handleTabChange = (newView: "active" | "trash" | "archive" | "draft") => {
+        if (newView === view) return; // Ignore if clicking the active tab
+        setView(newView);
         setCurrentPage(1);
-    }, [view, search, sortBy]);
 
-    async function fetchSermons() {
+        // Update URL instantly without full page reload
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("tab", newView);
+        router.replace(`?${params.toString()}`, {scroll: false});
+    };
+
+    // 5. Upgraded Parallel Fetcher
+    async function fetchSermons(
+        currentView = view,
+        page = currentPage,
+        currentSearch = search,
+        currentSort = sortBy
+    ) {
         setLoading(true);
 
-        // Build the base query for Count
-        let countQuery = supabase
-            .from("sermons")
-            .select("*", {count: 'exact', head: true});
+        // Helper function to apply the exact same filters to both queries
+        const applyViewFilter = (query: any) => {
+            if (currentView === "trash") return query.not("deleted_at", "is", null);
+            if (currentView === "archive") return query.is("deleted_at", null).eq("is_archived", true);
+            if (currentView === "draft") return query.is("deleted_at", null).eq("is_archived", false).eq("status", "draft");
+            return query.is("deleted_at", null).eq("is_archived", false).eq("status", "published");
+        };
 
-        //Filter by view
-        if (view === "trash") {
-            countQuery = countQuery.not("deleted_at", "is", null);
-        } else if (view === "archive") {
-            countQuery = countQuery.is("deleted_at", null).eq("is_archived", true);
-        } else if (view === "draft") {
-            countQuery = countQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "draft");
-        } else {
-            countQuery = countQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "published");
-        }
+        // Build the Count Query (head: true makes this ultra-fast)
+        let countQuery = supabase.from("sermons").select("*", {count: 'exact', head: true});
+        countQuery = applyViewFilter(countQuery);
+        if (currentSearch) countQuery = countQuery.or(`title.ilike.%${currentSearch}%,preacher.ilike.%${currentSearch}%`);
 
-        if (search) countQuery = countQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
-        const {count} = await countQuery;
-        setTotalCount(count || 0);
+        // Build the Data Query
+        let dataQuery = supabase.from("sermons").select("*");
+        dataQuery = applyViewFilter(dataQuery);
+        if (currentSearch) dataQuery = dataQuery.or(`title.ilike.%${currentSearch}%,preacher.ilike.%${currentSearch}%`);
 
-        // Build the data query
-        const from = (currentPage - 1) * PAGE_SIZE;
+        // Apply Sorting & Pagination to Data Query only
+        if (currentSort === "latest") dataQuery = dataQuery.order("service_date", {ascending: false});
+        else if (currentSort === "oldest") dataQuery = dataQuery.order("service_date", {ascending: true});
+        else if (currentSort === "alphabetical") dataQuery = dataQuery.order("title", {ascending: true});
+
+        const from = (page - 1) * PAGE_SIZE;
         const to = from + PAGE_SIZE - 1;
-
-        let dataQuery = supabase
-            .from("sermons")
-            .select("*");
-
-        if (view === "trash") {
-            dataQuery = dataQuery.not("deleted_at", "is", null);
-        } else if (view === "archive") {
-            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", true);
-        } else if (view === "draft") {
-            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "draft");
-        } else {
-            dataQuery = dataQuery.is("deleted_at", null).eq("is_archived", false).eq("status", "published");
-        }
-
-        // Apply Search
-        if (search) {
-            dataQuery = dataQuery.or(`title.ilike.%${search}%,preacher.ilike.%${search}%`);
-        }
-
-        // Apply Sorting
-        if (sortBy === "latest") {
-            dataQuery = dataQuery.order("service_date", {ascending: false})
-        } else if (sortBy === "oldest") {
-            dataQuery = dataQuery.order("service_date", {ascending: true})
-        } else if (sortBy === "alphabetical") {
-            dataQuery = dataQuery.order("title", {ascending: true})
-        }
-
         dataQuery = dataQuery.range(from, to);
 
+        // FIRE BOTH QUERIES AT ONCE
+        const [countResponse, dataResponse] = await Promise.all([
+            countQuery,
+            dataQuery
+        ]);
 
-        const {data, error} = await dataQuery;
-
-        if (error) {
-            toast.error("Error fetching sermons: " + error.message);
+        if (dataResponse.error) {
+            toast.error("Error fetching sermons: " + dataResponse.error.message);
         } else {
-            let fetchedSermons = data || [];
+            setTotalCount(countResponse.count || 0);
 
-            if (sortBy === "latest" || sortBy === "oldest") {
+            let fetchedSermons = dataResponse.data || [];
+
+            // Custom Date Tie-Breaker Sort
+            if (currentSort === "latest" || currentSort === "oldest") {
                 fetchedSermons = fetchedSermons.sort((a, b) => {
                     const dateA = new Date(a.service_date).getTime();
                     const dateB = new Date(b.service_date).getTime();
 
-                    // If dates are different, reinforce the primary date sort
-                    if (dateA !== dateB) {
-                        return sortBy === "oldest" ? dateA - dateB : dateB - dateA;
-                    }
+                    if (dateA !== dateB) return currentSort === "oldest" ? dateA - dateB : dateB - dateA;
 
-                    // TIE-BREAKER LOGIC for identical dates
                     const orderMap: Record<string, number> = {
                         "First Service": 1,
                         "Second Service": 2,
@@ -149,9 +129,7 @@ export default function SermonsPage() {
                     const valA = orderMap[a.service_number] || 0;
                     const valB = orderMap[b.service_number] || 0;
 
-                    // If 'latest', Second Service (2) comes before First Service (1)
-                    // If 'oldest', First Service (1) comes before Second Service (2)
-                    return sortBy === "oldest" ? valA - valB : valB - valA;
+                    return currentSort === "oldest" ? valA - valB : valB - valA;
                 });
             }
             setSermons(fetchedSermons);
@@ -161,7 +139,6 @@ export default function SermonsPage() {
         setIsInitialLoad(false);
     }
 
-    //Calculate Days Remaining
     const getDaysLeft = (deletedAt: string) => {
         const deleteDate = new Date(deletedAt);
         const expiryDate = new Date(deleteDate);
@@ -174,19 +151,16 @@ export default function SermonsPage() {
         return diffDays > 0 ? diffDays : 0;
     };
 
-    //Trigger Delete
     const triggerDelete = (sermon: any) => {
         setSelectedSermon(sermon);
         setModalType("delete");
     };
 
-    //Trigger Restore
     const triggerRestore = (sermon: any) => {
         setSelectedSermon(sermon);
         setModalType("restore");
     };
 
-    //Trigger Archive
     const triggerArchive = (sermon: any) => {
         setSelectedSermon(sermon);
         setModalType("archive");
@@ -202,7 +176,7 @@ export default function SermonsPage() {
             toast.error("Failed to publish: " + error.message);
         } else {
             toast.success("Sermon is now live!");
-            await fetchSermons()
+            await fetchSermons(); // Keeps them on the draft page but refreshes the list
         }
     };
 
@@ -220,13 +194,11 @@ export default function SermonsPage() {
             toast.error("Restore failed: " + error.message);
         } else {
             toast.success(`Moved to ${destination === 'active' ? 'Library' : 'Drafts'}`);
-            setView(destination);
-            await fetchSermons();
+            setModalType(null);
+            handleTabChange(destination); // Instantly switches tabs and auto-fetches
         }
-        setModalType(null);
     };
 
-    //Confirm Action
     const handleConfirmAction = async () => {
         if (!selectedSermon) return;
 
@@ -237,7 +209,10 @@ export default function SermonsPage() {
                     .delete()
                     .eq("id", selectedSermon.id);
 
-                if (!error) toast.error("Sermon Permanently Deleted.");
+                if (!error) {
+                    toast.error("Sermon Permanently Deleted.");
+                    await fetchSermons(); // Stay on trash tab and refresh
+                }
             } else {
                 const {error} = await supabase
                     .from('sermons')
@@ -245,10 +220,9 @@ export default function SermonsPage() {
                     .eq("id", selectedSermon.id);
                 if (!error) {
                     toast.success("Sermon moved to Trash. It will be kept for 30 days.");
-                    setView("trash");
+                    handleTabChange("trash"); // Route directly to trash
                 }
             }
-            await fetchSermons();
 
         } else if (modalType === "archive") {
             const newArchiveStatus = !selectedSermon.is_archived;
@@ -260,15 +234,13 @@ export default function SermonsPage() {
             if (error) toast.error("Update failed");
             else {
                 toast.success(newArchiveStatus ? "Sermon Archived" : "Sermon Restored");
-                setView(newArchiveStatus ? "archive" : "active")
+                handleTabChange(newArchiveStatus ? "archive" : "active");
             }
         }
 
-        await fetchSermons();
         setModalType(null);
     };
 
-    // Dynamic Empty State Helper
     const getEmptyStateMessage = () => {
         if (search) return "No sermons found matching your search.";
         if (view === "trash") return "Trash is currently empty.";
@@ -300,25 +272,25 @@ export default function SermonsPage() {
                         <div
                             className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-max md:w-fit min-w-full md:min-w-0">
                             <button
-                                onClick={() => setView("active")}
+                                onClick={() => handleTabChange("active")}
                                 className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "active" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}
                             >
                                 All Sermons
                             </button>
                             <button
-                                onClick={() => setView("archive")}
+                                onClick={() => handleTabChange("archive")}
                                 className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}
                             >
                                 Archive
                             </button>
                             <button
-                                onClick={() => setView("draft")}
+                                onClick={() => handleTabChange("draft")}
                                 className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "draft" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-blue-700"}`}
                             >
                                 Drafts
                             </button>
                             <button
-                                onClick={() => setView("trash")}
+                                onClick={() => handleTabChange("trash")}
                                 className={`whitespace-nowrap px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}
                             >
                                 Trash <span
@@ -369,7 +341,7 @@ export default function SermonsPage() {
                     ]}
                 />
 
-                {/* DESKTOP TABLE: Hidden on small screens */}
+                {/* DESKTOP TABLE */}
                 <div
                     className="hidden md:block bg-white rounded-3xl border border-brand-accent overflow-hidden shadow-sm"
                 >
@@ -395,7 +367,6 @@ export default function SermonsPage() {
                                 <tr key={s.id}
                                     className={`transition-opacity ${s.is_archived && view !== "trash" ? "opacity-100 grayscale" : ""}`}>
                                     <td className="p-5">
-                                        {/* Row 1: The Logic Badges */}
                                         <div className="flex gap-2 mb-2">
                                             {s.service_category === "Weekly" ? (
                                                 <span
@@ -414,7 +385,6 @@ export default function SermonsPage() {
                                             </span>
                                             )}
 
-                                            {/* Sub-labels (Day 3, 2nd Service, etc.) */}
                                             {s.is_multi_day && <span
                                                 className="text-[9px] font-bold text-gray-400">({s.day_identifier})</span>}
                                             {s.service_category === "Weekly" && s.weekly_type === "Sunday" && s.service_number && (
@@ -423,13 +393,11 @@ export default function SermonsPage() {
                                             )}
                                         </div>
 
-                                        {/* Row 2: Title & Date */}
                                         <div
                                             className="font-serif font-bold text-lg text-brand-primary leading-tight">{s.title}</div>
                                         <div
                                             className="text-[10px] text-brand-secondary font-bold mt-1 uppercase tracking-tight">
                                             {new Date(s.service_date).toLocaleDateString('en-GB')}
-                                            {/* Logic: Only show Host if it exists and isn't "General" */}
                                             {s.host && s.host !== "General" && s.host !== "" && (
                                                 <span className="ml-1 text-purple-600">
                                                 | {s.host}
@@ -441,7 +409,6 @@ export default function SermonsPage() {
                                             </span>
                                             )}
                                         </div>
-                                        {/* NEW: Cross-Platform Badges */}
                                         <div className="flex items-center gap-2 mt-2">
                                             {s.link_ig && (
                                                 <a href={s.link_ig} target="_blank" rel="noreferrer"
@@ -511,7 +478,6 @@ export default function SermonsPage() {
                                     <td className="p-5">
                                         <div className="text-sm font-medium text-gray-700">{s.preacher}</div>
                                         <div className="flex gap-4 mt-3">
-                                            {/* Icon Logic: Only render if URL exists */}
                                             {s.youtube_url && (
                                                 <a href={s.youtube_url} target="_blank" title="Watch on YouTube"
                                                    className="text-red-600 hover:scale-110 transition-transform">
@@ -589,7 +555,6 @@ export default function SermonsPage() {
 
                 {/* --- MOBILE CARD VIEW --- */}
                 <div className="md:hidden space-y-4">
-
                     {loading ? (
                         <AdminSkeletonLoader variant="list-item" count={3}/>
                     ) : (
@@ -602,7 +567,6 @@ export default function SermonsPage() {
                                         className={`text-[8px] px-2 py-1 rounded-md font-bold uppercase ${s.service_category === "Weekly" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"}`}>
                                         {s.service_category === "Weekly" ? s.weekly_type : s.special_service_name}
                                     </span>
-                                        {/* Important sub-labels added back for mobile */}
                                         {s.is_multi_day && <span
                                             className="text-[8px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">({s.day_identifier})</span>}
                                     </div>
@@ -612,13 +576,11 @@ export default function SermonsPage() {
 
                                 <h3 className="font-serif font-bold text-brand-primary text-lg mb-1 leading-tight">{s.title}</h3>
 
-                                {/* Added Host logic back for mobile */}
                                 <p className="text-sm text-gray-600 mb-1">{s.preacher}</p>
                                 {s.host && s.host !== "General" && (
                                     <p className="text-[10px] text-purple-600 font-bold uppercase tracking-wider mb-4">Host: {s.host}</p>
                                 )}
 
-                                {/* NEW: Cross-Platform Badges for Mobile */}
                                 <div className="flex flex-wrap items-center gap-2 mb-4">
                                     {s.link_ig && (
                                         <a href={s.link_ig} target="_blank" rel="noreferrer" title="View on Instagram"
@@ -701,7 +663,6 @@ export default function SermonsPage() {
                                             <a href={s.clip_url} target="_blank" className="text-blue-600"><MediaIcon
                                                 type="video"/></a>}
                                     </div>
-                                    {/* The action buttons component handled the link, let's make sure it's crisp */}
                                     <ActionButtons
                                         sermon={s}
                                         onArchive={triggerArchive}
@@ -833,7 +794,7 @@ export default function SermonsPage() {
 }
 
 
-// Subcomponents to keep the main return clean
+// Subcomponents
 function MediaIcon({type}: { type: 'youtube' | 'banner' | 'video' }) {
     if (type === 'youtube') return <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                         fill="currentColor">
@@ -871,8 +832,6 @@ function ActionButtons({
     view: 'active' | 'trash' | 'archive' | 'draft',
     role: string
 }) {
-
-    // Function to handle the "View Live" click
     const handleViewLive = (id: string) => {
         if (view === "draft") {
             window.open(`/sermons/${id}?preview=true`, '_blank');
@@ -882,7 +841,6 @@ function ActionButtons({
         toast.info("Opening public preview...");
     };
 
-    //Trash Item
     if (view === "trash") {
         return (
             <div className="flex items-center gap-6 justify-end">
@@ -893,7 +851,6 @@ function ActionButtons({
                         <span className="text-[8px] font-bold uppercase text-emerald-600">Restore</span>
                     </button>
                 )}
-                {/* ONLY SUPER ADMINS CAN PURGE */}
                 {role === 'super-admin' && (
                     <button onClick={() => onDelete(sermon)} className="flex flex-col items-center gap-1 group">
                         <Trash2 size={18} className="text-red-400 group-hover:text-red-600"/>
@@ -904,7 +861,6 @@ function ActionButtons({
         );
     }
 
-    //Archive Item
     if (view === "archive") {
         return (
             <div className="flex items-center gap-4 justify-end">
@@ -922,7 +878,6 @@ function ActionButtons({
         );
     }
 
-    //Draft Item
     if (view === "draft") {
         return (
             <div className="flex items-center gap-6 justify-end">

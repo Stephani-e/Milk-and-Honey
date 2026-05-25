@@ -36,6 +36,9 @@ export default function NewSermonPage() {
     const [bannerUploaded, setBannerUploaded] = useState(false);
     const [clipUploaded, setClipUploaded] = useState(false);
 
+    const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+    const [isUploadingClip, setIsUploadingClip] = useState(false);
+
     const [formData, setFormData] = useState({
         title: "",
         preacher: "",
@@ -155,9 +158,15 @@ export default function NewSermonPage() {
         if (category === "Weekly") {
             submission.special_service_name = "";
             submission.day_identifier = "";
+            // Wipe everything that isn't a Sunday
             if (weeklyType !== "Sunday") {
                 submission.host = "";
+                submission.co_host = "";
                 submission.service_number = "";
+            }
+            // Wipe co-host if they are the general/default host
+            if (weeklyType === "Sunday" && formData.host === "General/Last Sunday") {
+                submission.co_host = "";
             }
         } else if (category === "Monthly") {
             submission.weekly_type = "";
@@ -300,6 +309,7 @@ export default function NewSermonPage() {
                                                 </select>
                                                 <input
                                                     list="cohosts"
+                                                    autoComplete='off'
                                                     placeholder="Add Co-Host (Optional)"
                                                     className="p-3 rounded-lg border text-brand-primary"
                                                     value={formData.co_host}
@@ -434,12 +444,15 @@ export default function NewSermonPage() {
                                     <>
                                         <div className='flex flex-col gap-2 mt-2'>
                                             <label
-                                                className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4">Step
-                                                3: Fill Service Media</label>
+                                                className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4"
+                                            >
+                                                Step 3: Fill Service Media
+                                            </label>
                                             <div
                                                 className="bg-brand-surface p-6 rounded-2xl border border-brand-accent space-y-4">
                                                 <p className="text-[10px] font-bold text-brand-secondary uppercase">Media
-                                                    Attachments (Recommended)</p>
+                                                    Attachments (Recommended)
+                                                </p>
                                                 <input
                                                     placeholder="YouTube URL (Optional)"
                                                     className="w-full p-3 border rounded-lg bg-white text-brand-primary"
@@ -456,7 +469,27 @@ export default function NewSermonPage() {
                                                         <label
                                                             className="text-[10px] font-bold uppercase text-blue-950">Sermon
                                                             Banner</label>
-                                                        {bannerUploaded && formData.banner_url ? (
+
+                                                        {isUploadingBanner ? (
+                                                            // 1. BANNER UPLOADING STATE
+                                                            <div
+                                                                className="flex flex-col items-center justify-center p-8 bg-white border border-brand-accent border-dashed rounded-2xl gap-4 shadow-sm h-[200px]">
+                                                                <svg className="animate-spin h-8 w-8 text-brand-primary"
+                                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                     viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12"
+                                                                            r="10" stroke="currentColor"
+                                                                            strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor"
+                                                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                <span
+                                                                    className="text-[10px] font-bold text-brand-primary uppercase tracking-widest animate-pulse">
+                                                                    Uploading Banner...
+                                                                </span>
+                                                            </div>
+                                                        ) : bannerUploaded && formData.banner_url ? (
+                                                            // 2. BANNER PREVIEW
                                                             <div
                                                                 className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
                                                                 <div
@@ -466,7 +499,7 @@ export default function NewSermonPage() {
                                                                 </div>
                                                                 <div className='flex justify-between items-center px-1'>
                                                                     <span
-                                                                        className="text-[9px] font-bold text-green-600 uppercase">Image Uploaded Successfully</span>
+                                                                        className="text-[9px] font-bold text-green-600 uppercase">Image Uploaded</span>
                                                                     <div className="flex gap-3">
                                                                         <button type="button"
                                                                                 onClick={() => triggerMediaAction('banner', 'change')}
@@ -480,18 +513,22 @@ export default function NewSermonPage() {
                                                                 </div>
                                                             </div>
                                                         ) : (
+                                                            // 3. BANNER BUTTON
                                                             <UploadButton
                                                                 endpoint="imageUploader"
                                                                 appearance={{
-                                                                    // Added w-full to ensure the button fills its responsive container
-                                                                    button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
+                                                                    button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary h-full min-h-[200px]",
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
                                                                 }}
                                                                 content={{
-                                                                    button({ready}) {
+                                                                    button({ready, isUploading}) {
+                                                                        if (isUploading) return "Processing...";
                                                                         if (ready) return "Select Banner Image";
                                                                         return "Loading...";
                                                                     },
+                                                                }}
+                                                                onUploadBegin={() => {
+                                                                    setIsUploadingBanner(true);
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
                                                                     setFormData({
@@ -499,14 +536,15 @@ export default function NewSermonPage() {
                                                                         banner_url: res[0].ufsUrl
                                                                     });
                                                                     setBannerUploaded(true);
+                                                                    setIsUploadingBanner(false);
                                                                     toast.success("Banner image uploaded successfully");
                                                                 }}
                                                                 onUploadError={(error) => {
-                                                                    toast.error(`Upload Failed: ${error.message}`)
+                                                                    setIsUploadingBanner(false);
+                                                                    toast.error(`Upload Failed: ${error.message}`);
                                                                 }}
                                                             />
-                                                        )
-                                                        }
+                                                        )}
                                                     </div>
 
                                                     {/* Video Clip Upload */}
@@ -515,7 +553,26 @@ export default function NewSermonPage() {
                                                             className="text-[10px] font-bold uppercase text-blue-950">Video
                                                             Clip</label>
 
-                                                        {clipUploaded && formData.clip_url ? (
+                                                        {isUploadingClip ? (
+                                                            // 1. VIDEO UPLOADING STATE
+                                                            <div
+                                                                className="flex flex-col items-center justify-center p-8 bg-white border border-brand-accent border-dashed rounded-2xl gap-4 shadow-sm h-[200px]">
+                                                                <svg className="animate-spin h-8 w-8 text-brand-primary"
+                                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                     viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12"
+                                                                            r="10" stroke="currentColor"
+                                                                            strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor"
+                                                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                <span
+                                                                    className="text-[10px] font-bold text-brand-primary uppercase tracking-widest animate-pulse">
+                                                                    Processing Video...
+                                                                </span>
+                                                            </div>
+                                                        ) : clipUploaded && formData.clip_url ? (
+                                                            // 2. VIDEO PREVIEW
                                                             <div
                                                                 className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
                                                                 <div
@@ -541,12 +598,13 @@ export default function NewSermonPage() {
                                                                         className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
                                                                         <div
                                                                             className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm">
-                                                                            <Film size={16}/></div>
+                                                                            <Film size={16}/>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                                 <div className='flex justify-between items-center px-1'>
                                                                     <span
-                                                                        className="text-[9px] font-bold text-green-600 uppercase">Video Uploaded Successfully</span>
+                                                                        className="text-[9px] font-bold text-green-600 uppercase">Video Uploaded</span>
                                                                     <div className="flex gap-3">
                                                                         <button type="button"
                                                                                 onClick={() => triggerMediaAction('clip', 'change')}
@@ -560,23 +618,35 @@ export default function NewSermonPage() {
                                                                 </div>
                                                             </div>
                                                         ) : (
+                                                            // 3. VIDEO BUTTON
                                                             <UploadButton
                                                                 endpoint="videoUploader"
                                                                 appearance={{
-                                                                    button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
+                                                                    button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary h-full min-h-[200px]",
                                                                     allowedContent: "text-brand-secondary text-[10px] font-bold uppercase",
+                                                                }}
+                                                                content={{
+                                                                    button({ready, isUploading}) {
+                                                                        if (isUploading) return "Processing...";
+                                                                        if (ready) return "Select Video Clip";
+                                                                        return "Loading...";
+                                                                    },
+                                                                }}
+                                                                onUploadBegin={() => {
+                                                                    setIsUploadingClip(true);
                                                                 }}
                                                                 onClientUploadComplete={(res) => {
                                                                     setFormData({...formData, clip_url: res[0].ufsUrl});
                                                                     setClipUploaded(true);
+                                                                    setIsUploadingClip(false);
                                                                     toast.success("Video clip uploaded successfully");
                                                                 }}
                                                                 onUploadError={(error) => {
-                                                                    toast.error(`Upload Failed: ${error.message}`)
+                                                                    setIsUploadingClip(false);
+                                                                    toast.error(`Upload Failed: ${error.message}`);
                                                                 }}
                                                             />
-                                                        )
-                                                        }
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

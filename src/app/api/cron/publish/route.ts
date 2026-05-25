@@ -34,7 +34,10 @@ export async function GET(req: Request) {
             .eq('push_notification_sent', false)
             .lte('published_at', now); // "lte" means Less Than or Equal to right now
 
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+            console.error('CRON Database Fetch Error:', fetchError);
+            return NextResponse.json({error: fetchError.message}, {status: 500});
+        }
 
         // If nothing is scheduled for right now, just exit quietly.
         if (!duePosts || duePosts.length === 0) {

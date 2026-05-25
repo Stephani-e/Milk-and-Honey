@@ -34,6 +34,9 @@ export default function EditSermonPage() {
     const [bannerUploaded, setBannerUploaded] = useState(false);
     const [clipUploaded, setClipUploaded] = useState(false);
 
+    const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+    const [isUploadingClip, setIsUploadingClip] = useState(false);
+
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
     const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
@@ -151,6 +154,38 @@ export default function EditSermonPage() {
             is_thanksgiving: category === "Weekly" && weeklyType === "Sunday" ? isThanksgiving : false,
             is_multi_day: category === "Special" ? isMultiDay : false,
         };
+
+        // Clean up data based on the selected category to prevent ghost data
+        if (category === "Weekly") {
+            submission.special_service_name = "";
+            submission.day_identifier = "";
+            // Wipe everything that isn't a Sunday
+            if (weeklyType !== "Sunday") {
+                submission.host = "";
+                submission.co_host = "";
+                submission.service_number = "";
+            }
+            // Wipe co-host if they are the general/default host
+            if (weeklyType === "Sunday" && formData.host === "General/Last Sunday") {
+                submission.co_host = "";
+            }
+        } else if (category === "Monthly") {
+            submission.weekly_type = "";
+            submission.host = "";
+            submission.co_host = "";
+            submission.service_number = "";
+            submission.day_identifier = "";
+        } else if (category === "Special") {
+            submission.weekly_type = "";
+            submission.host = "";
+            submission.service_number = "";
+            if (!isMultiDay) {
+                submission.day_identifier = "";
+            }
+            if (!formData.co_host) {
+                submission.co_host = "";
+            }
+        }
 
         const {error} = await supabase.from("sermons").update(submission).eq("id", id);
 
@@ -280,6 +315,7 @@ export default function EditSermonPage() {
                                                 </select>
                                                 <input
                                                     list="cohosts"
+                                                    autoComplete='off'
                                                     placeholder="Add Co-Host (Optional)"
                                                     className="p-3 rounded-lg border text-brand-primary"
                                                     value={formData.co_host}
@@ -426,7 +462,26 @@ export default function EditSermonPage() {
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-bold uppercase text-blue-950 block">Sermon
                                                     Banner</label>
-                                                {bannerUploaded && formData.banner_url ? (
+
+                                                {isUploadingBanner ? (
+                                                    // 1. BANNER UPLOADING STATE
+                                                    <div
+                                                        className="flex flex-col items-center justify-center p-8 bg-white border border-brand-accent border-dashed rounded-2xl gap-4 shadow-sm h-[200px]">
+                                                        <svg className="animate-spin h-8 w-8 text-brand-primary"
+                                                             xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10"
+                                                                    stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor"
+                                                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        <span
+                                                            className="text-[10px] font-bold text-brand-primary uppercase tracking-widest animate-pulse">
+                                                            Uploading Banner...
+                                                        </span>
+                                                    </div>
+                                                ) : bannerUploaded && formData.banner_url ? (
+                                                    // 2. BANNER PREVIEW
                                                     <div
                                                         className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
                                                         <div
@@ -450,25 +505,32 @@ export default function EditSermonPage() {
                                                         </div>
                                                     </div>
                                                 ) : (
+                                                    // 3. BANNER BUTTON
                                                     <UploadButton
                                                         endpoint="imageUploader"
                                                         appearance={{
-                                                            // Added w-full to ensure the button fills its responsive container
-                                                            button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
+                                                            button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary h-full min-h-[200px]",
                                                             allowedContent: "text-brand-secondary text-[6px] md:text-[10px] font-bold uppercase",
                                                         }}
                                                         content={{
-                                                            button({ready}) {
+                                                            button({ready, isUploading}) {
+                                                                if (isUploading) return "Processing...";
                                                                 if (ready) return "Select Banner Image";
-                                                                return "Image UpLoading";
+                                                                return "Loading...";
                                                             },
+                                                        }}
+                                                        onUploadBegin={() => {
+                                                            setIsUploadingBanner(true); // Triggers Banner Spinner
                                                         }}
                                                         onClientUploadComplete={(res) => {
                                                             setFormData({...formData, banner_url: res[0].ufsUrl});
                                                             setBannerUploaded(true);
+                                                            setIsUploadingBanner(false); // Stops Banner Spinner
+                                                            toast.success("Banner image uploaded!");
                                                         }}
                                                         onUploadError={(error) => {
-                                                            toast.error(`Upload Failed: ${error.message}`)
+                                                            setIsUploadingBanner(false); // Stops Banner Spinner on error
+                                                            toast.error(`Upload Failed: ${error.message}`);
                                                         }}
                                                     />
                                                 )}
@@ -479,7 +541,25 @@ export default function EditSermonPage() {
                                                 <label className="text-[10px] font-bold uppercase text-blue-950 block">Video
                                                     Clip</label>
 
-                                                {clipUploaded && formData.clip_url ? (
+                                                {isUploadingClip ? (
+                                                    // 1. VIDEO UPLOADING STATE
+                                                    <div
+                                                        className="flex flex-col items-center justify-center p-8 bg-white border border-brand-accent border-dashed rounded-2xl gap-4 shadow-sm h-[200px]">
+                                                        <svg className="animate-spin h-8 w-8 text-brand-primary"
+                                                             xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10"
+                                                                    stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor"
+                                                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        <span
+                                                            className="text-[10px] font-bold text-brand-primary uppercase tracking-widest animate-pulse">
+                                                            Processing Video...
+                                                        </span>
+                                                    </div>
+                                                ) : clipUploaded && formData.clip_url ? (
+                                                    // 2. VIDEO PREVIEW
                                                     <div
                                                         className="bg-white border border-brand-accent p-3 rounded-2xl shadow-sm flex flex-col gap-3 animate-in fade-in">
                                                         <div
@@ -505,7 +585,8 @@ export default function EditSermonPage() {
                                                                 className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity pointer-events-none">
                                                                 <div
                                                                     className="bg-black/50 text-white p-2 rounded-full backdrop-blur-sm">
-                                                                    <Film size={16}/></div>
+                                                                    <Film size={16}/>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className='flex justify-between items-center px-1'>
@@ -524,24 +605,32 @@ export default function EditSermonPage() {
                                                         </div>
                                                     </div>
                                                 ) : (
+                                                    // 3. VIDEO BUTTON
                                                     <UploadButton
                                                         endpoint="videoUploader"
                                                         appearance={{
-                                                            button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary",
+                                                            button: "w-full bg-brand-primary text-white text-[6px] md:text-[10px] p-4 rounded-xl after:bg-brand-secondary h-full min-h-[200px]",
                                                             allowedContent: "text-brand-secondary text-[6px] md:text-[10px] font-bold uppercase",
                                                         }}
                                                         content={{
-                                                            button({ready}) {
+                                                            button({ready, isUploading}) {
+                                                                if (isUploading) return "Processing...";
                                                                 if (ready) return "Select Video Clip";
                                                                 return "Loading...";
                                                             },
                                                         }}
+                                                        onUploadBegin={() => {
+                                                            setIsUploadingClip(true); // Triggers Video Spinner
+                                                        }}
                                                         onClientUploadComplete={(res) => {
                                                             setFormData({...formData, clip_url: res[0].ufsUrl});
                                                             setClipUploaded(true);
+                                                            setIsUploadingClip(false); // Stops Video Spinner
+                                                            toast.success("Video clip attached!");
                                                         }}
                                                         onUploadError={(error) => {
-                                                            toast.error(`Upload Failed: ${error.message}`)
+                                                            setIsUploadingClip(false); // Stops Video Spinner on error
+                                                            toast.error(`Upload Failed: ${error.message}`);
                                                         }}
                                                     />
                                                 )}

@@ -116,7 +116,7 @@ export default function SubscribersAdminPage() {
 
     return (
         <div className="min-h-screen bg-brand-surface p-6 md:p-12">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <div className="mb-8">
                     <Link href="/admin" className="text-sm font-bold text-brand-secondary hover:underline">
                         ← Back to Dashboard
