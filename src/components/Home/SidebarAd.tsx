@@ -9,6 +9,17 @@ export default function SidebarAd() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    // The Default "House Ad" for the Sidebar
+    const defaultAd = {
+        id: "default-sidebar-ad",
+        title: "Promote Your Business",
+        description: "Secure this premium sidebar placement to reach our congregation and website visitors. Click below to contact our media team.",
+        target_link: "/contact?subject=advertising",
+        button_text: "Inquire About Ads",
+        media_url: null, // This will trigger the sleek gradient background
+        isHouseAd: true
+    };
+
     useEffect(() => {
         async function fetchSidebarAds() {
             setLoading(true);
@@ -20,13 +31,21 @@ export default function SidebarAd() {
                 .is('deleted_at', null)
                 .order('created_at', {ascending: false});
 
-            if (data) {
-                // Double-check they haven't expired before cron catches them
+            if (data && data.length > 0) {
+                // Double-check they haven't expired
                 const validAds = data.filter(ad => !ad.expires_at || new Date(ad.expires_at) > new Date());
-                setAds(validAds);
+
+                if (validAds.length > 0) {
+                    setAds(validAds);
+                } else {
+                    setAds([defaultAd]);
+                }
+            } else {
+                // Fall back to house ad if database is empty
+                setAds([defaultAd]);
             }
 
-            setLoading(false)
+            setLoading(false);
         }
 
         fetchSidebarAds().catch(console.error);
@@ -47,24 +66,11 @@ export default function SidebarAd() {
     const prevAd = () => setCurrentIndex((prev) => (prev === 0 ? ads.length - 1 : prev - 1));
 
     if (loading) {
-        return (
-            <SkeletonLoader variant="sidebar-ad"/>
-        );
+        return <SkeletonLoader variant="sidebar-ad"/>;
     }
 
-    // Fallback if no ads exist
-    if (ads.length === 0) {
-        return (
-            <div
-                className="bg-white border-2 border-dashed border-gray-200 rounded-3xl h-[400px] lg:h-[500px] w-full flex flex-col items-center justify-center text-gray-400 p-8 text-center shadow-sm">
-                <Megaphone size={32} className="mb-4 opacity-50"/>
-                <span
-                    className="text-xs font-bold uppercase tracking-widest block mb-2 text-brand-primary">Stay Tuned</span>
-                <p className="text-[10px] leading-relaxed max-w-xs">Exciting updates and upcoming campaigns will be
-                    featured here soon.</p>
-            </div>
-        );
-    }
+    // We removed the empty "Stay Tuned" state, because it will ALWAYS have at least the house ad!
+    if (ads.length === 0) return null;
 
     return (
         <div
@@ -74,7 +80,7 @@ export default function SidebarAd() {
             {currentAd.media_url ? (
                 currentAd.media_type === 'video' ? (
                     <video
-                        key={currentAd.id} // Forces video to reload when ad changes
+                        key={currentAd.id}
                         src={currentAd.media_url}
                         poster={currentAd.fallback_image_url || undefined}
                         autoPlay muted loop playsInline
@@ -89,7 +95,13 @@ export default function SidebarAd() {
                     />
                 )
             ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-primary to-slate-800"/>
+                // If there's no media (like our House Ad), we show a beautiful gradient with an icon
+                <div
+                    className="absolute inset-0 bg-gradient-to-br from-brand-primary to-slate-800 flex items-center justify-center">
+                    {currentAd.isHouseAd && (
+                        <Megaphone size={120} className="text-white/5 absolute top-10 right-[-20px] -rotate-12"/>
+                    )}
+                </div>
             )}
 
             <div
@@ -98,8 +110,10 @@ export default function SidebarAd() {
             {/* AD CONTENT */}
             <div className="relative z-10 p-6 flex flex-col h-full justify-end w-full">
                 <span
-                    className="text-amber-400 font-black uppercase tracking-widest text-[10px] mb-3 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 w-fit shadow-sm">
-                    {ads.length > 1 ? `Featured (${currentIndex + 1}/${ads.length})` : "Featured"}
+                    className={`${currentAd.isHouseAd ? 'text-white bg-white/20 border-white/30' : 'text-amber-400 bg-white/10 border-white/20'} font-black uppercase tracking-widest text-[10px] mb-3 px-3 py-1 backdrop-blur-md rounded-full border w-fit shadow-sm`}>
+                    {currentAd.isHouseAd
+                        ? "Space Available"
+                        : (ads.length > 1 ? `Featured (${currentIndex + 1}/${ads.length})` : "Featured")}
                 </span>
 
                 <h3 className="text-white font-serif font-bold text-2xl mb-2 leading-tight animate-in slide-in-from-bottom-2">

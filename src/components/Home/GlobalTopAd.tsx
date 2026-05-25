@@ -1,12 +1,23 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
-import {ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ExternalLink} from "lucide-react";
+import {ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ExternalLink, Megaphone} from "lucide-react";
 
 export default function GlobalTopAd() {
     const [ads, setAds] = useState<any[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // The Default "House Ad" shown when no ads are running
+    const defaultAd = {
+        id: "default-house-ad",
+        title: "Advertise Your Business Here",
+        description: "Reach our entire congregation and global audience. We offer premium digital ad placements for community businesses and partners. Click below to view our advertising guidelines and submit your ad for approval.",
+        target_link: "/contact?subject=advertising", // Routes them right to your contact form!
+        button_text: "Inquire About Advertising",
+        media_url: null,
+        isHouseAd: true
+    };
 
     useEffect(() => {
         async function fetchTopAds() {
@@ -18,16 +29,25 @@ export default function GlobalTopAd() {
                 .is('deleted_at', null)
                 .order('created_at', {ascending: false});
 
-            if (data) {
+            if (data && data.length > 0) {
                 const validAds = data.filter(ad => !ad.expires_at || new Date(ad.expires_at) > new Date());
-                setAds(validAds);
+
+                // If we found valid ads, use them. Otherwise, fall back to the house ad.
+                if (validAds.length > 0) {
+                    setAds(validAds);
+                } else {
+                    setAds([defaultAd]);
+                }
+            } else {
+                // If Supabase returns absolutely nothing, show the house ad.
+                setAds([defaultAd]);
             }
         }
 
         fetchTopAds().catch(console.error);
     }, []);
 
-    // AUTO-ROTATE EVERY 15 SECONDS (Pauses if dropdown is open!)
+    // AUTO-ROTATE EVERY 55 SECONDS (Pauses if dropdown is open or only 1 ad!)
     useEffect(() => {
         if (ads.length <= 1 || isExpanded) return;
 
@@ -41,6 +61,7 @@ export default function GlobalTopAd() {
     const nextAd = () => setCurrentIndex((prev) => (prev + 1) % ads.length);
     const prevAd = () => setCurrentIndex((prev) => (prev === 0 ? ads.length - 1 : prev - 1));
 
+    // We no longer return null here, because we ALWAYS have at least the default ad!
     if (ads.length === 0) return null;
 
     const currentAd = ads[currentIndex];
@@ -53,16 +74,14 @@ export default function GlobalTopAd() {
 
                 {/* Auto-Scrolling Ticker */}
                 <div className="flex-1 overflow-hidden relative flex items-center h-full">
-                    {/* The Key forces the animation to restart when the ad changes */}
                     <div key={currentAd.id}
                          className="animate-marquee whitespace-nowrap flex gap-20 text-[10px] md:text-xs font-bold tracking-widest uppercase opacity-90">
-                        <span>🚨 {currentAd.title}</span>
-                        <span>🚨 {currentAd.title}</span>
-                        <span>🚨 {currentAd.title}</span>
-
-                        <span>🚨 {currentAd.title}</span>
-                        <span>🚨 {currentAd.title}</span>
-                        <span>🚨 {currentAd.title}</span>
+                        {/* Custom emoji for house ad vs regular ad */}
+                        <span>{currentAd.isHouseAd ? "📣" : "🚨"} {currentAd.title}</span>
+                        <span>{currentAd.isHouseAd ? "📣" : "🚨"} {currentAd.title}</span>
+                        <span>{currentAd.isHouseAd ? "📣" : "🚨"} {currentAd.title}</span>
+                        <span>{currentAd.isHouseAd ? "📣" : "🚨"} {currentAd.title}</span>
+                        <span>{currentAd.isHouseAd ? "📣" : "🚨"} {currentAd.title}</span>
                     </div>
                 </div>
 
@@ -76,7 +95,7 @@ export default function GlobalTopAd() {
                 </button>
             </div>
 
-            {/* 2. ABSOLUTE DROPDOWN PANEL (Floats over the page) */}
+            {/* 2. ABSOLUTE DROPDOWN PANEL */}
             <div
                 className={`absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 shadow-2xl transition-all duration-500 origin-top overflow-hidden ${
                     isExpanded ? 'max-h-[800px] opacity-100 py-6 md:py-10' : 'max-h-0 opacity-0 py-0'
@@ -84,8 +103,8 @@ export default function GlobalTopAd() {
             >
                 <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row gap-6 md:gap-10 items-center relative">
 
-                    {/* Media Display */}
-                    {currentAd.media_url && (
+                    {/* Media Display (Falls back to an icon if no media_url exists) */}
+                    {currentAd.media_url ? (
                         <div
                             className="w-full md:w-2/5 aspect-video bg-slate-800 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10 shadow-xl relative">
                             {currentAd.media_type === 'video' ? (
@@ -105,6 +124,12 @@ export default function GlobalTopAd() {
                                 />
                             )}
                         </div>
+                    ) : (
+                        <div
+                            className="w-full md:w-1/3 aspect-video bg-white/5 rounded-2xl flex flex-col items-center justify-center border border-white/10 shadow-inner">
+                            <Megaphone size={48} className="text-amber-400/50 mb-2"/>
+                            <span className="text-[10px] uppercase tracking-widest text-white/50 font-bold">Space Available</span>
+                        </div>
                     )}
 
                     {/* Text & CTA Details */}
@@ -112,10 +137,10 @@ export default function GlobalTopAd() {
                         <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
                             <span
                                 className="text-amber-400 font-black uppercase tracking-widest text-[10px] bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20 block">
-                                Featured Update
+                                {currentAd.isHouseAd ? "Advertising Partner" : "Featured Update"}
                             </span>
 
-                            {/* MINI NAVIGATION CONTROLS (If multiple ads exist) */}
+                            {/* MINI NAVIGATION CONTROLS */}
                             {ads.length > 1 && (
                                 <div className="flex items-center gap-2 bg-white/5 rounded-full px-2 py-1">
                                     <button onClick={prevAd} className="p-1 hover:text-amber-400 transition-colors">
@@ -142,8 +167,6 @@ export default function GlobalTopAd() {
                             {currentAd.target_link && (
                                 <a
                                     href={currentAd.target_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center gap-2 bg-amber-500 text-white px-8 py-3.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-amber-500/20 hover:bg-amber-600 transition-colors hover:scale-105"
                                 >
                                     {currentAd.button_text || "Learn More"} <ExternalLink size={16}/>

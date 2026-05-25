@@ -29,7 +29,6 @@ export async function POST(req: Request) {
         });
 
         // 4. Define target email addresses directly from your Supabase settings
-        // If a field is empty in the database, it safely falls back to a default
         const adminEmail = settings?.church_admin_email || "admin@milkandhoney.com";
         const mediaEmail = settings?.media_email_support || "rccgmilkandhoneycontact@proton.me";
 
@@ -48,6 +47,11 @@ export async function POST(req: Request) {
             case 'prayer':
             case 'testimony':
                 recipients = [pastoralEmail, adminEmail];
+                break;
+            case 'advertising':
+            case 'media':
+                // Routes ad inquiries directly to the Media/Comms team and the Admin
+                recipients = [mediaEmail, adminEmail];
                 break;
             case 'membership':
             case 'general':

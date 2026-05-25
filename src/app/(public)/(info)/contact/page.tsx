@@ -64,8 +64,6 @@ export default function ContactPage() {
         setLoading(true);
 
         try {
-            // Send data to your Next.js backend API route
-            // You will need to create app/api/send-email/route.ts to handle this via Resend or Nodemailer
             const response = await fetch('/api/send-email', {
                 method: 'POST',
                 headers: {
@@ -289,8 +287,10 @@ export default function ContactPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label
-                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Email
-                                    Address *</label>
+                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2"
+                                >
+                                    Email Address *
+                                </label>
                                 <input
                                     required
                                     type="email"
@@ -304,8 +304,10 @@ export default function ContactPage() {
 
                             <div>
                                 <label
-                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">How
-                                    can we help? *</label>
+                                    className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2"
+                                >
+                                    How can we help? *
+                                </label>
                                 <select
                                     name="subject"
                                     value={formData.subject}
@@ -316,14 +318,18 @@ export default function ContactPage() {
                                     <option value="prayer">Prayer Request</option>
                                     <option value="testimony">Share a Testimony</option>
                                     <option value="membership">Membership / Joining</option>
+                                    <option value="advertising">Advertising Inquiry</option>
                                     <option value="technical">Technical Support (Website)</option>
                                 </select>
                             </div>
                         </div>
 
                         <div>
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Your
-                                Message *</label>
+                            <label
+                                className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2"
+                            >
+                                Your Message *
+                            </label>
                             <textarea
                                 required
                                 name="message"
@@ -339,8 +345,9 @@ export default function ContactPage() {
                         <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-start gap-3">
                             <Info size={20} className="text-amber-500 shrink-0 mt-0.5"/>
                             <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                                <strong className="font-bold text-amber-900 block mb-1">Message Distribution
-                                    Notice:</strong>
+                                <strong className="font-bold text-amber-900 block mb-1">
+                                    Message Distribution Notice:
+                                </strong>
                                 To ensure your inquiry is not missed, submitting this form will simultaneously email our
                                 primary contact addresses (Admin, Media, and Pastoral team). You may also follow up by
                                 phone to confirm receipt.
