@@ -24,17 +24,18 @@ import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const PAGE_SIZE = 10;
 
+type ViewMode = "active" | "trash" | "archive" | "draft";
+
 export default function GalleryPage() {
     const router = useRouter();
     const {role} = useAuth();
-
     const searchParams = useSearchParams();
-    const initialTab = searchParams.get("tab");
 
-    const [view, setView] = useState<"active" | "trash" | "archive" | "draft">(
-        initialTab === "draft" ? "draft" :
-            initialTab === "archive" ? "archive" :
-                initialTab === "trash" ? "trash" : "active"
+    // 1. Safe URL initialization
+    const initialTab = searchParams.get("tab") as ViewMode | null;
+    const validTabs = ["active", "trash", "archive", "draft"];
+    const [view, setView] = useState<ViewMode>(
+        validTabs.includes(initialTab || "") ? initialTab! : "active"
     );
 
     const [entries, setEntries] = useState<any[]>([]);
@@ -48,45 +49,56 @@ export default function GalleryPage() {
     const [modalType, setModalType] = useState<"delete" | "archive" | "restore" | null>(null);
     const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
 
-    // Reset Pagination whenever the tab, search, or sort changes!
+    // 2. Debounce Search
     useEffect(() => {
-        setCurrentPage(1);
-    }, [view, search, sortBy]);
-
-    useEffect(() => {
-        fetchGalleryEntries().catch(console.error);
-    }, [currentPage, search, sortBy, view]);
-
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => setSearch(searchTerm), 500);
+        const delayDebounceFn = setTimeout(() => {
+            setSearch(searchTerm);
+            setCurrentPage(1); // Reset page on new search
+        }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
 
+    // 3. Reset page on sort change
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        params.set("tab", view);
-        router.replace(`${window.location.pathname}?${params.toString()}`);
-    }, [view]);
+        setCurrentPage(1);
+    }, [sortBy]);
 
-    async function fetchGalleryEntries() {
+    // 4. Single Master Fetch Hook
+    useEffect(() => {
+        fetchGalleryEntries(view, currentPage, search, sortBy).catch(console.error);
+    }, [view, currentPage, search, sortBy]);
+
+    // 5. Clean Tab Switcher (No useEffect waterfall)
+    const handleTabChange = (newView: ViewMode) => {
+        if (newView === view) return;
+        setView(newView);
+        setCurrentPage(1);
+
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("tab", newView);
+        router.replace(`?${params.toString()}`, {scroll: false});
+    };
+
+    // 6. Parameterized Fetch Function
+    async function fetchGalleryEntries(currentView = view, page = currentPage, currentSearch = search, currentSort = sortBy) {
         setLoading(true);
-        const from = (currentPage - 1) * PAGE_SIZE;
+        const from = (page - 1) * PAGE_SIZE;
         const to = from + PAGE_SIZE - 1;
 
         let query = supabase.from("media_gallery").select("*", {count: 'exact'});
 
-        if (view === "trash") query = query.not("deleted_at", "is", null);
+        if (currentView === "trash") query = query.not("deleted_at", "is", null);
         else {
             query = query.is("deleted_at", null);
-            if (view === "archive") query = query.eq("is_archived", true);
-            else if (view === "draft") query = query.eq("is_archived", false).eq("status", "draft");
+            if (currentView === "archive") query = query.eq("is_archived", true);
+            else if (currentView === "draft") query = query.eq("is_archived", false).eq("status", "draft");
             else query = query.eq("is_archived", false).eq("status", "published");
         }
 
-        if (search) query = query.or(`title.ilike.%${search}%,special_service_name.ilike.%${search}%`);
+        if (currentSearch) query = query.or(`title.ilike.%${currentSearch}%,special_service_name.ilike.%${currentSearch}%`);
 
-        const isAsc = sortBy === "oldest";
-        if (sortBy === "alphabetical") query = query.order("title", {ascending: true});
+        const isAsc = currentSort === "oldest";
+        if (currentSort === "alphabetical") query = query.order("title", {ascending: true});
         else query = query.order("service_date", {ascending: isAsc});
 
         const {data, count, error} = await query.range(from, to);
@@ -132,10 +144,9 @@ export default function GalleryPage() {
         if (error) toast.error("Restore failed: " + error.message);
         else {
             toast.success(`Moved to ${destination === 'active' ? 'Public Galleries' : 'Drafts'}`);
-            setView(destination);
-            await fetchGalleryEntries();
+            setModalType(null);
+            handleTabChange(destination);
         }
-        setModalType(null);
     };
 
     const handleConfirmAction = async () => {
@@ -145,19 +156,19 @@ export default function GalleryPage() {
             if (view === "trash") {
                 await supabase.from("media_gallery").delete().eq("id", selectedEntry.id);
                 toast.error("Entry permanently purged.");
+                await fetchGalleryEntries();
             } else {
                 await supabase.from("media_gallery").update({deleted_at: new Date()}).eq("id", selectedEntry.id);
                 toast.success("Moved to Trash.");
-                setView("trash");
+                handleTabChange("trash");
             }
         } else if (modalType === "archive") {
             const newStatus = !selectedEntry.is_archived;
             await supabase.from("media_gallery").update({is_archived: newStatus}).eq("id", selectedEntry.id);
             toast.success(newStatus ? "Archived (Hidden from site)" : "Restored to Gallery");
-            setView(newStatus ? "archive" : "active");
+            handleTabChange(newStatus ? "archive" : "active");
         }
 
-        await fetchGalleryEntries();
         if (modalType !== "restore") setModalType(null);
     };
 
@@ -182,20 +193,20 @@ export default function GalleryPage() {
                     <div className="w-full md:w-auto overflow-x-auto no-scrollbar">
                         <div
                             className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-max md:w-fit min-w-full md:min-w-0">
-                            <button onClick={() => setView("active")}
+                            <button onClick={() => handleTabChange("active")}
                                     className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "active" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}>
                                 All Galleries
                             </button>
-                            <button onClick={() => setView("archive")}
+                            <button onClick={() => handleTabChange("archive")}
                                     className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "archive" ? "bg-white text-brand-primary shadow-sm" : "text-gray-500 hover:text-brand-primary"}`}>
                                 Archive
                             </button>
-                            <button onClick={() => setView("draft")}
+                            <button onClick={() => handleTabChange("draft")}
                                     className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all ${view === "draft" ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-blue-700"}`}>
                                 Drafts
                             </button>
                             {role !== 'viewer' && (
-                                <button onClick={() => setView("trash")}
+                                <button onClick={() => handleTabChange("trash")}
                                         className={`whitespace-nowrap px-4 md:px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${view === "trash" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-red-600"}`}>
                                     Trash <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[8px]">30 Days</span>
                                 </button>
@@ -227,7 +238,6 @@ export default function GalleryPage() {
                     value: "oldest"
                 }, {label: "Title (A-Z)", value: "alphabetical"}]}/>
 
-                {/* CHANGED TO grid-cols-2 ON MOBILE to make cards significantly smaller */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5 mt-8">
                     {loading ? (
                         <AdminSkeletonLoader variant="gallery-library"/>
@@ -256,21 +266,19 @@ export default function GalleryPage() {
                                         )
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-gray-300">
-                                            <ImageIcon
-                                                size={32}/></div>
+                                            <ImageIcon size={32}/>
+                                        </div>
                                     )}
 
                                     <div className="absolute top-2 left-2 md:top-3 md:left-3 flex gap-2">
-                                    <span
-                                        className="bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-black text-brand-primary uppercase shadow-sm">
-                                        {entry.media_urls?.length || 0} Items
-                                    </span>
+                                        <span
+                                            className="bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-black text-brand-primary uppercase shadow-sm">
+                                            {entry.media_urls?.length || 0} Items
+                                        </span>
                                     </div>
                                 </div>
 
-                                {/* FIX 4: Slimmer internal padding */}
                                 <div className="p-3 md:p-5 flex flex-col flex-grow">
-
                                     <div className="flex flex-wrap gap-1 mb-2">
                                         {entry.service_category === "Weekly" ? (
                                             <span
@@ -290,7 +298,6 @@ export default function GalleryPage() {
                                         )}
                                     </div>
 
-                                    {/* FIX 4: Scaled down Title & Details text */}
                                     <h3 className="font-serif font-bold text-brand-primary text-xs sm:text-sm md:text-lg mb-1 leading-tight line-clamp-2">{entry.title}</h3>
 
                                     <div
@@ -300,7 +307,6 @@ export default function GalleryPage() {
 
                                     <div
                                         className="mt-auto pt-2 md:pt-3 border-t border-gray-50 flex justify-between items-center">
-
                                         {view === "trash" ? (
                                             <div
                                                 className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1 py-0.5 rounded text-[7px] font-bold border border-amber-100">
@@ -459,7 +465,6 @@ export default function GalleryPage() {
                         No media entries found in {view}.
                     </div>
                 )}
-
 
                 {/* --- PAGINATION CONTROLS --- */}
                 <div

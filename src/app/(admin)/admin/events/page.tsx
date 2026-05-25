@@ -45,6 +45,7 @@ export default function EventsDashboardPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewTrash, setViewTrash] = useState(false);
+    const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
     // SPECIAL EVENTS PAGINATION STATE
     const [specialPage, setSpecialPage] = useState(1);
@@ -713,11 +714,30 @@ export default function EventsDashboardPage() {
                                     </div>
                                     <div className="flex flex-col">
                                         <label
-                                            className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Background
-                                            Banner (Optional)</label>
+                                            className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">
+                                            Background Banner (Optional)
+                                        </label>
                                         <div
                                             className="w-full h-full min-h-[120px] bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center overflow-hidden relative group">
-                                            {themeData.theme_banner_url ? (
+
+                                            {isUploadingBanner ? (
+                                                // 1. THE UPLOADING STATE
+                                                <div className="flex flex-col items-center justify-center p-4 gap-2">
+                                                    <svg className="animate-spin h-6 w-6 text-brand-primary"
+                                                         xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                         viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10"
+                                                                stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor"
+                                                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    <span
+                                                        className="text-[10px] font-bold text-brand-primary uppercase tracking-widest animate-pulse text-center">
+                                                        Processing...
+                                                    </span>
+                                                </div>
+                                            ) : themeData.theme_banner_url ? (
+                                                // 2. THE PREVIEW STATE
                                                 <>
                                                     <img src={themeData.theme_banner_url} alt="Theme Banner"
                                                          className="w-full h-full object-cover"/>
@@ -730,16 +750,30 @@ export default function EventsDashboardPage() {
                                                     </button>
                                                 </>
                                             ) : (
+                                                // 3. THE UPLOAD BUTTON
                                                 <div className="flex flex-col items-center p-4">
                                                     <ImageIcon size={24} className="text-gray-300 mb-2"/>
                                                     <UploadButton
                                                         endpoint="imageUploader"
                                                         appearance={{button: "bg-brand-primary text-white text-[10px] px-3 py-1.5 rounded-lg"}}
-                                                        onClientUploadComplete={(res: any) => setThemeData({
-                                                            ...themeData,
-                                                            theme_banner_url: res[0].url
-                                                        })}
+                                                        content={{
+                                                            button({ready}) {
+                                                                return ready ? "Select Banner" : "Loading...";
+                                                            }
+                                                        }}
+                                                        onUploadBegin={() => {
+                                                            setIsUploadingBanner(true); // Trigger Spinner
+                                                        }}
+                                                        onClientUploadComplete={(res: any) => {
+                                                            setThemeData({
+                                                                ...themeData,
+                                                                theme_banner_url: res[0].url
+                                                            });
+                                                            setIsUploadingBanner(false); // Stop Spinner
+                                                            toast.success("Theme banner uploaded!");
+                                                        }}
                                                         onUploadError={(error) => {
+                                                            setIsUploadingBanner(false); // Stop Spinner on error
                                                             toast.error(`Upload failed: ${error.message}`);
                                                         }}
                                                     />

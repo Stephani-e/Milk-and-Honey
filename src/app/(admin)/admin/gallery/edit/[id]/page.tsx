@@ -27,6 +27,9 @@ export default function EditGalleryPage() {
     const [isThanksgiving, setIsThanksgiving] = useState(false);
     const [isMultiDay, setIsMultiDay] = useState(false);
 
+    // NEW: Media Uploading Spinner State
+    const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
     const [savedCoHosts, setSavedCoHosts] = useState<string[]>([]);
     const [savedSpecialNames, setSavedSpecialNames] = useState<string[]>([]);
     const [savedMonthlyNames, setSavedMonthlyNames] = useState<string[]>([]);
@@ -108,7 +111,6 @@ export default function EditGalleryPage() {
     }, []);
 
     const updateCaption = (index: number, text: string) => {
-        // FIX: Proper immutable state update for objects inside arrays
         setMediaItems(prev => {
             const updated = [...prev];
             updated[index] = {...updated[index], caption: text};
@@ -142,6 +144,10 @@ export default function EditGalleryPage() {
             if (weeklyType !== "Sunday") {
                 submission.host = "";
                 submission.service_number = "";
+                submission.co_host = "";
+            }
+            if (weeklyType === "Sunday" && formData.host === "General/Last Sunday") {
+                submission.co_host = "";
             }
         } else if (category === "Monthly") {
             submission.weekly_type = "";
@@ -154,6 +160,7 @@ export default function EditGalleryPage() {
             submission.host = "";
             submission.service_number = "";
             if (!isMultiDay) submission.day_identifier = "";
+            if (!formData.co_host) submission.co_host = "";
         }
 
         const {error} = await supabase.from("media_gallery").update(submission).eq("id", id);
@@ -232,9 +239,11 @@ export default function EditGalleryPage() {
 
                                 {weeklyType === "Sunday" && (
                                     <div className="bg-slate-50 p-4 md:p-6 rounded-2xl space-y-4 md:space-y-6">
-                                        <label
-                                            className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
-                                            1.2: Select Which Sunday Service and Fill the Information</label>
+                                        <div className="flex items-center gap-2">
+                                            <label
+                                                className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
+                                                1.2: Edit/Change Sunday Service Information</label>
+                                        </div>
                                         <label className="flex items-center gap-3 cursor-pointer">
                                             <input type="checkbox" className="w-5 h-5 accent-brand-primary shrink-0"
                                                    checked={isThanksgiving}
@@ -262,9 +271,9 @@ export default function EditGalleryPage() {
                                                     <option>Second Service</option>
                                                 </select>
 
-                                                {/* FIX: Added datalist back for co-hosts */}
                                                 <div className="relative w-full">
                                                     <input list="cohosts" placeholder="Department/Group"
+                                                           autoComplete="off"
                                                            className="w-full p-3 rounded-lg border text-brand-primary text-sm"
                                                            value={formData.co_host} onChange={(e) => setFormData({
                                                         ...formData,
@@ -288,8 +297,8 @@ export default function EditGalleryPage() {
                                     className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
                                     2: Edit/Change Service Information</label>
 
-                                {/* FIX: Added datalist back for monthly events */}
                                 <input list="monthlyNames" placeholder="e.g. Holy Communion, Holy Ghost Service"
+                                       autoComplete="off"
                                        className="w-full p-4 border rounded-xl text-base md:text-lg font-serif text-brand-primary"
                                        value={formData.special_service_name || ""} onChange={(e) => setFormData({
                                     ...formData,
@@ -311,8 +320,8 @@ export default function EditGalleryPage() {
                                     className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
                                     2: Edit/Change Service Information</label>
 
-                                {/* FIX: Added datalist back for special events */}
                                 <input list="specialNames" placeholder="Service Name (e.g. Wind of Change)"
+                                       autoComplete="off"
                                        className="w-full p-4 border rounded-xl text-base md:text-lg font-serif text-brand-primary"
                                        value={formData.special_service_name} onChange={(e) => setFormData({
                                     ...formData,
@@ -417,39 +426,73 @@ export default function EditGalleryPage() {
                             </div>
                         </div>
 
-                        {/* Add MORE Media Section */}
+                        {/* Add MORE Media Section with Spinner */}
                         <div className='flex flex-col gap-2'>
                             <label
                                 className="text-[9px] md:text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
                                 4: Upload New Media (Pictures & Videos)</label>
-                            <div
-                                className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center">
-                                <h3 className="font-bold text-brand-primary mb-2">Add More Files</h3>
-                                <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Append
-                                    new photos/videos to this gallery</p>
-                                <UploadButton
-                                    endpoint="mediaGalleryUploader"
-                                    appearance={{button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-xs font-bold after:bg-brand-secondary"}}
-                                    content={{
-                                        button({ready}) {
-                                            return ready ? "Select Media" : "Loading...";
-                                        }
-                                    }}
-                                    onClientUploadComplete={(res) => {
-                                        const newItems: MediaItem[] = res.map(file => {
-                                            const isVideo = (file.name || "").toLowerCase().match(/\.(mp4|mov|webm)$/) || file.ufsUrl.includes('.mp4');
-                                            return {
-                                                url: file.ufsUrl,
-                                                key: file.key,
-                                                type: isVideo ? "video" : "image",
-                                                caption: ""
-                                            };
-                                        });
-                                        setMediaItems(prev => [...prev, ...newItems]);
-                                        toast.success("Additional files attached!");
-                                    }}
-                                />
-                            </div>
+
+                            {isUploadingMedia ? (
+                                // 1. THE UPLOADING STATE
+                                <div
+                                    className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 flex flex-col items-center justify-center gap-4 animate-in fade-in h-[200px]">
+                                    <svg className="animate-spin h-10 w-10 text-brand-primary"
+                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor"
+                                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <div className="text-center">
+                                        <span
+                                            className="text-sm font-bold text-brand-primary uppercase tracking-widest animate-pulse block">
+                                            Processing Additional Media...
+                                        </span>
+                                        <span className="text-[10px] text-gray-400 mt-1 font-bold">Please keep this window open</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                // 2. THE UPLOAD BUTTON STATE
+                                <div
+                                    className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center animate-in fade-in">
+                                    <h3 className="font-bold text-brand-primary mb-2">Add More Files</h3>
+                                    <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Append
+                                        new photos/videos to this gallery</p>
+                                    <UploadButton
+                                        endpoint="mediaGalleryUploader"
+                                        appearance={{
+                                            button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-[7px] md:text-[15px] font-bold after:bg-brand-secondary h-[50px]"
+                                        }}
+                                        content={{
+                                            button({ready, isUploading}) {
+                                                if (isUploading) return "Processing...";
+                                                return ready ? "Select Media" : "Loading...";
+                                            }
+                                        }}
+                                        onUploadBegin={() => {
+                                            setIsUploadingMedia(true);
+                                        }}
+                                        onClientUploadComplete={(res) => {
+                                            const newItems: MediaItem[] = res.map(file => {
+                                                const isVideo = (file.name || "").toLowerCase().match(/\.(mp4|mov|webm)$/) || file.ufsUrl.includes('.mp4');
+                                                return {
+                                                    url: file.ufsUrl,
+                                                    key: file.key,
+                                                    type: isVideo ? "video" : "image",
+                                                    caption: ""
+                                                };
+                                            });
+                                            setMediaItems(prev => [...prev, ...newItems]);
+                                            setIsUploadingMedia(false);
+                                            toast.success("Additional files attached!");
+                                        }}
+                                        onUploadError={(error) => {
+                                            setIsUploadingMedia(false);
+                                            toast.error(`Upload failed. Please try again.: ${error.message || "Unknown error"}`);
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Media Management Grid */}
@@ -483,7 +526,7 @@ export default function EditGalleryPage() {
                                                         </div>
                                                     )}
                                                 <button type="button" onClick={() => removeItem(index)}
-                                                        className="absolute top-2 right-2 sm:top-1 sm:right-1 p-2 sm:p-1 bg-red-500 text-white rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
+                                                        className="absolute top-2 right-2 sm:top-1 sm:right-1 p-2 sm:p-1 bg-red-500 text-white rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10 shadow-sm">
                                                     <X size={12} className="sm:w-[10px] sm:h-[10px]"/></button>
                                             </div>
                                             <div className="flex-1 w-full">
@@ -491,7 +534,7 @@ export default function EditGalleryPage() {
                                                     className="text-[9px] font-black text-gray-400 uppercase block mb-1">Caption</label>
                                                 <textarea value={item.caption}
                                                           onChange={(e) => updateCaption(index, e.target.value)}
-                                                          className="w-full p-2 text-xs border rounded-lg h-20 sm:h-16 resize-none focus:ring-1 focus:ring-brand-primary outline-none"
+                                                          className="w-full p-2 text-xs border rounded-lg h-20 sm:h-16 resize-none focus:ring-1 focus:ring-brand-primary outline-none text-brand-primary"
                                                           placeholder="Add context..."/>
                                             </div>
                                         </div>

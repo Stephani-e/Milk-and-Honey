@@ -127,8 +127,7 @@ export default function GlobalSettingsPage() {
 
             {/* 1. PAGE HEADER */}
             <div
-                className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-
+                className="sticky top-4 z-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-md border border-gray-100">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-serif font-black text-brand-primary">Global
                         Settings</h1>
@@ -298,6 +297,7 @@ export default function GlobalSettingsPage() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Primary Dev
                                     Email</label>
                                 <input
+                                    readOnly
                                     name="developer_email_support"
                                     value={formData.developer_email_support}
                                     placeholder="support@..."
@@ -308,6 +308,7 @@ export default function GlobalSettingsPage() {
                                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Secondary /
                                     Admin Dev Email</label>
                                 <input
+                                    readOnly
                                     name="developer_email_support_admin"
                                     value={formData.developer_email_support_admin}
                                     placeholder="admin@..."

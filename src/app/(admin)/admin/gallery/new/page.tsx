@@ -50,6 +50,9 @@ export default function NewGalleryPage() {
 
     const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
 
+    // NEW: Media Uploading Spinner State
+    const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
     useEffect(() => {
         const savedDraft = localStorage.getItem("gallery_draft");
         if (savedDraft) {
@@ -109,12 +112,17 @@ export default function NewGalleryPage() {
             is_archived: false
         };
 
+        // Bulletproof Ghost Data Cleanup
         if (category === "Weekly") {
             submission.special_service_name = "";
             submission.day_identifier = "";
             if (weeklyType !== "Sunday") {
                 submission.host = "";
                 submission.service_number = "";
+                submission.co_host = "";
+            }
+            if (weeklyType === "Sunday" && formData.host === "General/Last Sunday") {
+                submission.co_host = "";
             }
         } else if (category === "Monthly") {
             submission.weekly_type = "";
@@ -127,6 +135,7 @@ export default function NewGalleryPage() {
             submission.host = "";
             submission.service_number = "";
             if (!isMultiDay) submission.day_identifier = "";
+            if (!formData.co_host) submission.co_host = "";
         }
 
         const {error} = await supabase.from("media_gallery").insert([submission]);
@@ -145,7 +154,7 @@ export default function NewGalleryPage() {
     const todayObj = new Date();
     const localMaxDate = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
 
-    if (loading) {
+    if (!initialFetchDone) {
         return (
             <div className="min-h-screen bg-brand-surface p-6 md:p-12">
                 <AdminSkeletonLoader variant="gallery-form"/>
@@ -161,7 +170,8 @@ export default function NewGalleryPage() {
                           className="text-sm font-bold text-brand-secondary block hover:underline">← Back to Gallery
                         Dashboard</Link>
                     {mediaItems.length > 0 &&
-                        <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold">Draft Auto-Saved</span>}
+                        <span
+                            className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded font-bold uppercase tracking-widest">Draft Auto-Saved</span>}
                 </div>
 
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-accent">
@@ -238,6 +248,7 @@ export default function NewGalleryPage() {
                                                     <option>Second Service</option>
                                                 </select>
                                                 <input list="cohosts" placeholder="Department/Group"
+                                                       autoComplete="off"
                                                        className="p-3 rounded-lg border text-brand-primary text-sm"
                                                        value={formData.co_host} onChange={(e) => setFormData({
                                                     ...formData,
@@ -308,7 +319,7 @@ export default function NewGalleryPage() {
                             </div>
                         )}
 
-                        {/* NEW: Platform Links Section */}
+                        {/* Platform Links Section */}
                         {(category !== "") && (
                             <div className='flex flex-col gap-2 mt-2 pt-6 border-t border-gray-100'>
                                 <label
@@ -393,44 +404,76 @@ export default function NewGalleryPage() {
                             </div>
                         )}
 
-                        {/* Step 4: Upload Media */}
+                        {/* Step 4: Upload Media with Integrated Spinner */}
                         {(weeklyType || category === "Monthly" || category === "Special") && (
                             <div className='flex flex-col gap-2'>
                                 <label
-                                    className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Step
-                                    4: Upload All Media (Pictures & Videos)</label>
-                                <div
-                                    className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center animate-in fade-in">
-                                    <h3 className="font-bold text-brand-primary mb-2">Upload Files</h3>
-                                    <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Photos
-                                        and Highlights</p>
-                                    <UploadButton
-                                        endpoint="mediaGalleryUploader"
-                                        appearance={{button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-[7px] md:text-[15px] font-bold after:bg-brand-secondary"}}
-                                        content={{
-                                            button({ready}) {
-                                                return ready ? "Select Media" : "Loading...";
-                                            }
-                                        }}
-                                        onClientUploadComplete={(res) => {
-                                            const newItems: MediaItem[] = res.map(file => {
-                                                const fileName = (file.name || "").toLowerCase();
-                                                const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || file.ufsUrl.includes('.mp4');
-                                                return {
-                                                    url: file.ufsUrl,
-                                                    key: file.key,
-                                                    type: isVideo ? "video" : "image",
-                                                    caption: ""
-                                                };
-                                            });
-                                            setMediaItems(prev => [...prev, ...newItems]);
-                                            toast.success("Files uploaded!");
-                                        }}
-                                        onUploadError={(error) => {
-                                            toast.error(`Upload failed. Please try again.: ${error.message || "Unknown error"}`);
-                                        }}
-                                    />
-                                </div>
+                                    className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">
+                                    Step 4: Upload All Media (Pictures & Videos)
+                                </label>
+
+                                {isUploadingMedia ? (
+                                    // THE UPLOADING STATE
+                                    <div
+                                        className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 flex flex-col items-center justify-center gap-4 animate-in fade-in h-[200px]">
+                                        <svg className="animate-spin h-10 w-10 text-brand-primary"
+                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor"
+                                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <div className="text-center">
+                                            <span
+                                                className="text-sm font-bold text-brand-primary uppercase tracking-widest animate-pulse block">
+                                                Processing Media...
+                                            </span>
+                                            <span className="text-[10px] text-gray-400 mt-1 font-bold">Please keep this window open</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // THE UPLOAD BUTTON STATE
+                                    <div
+                                        className="p-6 md:p-10 border-2 border-dashed border-brand-accent rounded-3xl bg-slate-50/50 text-center animate-in fade-in">
+                                        <h3 className="font-bold text-brand-primary mb-2">Upload Files</h3>
+                                        <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-black">Photos
+                                            and Highlights</p>
+                                        <UploadButton
+                                            endpoint="mediaGalleryUploader"
+                                            appearance={{
+                                                button: "bg-brand-primary w-full md:w-auto px-10 py-4 rounded-2xl text-[7px] md:text-[15px] font-bold after:bg-brand-secondary h-[50px]",
+                                            }}
+                                            content={{
+                                                button({ready, isUploading}) {
+                                                    if (isUploading) return "Processing...";
+                                                    return ready ? "Select Media" : "Loading...";
+                                                }
+                                            }}
+                                            onUploadBegin={() => {
+                                                setIsUploadingMedia(true);
+                                            }}
+                                            onClientUploadComplete={(res) => {
+                                                const newItems: MediaItem[] = res.map(file => {
+                                                    const fileName = (file.name || "").toLowerCase();
+                                                    const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov') || fileName.endsWith('.webm') || file.ufsUrl.includes('.mp4');
+                                                    return {
+                                                        url: file.ufsUrl,
+                                                        key: file.key,
+                                                        type: isVideo ? "video" : "image",
+                                                        caption: ""
+                                                    };
+                                                });
+                                                setMediaItems(prev => [...prev, ...newItems]);
+                                                setIsUploadingMedia(false);
+                                                toast.success(`${res.length} files uploaded successfully!`);
+                                            }}
+                                            onUploadError={(error) => {
+                                                setIsUploadingMedia(false);
+                                                toast.error(`Upload failed. Please try again.: ${error.message || "Unknown error"}`);
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -466,7 +509,7 @@ export default function NewGalleryPage() {
                                                 </div>
                                             )}
                                             <button type="button" onClick={() => removeItem(index)}
-                                                    className="absolute top-2 right-2 sm:top-1 sm:right-1 p-2 sm:p-1 bg-red-500 text-white rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                    className="absolute top-2 right-2 sm:top-1 sm:right-1 p-2 sm:p-1 bg-red-500 text-white rounded-full sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shadow-sm">
                                                 <X size={12} className="sm:w-[10px] sm:h-[10px]"/></button>
                                         </div>
                                         <div className="flex-1 w-full">
@@ -511,13 +554,19 @@ export default function NewGalleryPage() {
                                         className="text-[9px] md:text-xs font-bold uppercase tracking-widest text-purple-400">Step
                                         7: Publish Gallery or Save As Draft</label>
                                     <div className="flex flex-col sm:flex-row gap-4">
-                                        <button type="button" onClick={() => handleSubmit('draft')}
-                                                className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold">Save
-                                            Draft
+                                        <button
+                                            type="button"
+                                            disabled={loading}
+                                            onClick={() => handleSubmit('draft')}
+                                            className="w-full sm:flex-1 py-4 border-2 border-brand-primary text-brand-primary rounded-2xl font-bold hover:bg-brand-primary/5 transition-all disabled:opacity-50">
+                                            {loading ? "Saving..." : "Save Draft"}
                                         </button>
-                                        <button type="button" onClick={() => handleSubmit('published')}
-                                                className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold">Publish
-                                            Gallery
+                                        <button
+                                            type="button"
+                                            disabled={loading}
+                                            onClick={() => handleSubmit('published')}
+                                            className="w-full sm:flex-[2] py-4 bg-brand-primary text-white rounded-2xl font-bold shadow-lg hover:bg-brand-primary/90 transition-all disabled:opacity-50">
+                                            {loading ? "Publishing..." : "Publish Gallery"}
                                         </button>
                                     </div>
                                 </div>

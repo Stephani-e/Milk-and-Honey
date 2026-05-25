@@ -58,7 +58,7 @@ export default function SermonsPage() {
         setView(newView);
         setCurrentPage(1);
 
-        // Update URL instantly without full page reload
+        // Update URL instantly without a full page reload
         const params = new URLSearchParams(searchParams.toString());
         params.set("tab", newView);
         router.replace(`?${params.toString()}`, {scroll: false});
@@ -211,7 +211,7 @@ export default function SermonsPage() {
 
                 if (!error) {
                     toast.error("Sermon Permanently Deleted.");
-                    await fetchSermons(); // Stay on trash tab and refresh
+                    await fetchSermons(); // Stay on the trash tab and refresh
                 }
             } else {
                 const {error} = await supabase

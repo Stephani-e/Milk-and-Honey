@@ -30,7 +30,7 @@ export default function ProfilesManagement() {
     const [activeView, setActiveView] = useState<ViewMode>('personnel');
 
     const [roleFilter, setRoleFilter] = useState("all");
-    const [sortBy, setSortBy] = useState("newest"); // "newest" or "latest" (alphabetical)
+    const [sortBy, setSortBy] = useState("newest");
 
     // Create Modal State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -40,22 +40,22 @@ export default function ProfilesManagement() {
     const [editTarget, setEditTarget] = useState<any | null>(null);
     const [isUpdatingUser, setIsUpdatingUser] = useState(false);
 
-    // Action States
+    // Action Targets
     const [choiceTarget, setChoiceTarget] = useState<{ user: any, direction: 'up' | 'down' } | null>(null);
     const [revokeTarget, setRevokeTarget] = useState<any | null>(null);
     const [restoreTarget, setRestoreTarget] = useState<any | null>(null);
+
+    // --- Loading States ---
+    const [isRevoking, setIsRevoking] = useState(false);
+    const [restoringRole, setRestoringRole] = useState<string | null>(null);
+    const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
     const USER_LIMIT = 7;
     const ROLE_HIERARCHY = ['viewer', 'editor', 'super-admin'];
 
     const getEmptyStateMessage = () => {
-        // 1. If the user is typing in the search bar but nothing matches
         if (searchTerm) return `No members found matching "${searchTerm}"`;
-
-        // 2. If the "Revoked" tab is selected but empty
         if (activeView === "revoked") return "The archive is currently empty. No revoked accounts found.";
-
-        // 3. Default state for the Personnel tab
         return "No active staff members found. Click 'Create Staff Account' to begin.";
     };
 
@@ -95,7 +95,6 @@ export default function ProfilesManagement() {
         setIsCreating(true);
 
         try {
-            // Call our new direct-creation API
             const response = await fetch('/api/create', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -110,7 +109,7 @@ export default function ProfilesManagement() {
 
             toast.success(`Account created for ${createData.full_name}! They can now log in.`);
             setIsCreateModalOpen(false);
-            setCreateData({email: '', full_name: '', password: '', role: 'viewer'}); // Reset form
+            setCreateData({email: '', full_name: '', password: '', role: 'viewer'});
             await fetchProfiles();
         } catch (error: any) {
             toast.error(error.message);
@@ -139,37 +138,39 @@ export default function ProfilesManagement() {
                 return Date.parse(b.created_at) - Date.parse(a.created_at);
             }
             return a.full_name.localeCompare(b.full_name);
-        })
+        });
 
     const activeCount = profiles.filter(p => p.status === 'active').length;
 
     const handleRoleUpdate = async (id: string, newRole: string) => {
-        setChoiceTarget(null);
-        if (id.startsWith('mock-')) {
-            setProfiles(prev => prev.map(p => p.id === id ? {...p, role: newRole} : p));
-            toast.success(`Role updated to ${newRole}`);
-            return;
-        }
+        setUpdatingRole(newRole); // Triggers the spinner on the specific role button clicked
         const {error} = await supabase.from('profiles').update({role: newRole}).eq('id', id);
-        if (error) toast.error("Database update failed");
-        else await fetchProfiles();
+
+        if (error) {
+            toast.error("Database update failed");
+        } else {
+            await fetchProfiles();
+            toast.success(`Role updated to ${newRole}`);
+            setChoiceTarget(null); // Closes the modal
+        }
+        setUpdatingRole(null); // Turns off the spinner
     };
 
     const handlePromote = (user: any) => {
         if (user.role === 'viewer') {
-            setChoiceTarget({user, direction: 'up'}); // Opens modal to pick Editor or Super Admin
+            setChoiceTarget({user, direction: 'up'});
         } else if (user.role === 'editor') {
-            handleRoleUpdate(user.id, 'super-admin').catch(console.error) // Direct jump
+            handleRoleUpdate(user.id, 'super-admin').catch(console.error)
         }
     };
 
     const handleDemote = (user: any) => {
         if (user.role === 'super-admin') {
-            setChoiceTarget({user, direction: 'down'}); // Opens modal to pick Editor or Viewer
+            setChoiceTarget({user, direction: 'down'});
         } else if (user.role === 'editor') {
-            handleRoleUpdate(user.id, 'viewer').catch(console.error) // Direct drop
+            handleRoleUpdate(user.id, 'viewer').catch(console.error)
         } else if (user.role === 'viewer') {
-            setRevokeTarget(user); // Trigger revoke flow
+            setRevokeTarget(user);
         }
     };
 
@@ -177,14 +178,12 @@ export default function ProfilesManagement() {
         e.preventDefault();
         setIsUpdatingUser(true);
         try {
-            // 1. Get the current user's session token to prove they are an admin
             const {data: {session}} = await supabase.auth.getSession();
 
             const response = await fetch('/api/update', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    // 2. Attach the token here so your API route can read it!
                     'Authorization': `Bearer ${session?.access_token}`
                 },
                 body: JSON.stringify(editTarget),
@@ -207,42 +206,42 @@ export default function ProfilesManagement() {
     };
 
     const executeRevoke = async (id: string) => {
+        setIsRevoking(true);
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + 5);
 
         const updates = {status: 'revoked', expires_at: expiry.toISOString()};
 
-        if (id.startsWith('mock-')) {
-            setProfiles(prev => prev.map(p => p.id === id ? {...p, ...updates} : p));
-            toast.warning("Member revoked. 5-day countdown started.");
+        const {error} = await supabase.from('profiles').update(updates).eq('id', id);
+
+        if (error) {
+            toast.error("Failed to revoke access.");
         } else {
-            await supabase.from('profiles').update(updates).eq('id', id);
             await fetchProfiles();
+            setRevokeTarget(null);
+            toast.warning("Member access revoked. 5-day countdown started.");
         }
-        setRevokeTarget(null);
-        toast.warning("Member access revoked.");
+        setIsRevoking(false);
     };
 
     const executeRestore = async (id: string, chosenRole: string) => {
+        setRestoringRole(chosenRole);
         const updates = {
             status: 'active',
             expires_at: null,
             role: chosenRole
         };
 
-        if (id.startsWith('mock-')) {
-            setProfiles(prev => prev.map(p => p.id === id ? {...p, ...updates} : p));
-            toast.success("Mock Access Restored.");
+        const {error} = await supabase.from('profiles').update(updates).eq('id', id);
+
+        if (error) {
+            toast.error("Restore failed");
         } else {
-            const {error} = await supabase.from('profiles').update(updates).eq('id', id);
-            if (error) {
-                toast.error("Restore failed");
-            } else {
-                await fetchProfiles();
-                toast.success("Access restored.");
-            }
+            await fetchProfiles();
+            toast.success("Access restored.");
+            setRestoreTarget(null);
         }
-        setRestoreTarget(null);
+        setRestoringRole(null);
     };
 
     if (loading && profiles.length === 0) {
@@ -297,7 +296,11 @@ export default function ProfilesManagement() {
                 {['personnel', 'revoked'].map((tab) => (
                     <button
                         key={tab}
-                        onClick={() => setActiveView(tab as ViewMode)}
+                        onClick={() => {
+                            setActiveView(tab as ViewMode);
+                            setSearchTerm("");
+                            setRoleFilter("all");
+                        }}
                         className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                             activeView === tab ? 'bg-white text-brand-primary shadow-sm border border-brand-accent' : 'text-gray-400 hover:text-brand-primary'
                         }`}
@@ -316,6 +319,7 @@ export default function ProfilesManagement() {
                     <input
                         type="text"
                         placeholder={`Filter through ${activeView}...`}
+                        value={searchTerm}
                         className="w-full pl-12 pr-6 py-4 bg-white border border-brand-accent rounded-2xl outline-none shadow-sm focus:ring-2 focus:ring-brand-primary/5 transition-all"
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -336,8 +340,10 @@ export default function ProfilesManagement() {
 
                         <div
                             className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-secondary group-hover:text-brand-primary transition-colors">
-                            <ChevronDown size={18}
-                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"/>
+                            <ChevronDown
+                                size={18}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"
+                            />
                         </div>
                     </div>
 
@@ -353,8 +359,10 @@ export default function ProfilesManagement() {
 
                         <div
                             className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-secondary group-hover:text-brand-primary transition-colors">
-                            <ChevronDown size={18}
-                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"/>
+                            <ChevronDown
+                                size={18}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"
+                            />
                         </div>
                     </div>
                 </div>
@@ -378,7 +386,6 @@ export default function ProfilesManagement() {
                         </thead>
                         <tbody className="divide-y divide-brand-accent">
                         {loading ? (
-                            // Show local table rows skeleton while searching/filtering
                             <tr>
                                 <td colSpan={3} className="p-0">
                                     <AdminSkeletonLoader variant="table-body-only" rows={5}/>
@@ -587,8 +594,9 @@ export default function ProfilesManagement() {
                                 <AlertCircle size={28}/>
                             </div>
                             <button
-                                onClick={() => setRevokeTarget(null)}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                onClick={() => !isRevoking && setRevokeTarget(null)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                                disabled={isRevoking}
                             >
                                 <X size={20}/>
                             </button>
@@ -606,13 +614,16 @@ export default function ProfilesManagement() {
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={() => executeRevoke(revokeTarget.id)}
-                                className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 hover:shadow-lg hover:shadow-red-200 transition-all active:scale-[0.98]"
+                                disabled={isRevoking}
+                                className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 hover:shadow-lg hover:shadow-red-200 transition-all active:scale-[0.98] disabled:opacity-50"
                             >
-                                Confirm Revocation
+                                {isRevoking ? <><Loader2 size={18}
+                                                         className="animate-spin"/> Revoking...</> : "Confirm Revocation"}
                             </button>
                             <button
                                 onClick={() => setRevokeTarget(null)}
-                                className="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl font-bold hover:bg-gray-100 transition-all"
+                                disabled={isRevoking}
+                                className="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl font-bold hover:bg-gray-100 transition-all disabled:opacity-50"
                             >
                                 Cancel Action
                             </button>
@@ -621,7 +632,7 @@ export default function ProfilesManagement() {
                 </div>
             )}
 
-            {/* MODALS: Restore, Role Choice (Same as before) */}
+            {/* RESTORE MODAL */}
             {restoreTarget && (
                 <div
                     className="fixed inset-0 bg-brand-primary/20 backdrop-blur-md z-[120] flex items-center justify-center p-4">
@@ -629,16 +640,25 @@ export default function ProfilesManagement() {
                         className="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-brand-accent max-w-sm w-full animate-in zoom-in duration-200">
                         <div className="flex justify-between items-start mb-6">
                             <h3 className="text-2xl font-serif font-bold text-brand-primary">Restore Member</h3>
-                            <button onClick={() => setRestoreTarget(null)}><X size={20}/></button>
+                            <button disabled={restoringRole !== null} onClick={() => setRestoreTarget(null)}><X
+                                size={20}/></button>
                         </div>
                         <p className="text-xs text-gray-400 mb-6">Assign a role
                             to <strong>{restoreTarget.full_name}</strong> to complete restoration.</p>
                         <div className="space-y-3">
                             {ROLE_HIERARCHY.map(role => (
-                                <button key={role} onClick={() => executeRestore(restoreTarget.id, role)}
-                                        className="w-full p-5 rounded-2xl border border-brand-accent hover:border-brand-primary hover:bg-brand-surface text-left group transition-all">
-                                    <span className="block text-[9px] font-black uppercase text-gray-400 mb-1">Restore as</span>
-                                    <span className="block font-bold text-brand-primary capitalize">{role}</span>
+                                <button
+                                    key={role}
+                                    onClick={() => executeRestore(restoreTarget.id, role)}
+                                    disabled={restoringRole !== null}
+                                    className="w-full p-5 rounded-2xl border border-brand-accent hover:border-brand-primary hover:bg-brand-surface text-left flex justify-between items-center group transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <div>
+                                        <span className="block text-[9px] font-black uppercase text-gray-400 mb-1">Restore as</span>
+                                        <span className="block font-bold text-brand-primary capitalize">{role}</span>
+                                    </div>
+                                    {restoringRole === role &&
+                                        <Loader2 size={18} className="text-brand-primary animate-spin"/>}
                                 </button>
                             ))}
                         </div>
@@ -646,6 +666,7 @@ export default function ProfilesManagement() {
                 </div>
             )}
 
+            {/* RANK CHOICE MODAL */}
             {choiceTarget && (
                 <div
                     className="fixed inset-0 bg-brand-primary/20 backdrop-blur-md z-[100] flex items-center justify-center p-4">
@@ -656,8 +677,12 @@ export default function ProfilesManagement() {
                                 <h3 className="text-2xl font-serif font-bold text-brand-primary">Update Rank</h3>
                                 <p className="text-xs text-gray-400 mt-1">Select the target level for this member.</p>
                             </div>
-                            <button onClick={() => setChoiceTarget(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X size={20}/>
+                            <button
+                                disabled={updatingRole !== null}
+                                onClick={() => setChoiceTarget(null)}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                            >
+                                <X size={20}/>
                             </button>
                         </div>
                         <div className="space-y-3">
@@ -665,7 +690,8 @@ export default function ProfilesManagement() {
                                 <button
                                     key={role}
                                     onClick={() => handleRoleUpdate(choiceTarget.user.id, role)}
-                                    className="w-full p-6 rounded-[1.5rem] border border-brand-accent hover:border-brand-primary hover:bg-brand-surface text-left group transition-all"
+                                    disabled={updatingRole !== null}
+                                    className="w-full p-6 rounded-[1.5rem] border border-brand-accent hover:border-brand-primary hover:bg-brand-surface text-left group transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -676,7 +702,8 @@ export default function ProfilesManagement() {
                                         </div>
                                         <div
                                             className="h-10 w-10 bg-brand-surface rounded-xl flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-colors">
-                                            <UserCheck size={20}/>
+                                            {updatingRole === role ? <Loader2 size={20} className="animate-spin"/> :
+                                                <UserCheck size={20}/>}
                                         </div>
                                     </div>
                                 </button>
