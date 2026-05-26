@@ -12,10 +12,11 @@ import {
     Film,
     Image as ImageIcon,
     Link as LinkIcon,
+    Loader2,
     Megaphone,
     Target
 } from "lucide-react";
-import {useAuth} from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/AdminGuard";
 import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 const DRAFT_STORAGE_KEY = "milk_and_honey_ad_draft";
@@ -26,7 +27,9 @@ export default function NewAdPage() {
 
     const [loading, setLoading] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
-    const [submitType, setSubmitType] = useState<'active' | 'inactive'>('active');
+
+    const [isUploadingMain, setIsUploadingMain] = useState(false);
+    const [isUploadingFallback, setIsUploadingFallback] = useState(false);
 
     // 1. Core Details
     const [title, setTitle] = useState("");
@@ -69,7 +72,6 @@ export default function NewAdPage() {
             }
         }
         setIsInitializing(false);
-
     }, []);
 
     useEffect(() => {
@@ -82,8 +84,11 @@ export default function NewAdPage() {
         }
     }, [title, description, adType, targetLink, buttonText, mediaType, mediaUrl, fallbackImageUrl, placement, expiryDate, expiryTime]);
 
-    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSubmit = async (targetStatus: 'active' | 'inactive') => {
+        if (!title) {
+            toast.error("Please provide a campaign title.");
+            return;
+        }
 
         if (!mediaUrl) {
             toast.error("Please upload the main creative for this ad.");
@@ -107,7 +112,7 @@ export default function NewAdPage() {
             target_link: targetLink,
             button_text: buttonText,
             placement,
-            status: submitType,
+            status: targetStatus,
             expires_at: finalExpiry
         };
 
@@ -118,7 +123,7 @@ export default function NewAdPage() {
             setLoading(false);
         } else {
             localStorage.removeItem(DRAFT_STORAGE_KEY);
-            toast.success(submitType === 'active' ? "Campaign is now LIVE!" : "Campaign saved to Paused.");
+            toast.success(targetStatus === 'active' ? "Campaign is now LIVE!" : "Campaign saved to Paused.");
             router.push("/admin/ads");
             router.refresh();
         }
@@ -158,11 +163,11 @@ export default function NewAdPage() {
                         )}
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-10">
+                    <form onSubmit={(e) => e.preventDefault()} className="space-y-10">
 
                         {/* 1. CORE DETAILS */}
                         <div className="space-y-6">
-                            <h3 className="text-[9px] md:text-xs  font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                            <h3 className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <Target size={16}/> Step 1: Campaign Details
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -188,9 +193,11 @@ export default function NewAdPage() {
                             <div>
                                 <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Short
                                     Description</label>
-                                <textarea value={description} onChange={e => setDescription(e.target.value)}
-                                          placeholder="A brief hook to make people want to click..." rows={2}
-                                          className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"/>
+                                <textarea
+                                    value={description} onChange={e => setDescription(e.target.value)}
+                                    placeholder="A brief hook to make people want to click..." rows={2}
+                                    className="w-full p-4 bg-slate-50 border border-gray-100 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"
+                                />
                             </div>
                         </div>
 
@@ -206,16 +213,21 @@ export default function NewAdPage() {
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Target
                                             URL</label>
-                                        <input type="url" value={targetLink}
-                                               onChange={e => setTargetLink(e.target.value)} placeholder="https://..."
-                                               className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"/>
+                                        <input
+                                            type="url" value={targetLink}
+                                            onChange={e => setTargetLink(e.target.value)} placeholder="https://..."
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary focus:ring-2 focus:ring-pink-500 outline-none"
+                                        />
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Button
-                                            Text</label>
-                                        <input value={buttonText} onChange={e => setButtonText(e.target.value)}
-                                               placeholder="e.g. Register Now"
-                                               className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none"/>
+                                            Text
+                                        </label>
+                                        <input
+                                            value={buttonText} onChange={e => setButtonText(e.target.value)}
+                                            placeholder="e.g. Register Now"
+                                            className="w-full p-4 bg-white border border-gray-200 rounded-xl text-brand-primary font-bold focus:ring-2 focus:ring-pink-500 outline-none"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -246,7 +258,6 @@ export default function NewAdPage() {
                                     </button>
                                 </div>
 
-                                {/* CHANGED: Vertical stack instead of 2-column grid */}
                                 <div className="flex flex-col gap-6">
                                     {/* MAIN CREATIVE */}
                                     <div className="flex flex-col sm:flex-row gap-6 items-start">
@@ -272,15 +283,26 @@ export default function NewAdPage() {
                                         <div className="flex-1 w-full space-y-4">
                                             <p className="text-sm text-gray-500">Upload the main {mediaType} for this
                                                 campaign.</p>
-                                            {!mediaUrl ? (
+
+                                            {isUploadingMain ? (
+                                                <div
+                                                    className="flex items-center gap-3 bg-slate-50 px-6 py-4 rounded-xl w-full sm:w-auto border border-gray-100 animate-in fade-in">
+                                                    <Loader2 size={16} className="animate-spin text-pink-600"/>
+                                                    <span
+                                                        className="text-xs font-bold text-pink-600 uppercase tracking-widest animate-pulse">Uploading...</span>
+                                                </div>
+                                            ) : !mediaUrl ? (
                                                 <UploadButton
                                                     endpoint={mediaType === 'image' ? "imageUploader" : "videoUploader"}
                                                     appearance={{button: "bg-pink-600 text-white text-xs px-6 py-4 rounded-xl after:bg-pink-700 w-full sm:w-auto"}}
+                                                    onUploadBegin={() => setIsUploadingMain(true)}
                                                     onClientUploadComplete={(res) => {
                                                         setMediaUrl(res[0].ufsUrl);
+                                                        setIsUploadingMain(false);
                                                         toast.success("Creative uploaded!");
                                                     }}
                                                     onUploadError={(error) => {
+                                                        setIsUploadingMain(false);
                                                         toast.error(`Upload Failed: ${error.message}`);
                                                     }}
                                                 />
@@ -312,15 +334,26 @@ export default function NewAdPage() {
                                                     (Optional)</p>
                                                 <p className="text-xs text-gray-500 leading-relaxed">If left blank, the
                                                     browser will automatically use the first frame of the video.</p>
-                                                {!fallbackImageUrl ? (
+
+                                                {isUploadingFallback ? (
+                                                    <div
+                                                        className="flex items-center gap-3 bg-white px-6 py-4 rounded-xl w-full sm:w-auto border border-gray-100 animate-in fade-in">
+                                                        <Loader2 size={16} className="animate-spin text-slate-800"/>
+                                                        <span
+                                                            className="text-xs font-bold text-slate-800 uppercase tracking-widest animate-pulse">Uploading...</span>
+                                                    </div>
+                                                ) : !fallbackImageUrl ? (
                                                     <UploadButton
                                                         endpoint="imageUploader"
                                                         appearance={{button: "bg-slate-800 text-white text-xs px-6 py-3 rounded-xl w-full sm:w-auto"}}
+                                                        onUploadBegin={() => setIsUploadingFallback(true)}
                                                         onClientUploadComplete={(res) => {
                                                             setFallbackImageUrl(res[0].ufsUrl);
+                                                            setIsUploadingFallback(false);
                                                             toast.success("Fallback image uploaded!");
                                                         }}
                                                         onUploadError={(error) => {
+                                                            setIsUploadingFallback(false);
                                                             toast.error(`Upload Failed: ${error.message}`);
                                                         }}
                                                     />
@@ -339,7 +372,7 @@ export default function NewAdPage() {
                         {/* 4. PLACEMENT & EXPIRY */}
                         <div className='flex flex-col gap-4'>
                             <label
-                                className="text-[9px] md:text-xs  font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
+                                className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <CalendarClock size={16}/> Step 4: Delivery Rules
                             </label>
                             <div className="space-y-6 p-6 md:p-8 bg-slate-50 border border-gray-100 rounded-3xl">
@@ -377,7 +410,7 @@ export default function NewAdPage() {
                         </div>
 
                         {/* SUBMIT BUTTONS */}
-                        <div className='flex flex-col gap-4 pt-8 border-t border-gray-100 '>
+                        <div className='flex flex-col gap-4 pt-8 border-t border-gray-100'>
                             <label
                                 className="text-[9px] md:text-xs font-bold text-pink-600 uppercase tracking-widest flex items-center gap-2">
                                 <CheckCircle size={16}/> Step 5. Final Step: Review and Save
@@ -385,17 +418,17 @@ export default function NewAdPage() {
                             <div
                                 className="pt-8 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-4">
                                 <button
-                                    type="submit"
+                                    type="button"
                                     disabled={loading}
-                                    onClick={() => setSubmitType('inactive')}
+                                    onClick={() => handleSubmit('inactive')}
                                     className="w-full sm:w-auto px-8 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors disabled:opacity-50"
                                 >
                                     Save to Paused
                                 </button>
                                 <button
-                                    type="submit"
+                                    type="button"
                                     disabled={loading}
-                                    onClick={() => setSubmitType('active')}
+                                    onClick={() => handleSubmit('active')}
                                     className="w-full sm:w-auto px-10 py-4 bg-pink-600 text-white rounded-2xl font-bold shadow-lg hover:bg-pink-700 transition-colors disabled:opacity-50"
                                 >
                                     {loading ? "Publishing..." : "Publish Live Campaign"}

@@ -108,7 +108,6 @@ export default function EditEventPage() {
                 else if (rules.sessions) setStandardSessions(rules.sessions);
                 if (rules.thanksgiving_session) setThanksgivingSession(rules.thanksgiving_session);
 
-                // NEW: Load existing Factions if available!
                 if (rules.factions) setSundayFactions(rules.factions);
 
             } else if (data.event_type === "single_day") {

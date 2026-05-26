@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import {useAuth} from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/AdminGuard";
 import ProfilesManagement from "@/app/(admin)/admin/profiles/ProfileManagement";
 
 export default function SuperAdminPage() {

@@ -1,12 +1,12 @@
 "use client";
 import React, {useEffect, useState} from "react";
-import Link from "next/link";
-import {Home, Loader2, LogOut, Settings, ShieldCheck, Users, X} from "lucide-react";
 import {supabase} from "@/lib/supabase";
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 import {toast} from "sonner";
 import ConfirmModal from "@/components/Admin/ConfirmModal";
 import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
+import {Home, Loader2, LogOut, Settings, ShieldCheck, Users, X} from "lucide-react";
 
 export default function Navbar() {
     const router = useRouter();
@@ -19,12 +19,8 @@ export default function Navbar() {
     const [newName, setNewName] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
 
-    // Calculate the user's initial for the avatar
-    const userInitial = profile?.full_name
-        ? profile.full_name.charAt(0).toUpperCase()
-        : (profile?.email?.charAt(0).toUpperCase() || "A");
+    const userInitial = profile?.full_name?.charAt(0).toUpperCase() || profile?.email?.charAt(0).toUpperCase() || "A";
 
-    // Fetch the user's profile data
     useEffect(() => {
         let isMounted = true;
         const getProfile = async () => {
@@ -33,15 +29,15 @@ export default function Navbar() {
             if (user && isMounted) {
                 const {data} = await supabase
                     .from('profiles')
-                    .select('full_name, role, email')
+                    .select('id, full_name, role, email')
                     .eq('id', user.id)
                     .single();
                 if (data) {
-                    setProfile(data)
+                    setProfile(data);
                     setNewName(data.full_name || "");
                 }
             }
-            setLoading(false)
+            if (isMounted) setLoading(false);
         };
         getProfile().catch(console.error);
         return () => {
@@ -68,7 +64,6 @@ export default function Navbar() {
         setIsUpdating(false);
     };
 
-    // Handle the logout action
     const handleSignOut = async () => {
         setIsLoggingOut(true);
         const {error} = await supabase.auth.signOut();
@@ -76,15 +71,13 @@ export default function Navbar() {
             toast.error("Logout Failed");
             setIsLoggingOut(false);
         } else {
-            toast.success('Logout Successful! Redirecting to Login Page...');
-            setTimeout(() => {
-                router.push("/login");
-                router.refresh();
-            }, 2500);
+            toast.success('Logout Successful!');
+            router.push("/login");
+            router.refresh();
         }
     };
 
-    if (loading && !profile) {
+    if (loading) {
         return <AdminSkeletonLoader variant="navbar"/>;
     }
 
@@ -92,7 +85,6 @@ export default function Navbar() {
         <>
             <nav className="sticky top-0 z-[50] bg-white/90 backdrop-blur-md border-b border-brand-accent px-4 md:px-6">
                 <div className="max-w-7xl mx-auto h-16 md:h-20 flex items-center justify-between">
-
                     <Link href="/admin" className="flex items-center gap-3 md:gap-4 group">
                         <div
                             className="h-12 w-12 md:h-11 bg-brand-primary md:rounded-xl flex items-center justify-center text-white font-serif font-bold text-base md:text-lg shadow-lg shadow-brand-primary/20 group-hover:scale-105 transition-transform">
@@ -107,11 +99,9 @@ export default function Navbar() {
                     </Link>
 
                     <div className="flex items-center gap-2 md:gap-4">
-
                         {profile?.role === 'super-admin' && (
-                            <Link
-                                href="/admin/profiles"
-                                className="flex items-center gap-2 px-3 py-2 bg-brand-primary/5 text-brand-primary rounded-full hover:bg-brand-primary hover:text-white transition-all group border border-brand-primary/10 shadow-sm"
+                            <Link href="/admin/profiles"
+                                  className="flex items-center gap-2 px-3 py-2 bg-brand-primary/5 text-brand-primary rounded-full hover:bg-brand-primary hover:text-white transition-all group border border-brand-primary/10 shadow-sm"
                             >
                                 <Users size={16} className="shrink-0"/>
                                 <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest">Manage Access</span>
@@ -127,39 +117,33 @@ export default function Navbar() {
                                 {userInitial}
                             </div>
                             <div className="hidden md:flex flex-col text-left">
-                            <span className="text-[10px] font-black text-brand-primary uppercase tracking-tighter">
-                                {profile?.role?.replace('-', ' ')}
-                            </span>
-                                <span className="text-[11px] text-brand-secondary font-medium">
-                                {profile?.full_name || "Profile"}
-                            </span>
+                                <span className="text-[10px] font-black text-brand-primary uppercase tracking-tighter">
+                                    {profile?.role?.replace('-', ' ')}
+                                </span>
+                                <span className="text-[11px] text-brand-secondary font-medium truncate max-w-[100px]">
+                                    {profile?.full_name || "Profile"}
+                                </span>
                             </div>
                         </button>
 
                         <div className="w-px h-6 bg-gray-100 mx-1 hidden sm:block"/>
 
-                        <Link
-                            href="/admin"
-                            className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-surface rounded-lg md:rounded-xl transition-all"
-                            title="Dashboard Home"
-                        >
+                        <Link href="/admin"
+                              className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-surface rounded-lg md:rounded-xl transition-all"
+                              title="Dashboard Home">
                             <Home size={18} className="md:w-5 md:h-5"/>
                         </Link>
 
                         {profile?.role === 'super-admin' && (
-                            <Link
-                                href="/admin/settings"
-                                className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-surface rounded-lg md:rounded-xl transition-all"
-                                title="Site Settings"
-                            >
+                            <Link href="/admin/settings"
+                                  className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-surface rounded-lg md:rounded-xl transition-all"
+                                  title="Site Settings">
                                 <Settings size={15} className="md:w-5 md:h-5"/>
                             </Link>
                         )}
 
-                        <button
-                            onClick={() => setIsLogoutOpen(true)}
-                            className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 border border-red-100 text-red-600 rounded-full text-xs md:text-sm font-bold hover:bg-red-50 transition-all active:scale-95 cursor-pointer"
-                        >
+                        <button onClick={() => setIsLogoutOpen(true)}
+                                className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 border border-red-100 text-red-600 rounded-full text-xs md:text-sm font-bold hover:bg-red-50 transition-all active:scale-95 cursor-pointer">
                             <LogOut size={14} strokeWidth={2.5}/>
                             <span className="hidden xs:inline">Logout</span>
                         </button>

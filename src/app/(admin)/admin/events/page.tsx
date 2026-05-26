@@ -1,7 +1,7 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
-import {useAuth} from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/AdminGuard";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
@@ -166,7 +166,6 @@ export default function EventsDashboardPage() {
                         scripture: data.scripture || "",
                         is_convention_active: data.is_convention_active || false,
                         is_congress_active: data.is_congress_active || false,
-                        // FIX: Default to empty string instead of boolean false
                         theme_banner_url: data.theme_banner_url || "",
                         takeover_title: data.takeover_title || "",
                         takeover_theme: data.takeover_theme || "",
@@ -516,7 +515,6 @@ export default function EventsDashboardPage() {
         );
     }
 
-    // Removed the @ts-ignore
     return (
         <div className="min-h-screen bg-brand-surface p-4 md:p-12 font-sans">
             <div className="max-w-6xl mx-auto">
@@ -979,7 +977,6 @@ export default function EventsDashboardPage() {
                                         <div
                                             className="text-center p-8 text-sm text-gray-400 font-bold">Loading...</div>
                                     ) : recurringEvents.length > 0 ? (
-                                        // FIX: Now calling the render function instead of re-mounting a component!
                                         recurringEvents.map(event => renderEventListItem(event))
                                     ) : (
                                         <div
@@ -1008,7 +1005,6 @@ export default function EventsDashboardPage() {
                                         <div
                                             className="text-center p-8 text-sm text-gray-400 font-bold">Loading...</div>
                                     ) : paginatedSpecialEvents.length > 0 ? (
-                                        // FIX: Now calling the render function instead of re-mounting a component!
                                         paginatedSpecialEvents.map(event => renderEventListItem(event))
                                     ) : (
                                         <div

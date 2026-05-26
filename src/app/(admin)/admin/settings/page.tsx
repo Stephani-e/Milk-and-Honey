@@ -35,6 +35,7 @@ export default function GlobalSettingsPage() {
         pastoral_email: "",
         developer_email_support: "",
         developer_email_support_admin: "",
+        developer_phone_support_admin: "",
         // Socials (Main)
         instagram_url: "",
         facebook_url: "",
@@ -311,6 +312,17 @@ export default function GlobalSettingsPage() {
                                     readOnly
                                     name="developer_email_support_admin"
                                     value={formData.developer_email_support_admin}
+                                    placeholder="admin@..."
+                                    className="w-full p-3 mt-1 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 cursor-not-allowed"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1"> Dev Support
+                                    Number</label>
+                                <input
+                                    readOnly
+                                    name="developer_phone_support_admin"
+                                    value={formData.developer_phone_support_admin}
                                     placeholder="admin@..."
                                     className="w-full p-3 mt-1 bg-slate-800 text-white border border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 cursor-not-allowed"
                                 />

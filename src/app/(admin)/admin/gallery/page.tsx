@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import Link from "next/link";
-import {useAuth} from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/AdminGuard";
 import {useRouter, useSearchParams} from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
 import {toast} from "sonner";

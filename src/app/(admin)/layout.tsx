@@ -1,5 +1,5 @@
 import React from "react";
-import AdminGuard from "@/components/Admin/Admin Guard";
+import AdminGuard from "@/components/Admin/AdminGuard";
 import Navbar from "./NavBar";
 import BackToTop from "@/components/Admin/BackToTop";
 

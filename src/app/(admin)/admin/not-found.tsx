@@ -6,9 +6,10 @@ import {supabase} from "@/lib/supabase";
 
 export default function AdminNotFound() {
     const [settings, setSettings] = useState<any>(null);
-    const [currentUrl, setCurrentUrl] = useState('Unknown URL'); // 1. Add state for the URL
+    const [currentUrl, setCurrentUrl] = useState('Unknown URL');
 
     useEffect(() => {
+        // Safely grabs the URL only after the client has mounted
         setCurrentUrl(window.location.href);
 
         const fetchSettings = async () => {
@@ -39,14 +40,14 @@ export default function AdminNotFound() {
             {/* Help & Navigation */}
             <div className="flex flex-col gap-4 w-full max-w-xs">
                 <Link
-                    href="/login"
+                    href="/admin"
                     className="w-full bg-brand-primary text-white py-4 rounded-xl font-bold hover:bg-brand-secondary transition-all"
                 >
                     Return to Dashboard
                 </Link>
 
                 <a
-                    href={`mailto:${settings?.email_tech_support || 'byteandsecurity.support+admin@gmail.com'}?subject=Admin Broken Link Report&body=I encountered an error at: ${currentUrl}`}
+                    href={`mailto:${settings?.developer_email_support_admin || 'byteandsecurity.support+admin@gmail.com'}?cc=${settings?.developer_email_support || ''}&subject=Admin Broken Link Report&body=Hello Dev Team,%0D%0A%0D%0AI encountered a 404 error while trying to access:%0D%0A${currentUrl}`}
                     className="flex items-center justify-center gap-2 w-full bg-slate-800 text-slate-300 py-4 rounded-xl font-bold hover:bg-slate-700 transition-all"
                 >
                     <Mail size={18}/> Contact Admin Support

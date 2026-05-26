@@ -9,12 +9,14 @@ import {
     ArrowLeft,
     CalendarClock,
     CheckCircle,
+    Film,
     Image as ImageIcon,
     Link as LinkIcon,
+    Loader2,
     Megaphone,
     Target
 } from "lucide-react";
-import {useAuth} from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/AdminGuard";
 import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 export default function EditAdPage() {
@@ -24,6 +26,9 @@ export default function EditAdPage() {
 
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
+
+    const [isUploadingMain, setIsUploadingMain] = useState(false);
+    const [isUploadingFallback, setIsUploadingFallback] = useState(false);
 
     // 1. Core Details
     const [title, setTitle] = useState("");
@@ -37,7 +42,7 @@ export default function EditAdPage() {
     // 3. Media
     const [mediaType, setMediaType] = useState<"image" | "video">("image");
     const [mediaUrl, setMediaUrl] = useState("");
-    const [fallbackImageUrl, setFallbackImageUrl] = useState(""); // NEW: Fallback State
+    const [fallbackImageUrl, setFallbackImageUrl] = useState("");
 
     // 4. Placement, Expiry, & Status
     const [placement, setPlacement] = useState("global_top");
@@ -109,7 +114,7 @@ export default function EditAdPage() {
             target_link: targetLink,
             button_text: buttonText,
             placement,
-            status: status, // Updating the existing status
+            status: status,
             expires_at: finalExpiry,
             fallback_image_url: mediaType === 'video' ? fallbackImageUrl : null,
         };
@@ -227,6 +232,7 @@ export default function EditAdPage() {
                                     <button type="button" onClick={() => {
                                         setMediaType('image');
                                         setMediaUrl("");
+                                        setFallbackImageUrl(""); // FIX: Ensure fallback image is wiped if switching back to image!
                                     }}
                                             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mediaType === 'image' ? 'bg-brand-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>Image
                                         Ad
@@ -242,46 +248,59 @@ export default function EditAdPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-6 items-start">
                                     <div
-                                        className="w-full sm:w-64 aspect-video bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
+                                        className="w-full sm:w-64 aspect-video bg-slate-50 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
                                         {mediaUrl ? (
                                             mediaType === 'image' ? (
                                                 <img src={mediaUrl} alt="Ad Creative"
                                                      className="w-full h-full object-cover"/>
                                             ) : (
-                                                <video key={mediaUrl} src={mediaUrl}
-                                                       className="w-full h-full object-cover" autoPlay muted loop/>
+                                                <video key={mediaUrl} src={`${mediaUrl}#t=0.1`}
+                                                       className="w-full h-full object-cover" controls
+                                                       preload="metadata"/>
                                             )
                                         ) : (
                                             <div className="text-gray-300 flex flex-col items-center">
-                                                <ImageIcon size={32} className="mb-2"/>
-                                                <span className="text-[10px] font-bold uppercase">No Media</span>
+                                                {mediaType === 'image' ? <ImageIcon size={32} className="mb-2"/> :
+                                                    <Film size={32} className="mb-2"/>}
+                                                <span className="text-[10px] font-bold uppercase">{mediaType}</span>
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 w-full space-y-4">
                                         <p className="text-sm text-gray-500">Upload the graphic or short video for this
                                             campaign.</p>
-                                        {!mediaUrl ? (
+
+                                        {isUploadingMain ? (
+                                            <div
+                                                className="flex items-center gap-3 bg-slate-50 px-6 py-4 rounded-xl w-full sm:w-auto border border-gray-100 animate-in fade-in">
+                                                <Loader2 size={16} className="animate-spin text-pink-600"/>
+                                                <span
+                                                    className="text-xs font-bold text-pink-600 uppercase tracking-widest animate-pulse">Uploading...</span>
+                                            </div>
+                                        ) : !mediaUrl ? (
                                             <UploadButton
                                                 endpoint={mediaType === 'image' ? "imageUploader" : "videoUploader"}
                                                 appearance={{button: "bg-pink-600 text-white text-xs px-6 py-4 rounded-xl after:bg-pink-700 w-full sm:w-auto"}}
+                                                onUploadBegin={() => setIsUploadingMain(true)}
                                                 onClientUploadComplete={(res) => {
                                                     setMediaUrl(res[0].ufsUrl);
+                                                    setIsUploadingMain(false);
                                                     toast.success("Creative uploaded!");
                                                 }}
                                                 onUploadError={(error) => {
+                                                    setIsUploadingMain(false);
                                                     toast.error(`Upload Failed: ${error.message}`);
                                                 }}
                                             />
                                         ) : (
                                             <button type="button" onClick={() => setMediaUrl("")}
-                                                    className="bg-red-50 text-red-600 px-6 py-3 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors">Remove
+                                                    className="bg-red-50 text-red-600 px-6 py-3 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors w-full sm:w-auto">Remove
                                                 Creative</button>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* OPTIONAL FALLBACK IMAGE (Only shows if Video is selected) */}
+                                {/* OPTIONAL FALLBACK IMAGE */}
                                 {mediaType === 'video' && (
                                     <div
                                         className="flex flex-col sm:flex-row gap-4 p-4 border border-pink-100 bg-pink-50/30 rounded-2xl animate-in fade-in">
@@ -291,9 +310,10 @@ export default function EditAdPage() {
                                                 <img src={fallbackImageUrl} alt="Fallback"
                                                      className="w-full h-full object-cover"/>
                                             ) : (
-                                                <div className="text-gray-300 flex flex-col items-center"><ImageIcon
-                                                    size={20} className="mb-1"/><span
-                                                    className="text-[8px] font-bold uppercase text-center leading-tight">Auto<br/>Thumbnail</span>
+                                                <div className="text-gray-300 flex flex-col items-center">
+                                                    <ImageIcon size={20} className="mb-1"/>
+                                                    <span
+                                                        className="text-[8px] font-bold uppercase text-center leading-tight">Auto<br/>Thumbnail</span>
                                                 </div>
                                             )}
                                         </div>
@@ -302,15 +322,26 @@ export default function EditAdPage() {
                                                 (Optional)</p>
                                             <p className="text-[10px] text-gray-500 leading-relaxed">If left blank, the
                                                 browser will automatically use the first frame of the video.</p>
-                                            {!fallbackImageUrl ? (
+
+                                            {isUploadingFallback ? (
+                                                <div
+                                                    className="flex items-center gap-3 bg-white px-6 py-4 rounded-xl w-full sm:w-auto border border-gray-100 animate-in fade-in">
+                                                    <Loader2 size={16} className="animate-spin text-slate-800"/>
+                                                    <span
+                                                        className="text-xs font-bold text-slate-800 uppercase tracking-widest animate-pulse">Uploading...</span>
+                                                </div>
+                                            ) : !fallbackImageUrl ? (
                                                 <UploadButton
                                                     endpoint="imageUploader"
                                                     appearance={{button: "bg-slate-800 text-white text-[10px] px-4 py-2 rounded-lg w-full sm:w-auto"}}
+                                                    onUploadBegin={() => setIsUploadingFallback(true)}
                                                     onClientUploadComplete={(res) => {
                                                         setFallbackImageUrl(res[0].ufsUrl);
+                                                        setIsUploadingFallback(false);
                                                         toast.success("Fallback image uploaded!");
                                                     }}
                                                     onUploadError={(error) => {
+                                                        setIsUploadingFallback(false);
                                                         toast.error(`Upload Failed: ${error.message}`);
                                                     }}
                                                 />
@@ -386,9 +417,10 @@ export default function EditAdPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full sm:w-auto px-10 py-5 bg-brand-primary text-white rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+                                    className="w-full sm:w-auto px-10 py-5 bg-brand-primary text-white rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
-                                    {loading ? "Saving Changes..." : "Save Changes"}
+                                    {loading ? <><Loader2 size={18} className="animate-spin"/> Saving
+                                        Changes...</> : "Save Changes"}
                                 </button>
                             </div>
                         </div>

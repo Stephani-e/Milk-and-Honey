@@ -5,7 +5,7 @@ import {supabase} from "@/lib/supabase";
 import {usePathname, useRouter} from "next/navigation";
 import {Loader2, ShieldAlert} from "lucide-react";
 
-// 1. Create a Global Context so any page can ask "What is my role?" instantly
+// 1. Create a Global Context so any page can ask, "What is my role?" instantly
 type AuthContextType = {
     role: string;
     user: any;

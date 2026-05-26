@@ -27,7 +27,6 @@ export default function NewEventPage() {
     const [loading, setLoading] = useState(false);
     const [isCheckingDraft, setIsCheckingDraft] = useState(true);
 
-    // NEW: Upload Spinner State
     const [isUploadingFlyer, setIsUploadingFlyer] = useState(false);
 
     // Step 1: The Branching State

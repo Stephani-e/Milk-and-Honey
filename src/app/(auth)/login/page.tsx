@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {useRouter} from "next/navigation";
@@ -18,94 +18,81 @@ export default function LoginPage() {
 
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
-    const SUPPORT_EMAIL = "support@mhcprovince56.org";
-    const SUPPORT_WHATSAPP = "2348000000000";
+    const [settings, setSettings] = useState<any>(null);
 
     useEffect(() => {
-        const verifyRole = async () => {
-            if (email.includes('@')) {
-                const {data, error} = await supabase.rpc('check_is_super_admin', {
-                    email_input: email.toLowerCase()
-                });
-                if (!error) setIsSuperAdmin(data);
-            }
+        const fetchSettings = async () => {
+            const {data} = await supabase
+                .from('site_settings')
+                .select('*')
+                .single();
+
+            if (data) setSettings(data);
         };
 
-        const timeoutId = setTimeout(verifyRole, 1000);
-        return () => clearTimeout(timeoutId);
+        fetchSettings().catch(console.error);
+    }, []);
+
+    // EFFICIENT ROLE CHECK: Debounced and validated
+    useEffect(() => {
+        // 1. Regex validation prevents unnecessary RPC calls for incomplete emails
+        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!isValidEmail) {
+            setIsSuperAdmin(false); // Reset if the email is cleared or invalid
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            const {data, error} = await (supabase.rpc as any)('check_is_super_admin', {
+                email_input: email.toLowerCase()
+            });
+            if (!error) setIsSuperAdmin(data);
+        }, 800); // Only one timer is needed
+
+        return () => clearTimeout(timer);
     }, [email]);
 
     const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log("Attempting login with:", email); // Debug log
         setIsLoggingIn(true);
 
-        try {
-            const {data, error} = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
+        const {error} = await supabase.auth.signInWithPassword({email, password});
 
-            if (error) {
-                // console.error("Supabase Error:", error.message);
-                toast.error(`Login Failed: ${error.message}`);
-                setIsLoggingIn(false)
-            } else if (data?.user) {
-                toast.success("Login Successful!");
-
-                router.refresh();
-                setTimeout(() => {
-                    router.refresh();
-                    router.push("/admin");
-                }, 800);
-            }
-        } catch (err) {
-            // console.error("Unexpected Error:", err);
-            toast.error("An unexpected error occurred. Please try again.");
-            setIsLoggingIn(false)
+        if (error) {
+            toast.error(`Login Failed: ${error.message}`);
+            setIsLoggingIn(false);
+        } else {
+            toast.success("Login Successful!");
+            router.push("/admin");
+            router.refresh();
         }
     };
 
     const handleGoogleLogin = async () => {
-        toast.info("Redirecting to Google Login...");
         const {error} = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
-            },
+            options: {redirectTo: `${window.location.origin}/auth/callback`},
         });
+        if (error) toast.error(`Google Login Failed: ${error.message}`);
+    };
+
+    const handleForgotPassword = async () => {
+        if (!email) return toast.error("Please enter your email first.");
+        setIsResetting(true);
+
+        const {error} = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`
+        });
+
         if (error) {
-            // console.error("Google Auth Error:", error.message);
-            toast.error(`Google Login Failed: ${error.message}`);
+            toast.error(error.message);
         } else {
-            toast.success("Google Login Successful!");
+            toast.success("Reset link sent to your email!");
+            router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
         }
+        setIsResetting(false);
     };
 
-    const handleForgotPassword = async (emailToReset: string) => {
-        if (!emailToReset) return toast.error("Please enter your email first.");
-
-        setIsResetting(true); // Start the spinner/loading text
-
-        try {
-            // Directly call Supabase to generate the OTP and send the email
-            const {error} = await supabase.auth.resetPasswordForEmail(emailToReset);
-
-            if (error) {
-                console.error(`error: `)
-                return;
-            }
-
-            toast.success("Security code sent to your email!");
-
-            router.push(`/auth/reset-password?email=${encodeURIComponent(emailToReset)}`);
-
-        } catch (err: any) {
-            toast.error(err.message || "Failed to send reset code. Please try again.");
-        } finally {
-            setIsResetting(false); // Reset the button state
-        }
-    };
     return (
         <div className='flex flex-col relative'>
 
@@ -182,15 +169,16 @@ export default function LoginPage() {
                                         isSuperAdmin ? (
                                             <button
                                                 type="button"
-                                                onClick={() => handleForgotPassword(email)}
+                                                onClick={handleForgotPassword}
                                                 className="text-[11px] font-bold text-brand-primary hover:underline"
                                             >
                                                 {isResetting ? "Sending..." : "Forgot Password? Reset Now"}
                                             </button>
                                         ) : (
                                             <p className="text-[11px] font-medium text-gray-400">
-                                                Forgot Security Key? <a href={`mailto:${SUPPORT_EMAIL}`}
-                                                                        className="text-brand-secondary font-bold">Contact
+                                                Forgot Security Key? <a
+                                                href={`mailto:${settings?.developer_email_support_admin}`}
+                                                className="text-brand-secondary font-bold">Contact
                                                 Admin</a>
                                             </p>
                                         )
@@ -258,7 +246,7 @@ export default function LoginPage() {
                     <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm font-medium text-gray-500">
                         {/* WHATSAPP SUPPORT */}
                         <a
-                            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=Hi Support, I'm having trouble logging into the M%26H Admin Portal.`}
+                            href={`https://wa.me/${settings?.developer_phone_support_admin}?text=Hi Support, I'm having trouble logging into the M%26H Admin Portal.`}
                             target="_blank"
                             className="flex items-center gap-2 hover:text-green-600 transition-colors"
                         >
@@ -270,7 +258,8 @@ export default function LoginPage() {
                         </a>
 
                         {/* EMAIL SUPPORT */}
-                        <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#11222E] transition-colors">
+                        <a href={`mailto:${settings?.developer_email_support_admin}`}
+                           className="hover:text-[#11222E] transition-colors">
                             Technical Support
                         </a>
 

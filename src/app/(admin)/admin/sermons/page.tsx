@@ -1,7 +1,7 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
-import {useAuth} from "@/components/Admin/Admin Guard";
+import {useAuth} from "@/components/Admin/AdminGuard";
 import Link from "next/link";
 import {useRouter, useSearchParams} from "next/navigation";
 import AdminFilter from "@/components/Admin/AdminFilter";
