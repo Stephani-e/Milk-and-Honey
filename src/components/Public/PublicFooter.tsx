@@ -153,10 +153,13 @@ export default function PublicFooter({settings}: { settings: any }) {
                 className="max-w-7xl mx-auto px-6 border-t border-gray-100 pt-8 flex flex-col items-center text-center">
                 <div
                     className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6 text-[10px] font-bold uppercase tracking-widest text-white ">
-                    <a href={`https://wa.me/${settings?.whatsapp_number}?text=Hi, I am reaching out from the Milk & Honey website.`}
-                       target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-1.5 hover:text-green-600 transition-colors">
-                        WhatsApp Support
+                    <a
+                        href={`https://wa.me/${settings?.whatsapp_number?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi, I am reaching out from the Milk & Honey website.')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 hover:text-green-600 transition-colors"
+                    >
+                        Whatsapp Support
                     </a>
                     <a href={`mailto:${settings?.email_tech_support}`}
                        className="hover:text-orange-600 transition-colors">
