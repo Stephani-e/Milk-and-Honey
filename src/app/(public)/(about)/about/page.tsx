@@ -205,7 +205,7 @@ export default function AboutPage() {
                               className="group relative p-8 rounded-[2rem] overflow-hidden hover:shadow-2xl transition-all duration-500 min-h-[400px] flex flex-col justify-between">
                             {/* Background Image */}
                             <div
-                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523580494112-071d16940a1e?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
+                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1682263557065-192c50c79d30?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fG1lbWJlcnMlMjBvZiUyMGElMjBjaHVyY2h8ZW58MHx8MHx8fDA%3D')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
                             />
                             {/* Dark Gradient Overlay for text readability */}
                             <div
@@ -225,8 +225,12 @@ export default function AboutPage() {
                             <div className="relative z-10 mt-auto pt-10">
                                 <h4 className="text-2xl font-bold text-white mb-3">Vibrant Fellowships</h4>
                                 <p className="text-sm text-slate-300 leading-relaxed mb-6">
-                                    From our energetic <span className="text-amber-400 font-bold">Youth Church</span> to
-                                    our focused Men and Women groups, there is a community for you.
+                                    From our energetic <span
+                                    className="text-amber-400 font-bold">Youth Church</span> and <span
+                                    className="text-blue-400 font-bold">Teens Church</span> to
+                                    our <span className="text-green-400 font-bold">Excellent Men</span> and <span
+                                    className="text-red-400 font-bold">Good Women</span>, there is a community for
+                                    you.
                                 </p>
                                 <span
                                     className="text-xs font-black uppercase tracking-widest text-amber-400 group-hover:underline flex items-center gap-2">
@@ -239,7 +243,7 @@ export default function AboutPage() {
                         <Link href="/sermons"
                               className="group relative p-8 rounded-[2rem] overflow-hidden hover:shadow-2xl transition-all duration-500 min-h-[400px] flex flex-col justify-between">
                             <div
-                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
+                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1532190795157-3f983fb7fa3b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fHByZWFjaGluZyUyMHRoZSUyMGdvc3BlbHxlbnwwfHwwfHx8MA%3D%3D')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
                             />
                             <div
                                 className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/90 z-0"/>
@@ -247,12 +251,15 @@ export default function AboutPage() {
                             <div className="relative z-10 flex justify-between items-start">
                                 <div
                                     className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
-                                    <PlayCircle className="text-white group-hover:scale-110 transition-transform"
-                                                size={28}/>
+                                    <PlayCircle
+                                        className="text-white group-hover:scale-110 transition-transform"
+                                        size={28}
+                                    />
                                 </div>
                                 <ArrowRight
                                     className="text-white/50 group-hover:text-amber-400 group-hover:translate-x-2 transition-all"
-                                    size={24}/>
+                                    size={24}
+                                />
                             </div>
 
                             <div className="relative z-10 mt-auto pt-10">
@@ -273,7 +280,7 @@ export default function AboutPage() {
                         <Link href="/departments"
                               className="group relative p-8 rounded-[2rem] overflow-hidden hover:shadow-2xl transition-all duration-500 min-h-[400px] flex flex-col justify-between">
                             <div
-                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1510563800743-aed236490d08?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
+                                className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1597794638885-f707cdb7e582?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bWVkaWElMjB0ZWFtJTIwaW4lMjBjaHVyY2h8ZW58MHx8MHx8fDA%3D')] bg-cover bg-center group-hover:scale-110 transition-transform duration-700 z-0"
                             />
                             <div
                                 className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/90 z-0"/>
