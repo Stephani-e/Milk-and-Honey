@@ -237,7 +237,7 @@ export default function PublicNavbar({settings}: { settings: any }) {
             {/* Mobile Navigation Dropdown */}
             {mobileMenuOpen && (
                 <div
-                    className="fixed top-20 left-0 w-full h-[calc(100vh-5rem)] bg-white border-b border-gray-100 shadow-2xl md:hidden flex flex-col p-6 font-bold text-gray-600 overflow-y-auto pb-10 animate-in slide-in-from-top-2 z-40">
+                    className="fixed top-20 left-0 w-full h-[calc(100dvh-5rem)] bg-white border-b border-gray-100 shadow-2xl md:hidden flex flex-col p-6 font-bold text-gray-600 overflow-y-auto pb-10 animate-in slide-in-from-top-2 z-40">
                     <div className="flex flex-col gap-4 flex-grow">
                         <Link href="/" onClick={() => setMobileMenuOpen(false)}
                               className="py-2 border-b border-gray-50">Home</Link>
@@ -269,6 +269,7 @@ export default function PublicNavbar({settings}: { settings: any }) {
                             <div className="flex flex-col gap-3 pl-4 border-l-2 border-brand-primary/20">
                                 <Link href="/sermons" onClick={() => setMobileMenuOpen(false)}>Watch Sermons</Link>
                                 <Link href="/gallery" onClick={() => setMobileMenuOpen(false)}>Church Gallery</Link>
+                                <Link href="/socials" onClick={() => setMobileMenuOpen(false)}> Socials </Link>
                                 <Link href="/share" onClick={() => setMobileMenuOpen(false)}
                                       className="text-brand-primary flex items-center gap-2">
                                     Share Photos <Camera size={14} className="text-amber-500"/>

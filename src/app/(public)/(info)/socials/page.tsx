@@ -185,7 +185,7 @@ export default async function SocialsPage() {
                                 Live
                             </div>
                             <Mic size={32} className="text-amber-500 mb-3 group-hover:scale-110 transition-transform"/>
-                            <span className="font-bold text-brand-primary text-sm mb-1">Mixlr</span>
+                            <span className="font-bold text-brand-primary text-sm mb-1">Coming Soon</span>
                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Live Broadcast</span>
                         </a>
 
