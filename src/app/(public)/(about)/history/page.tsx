@@ -140,16 +140,16 @@ export default function HistoryPage() {
                 <div
                     className="absolute inset-0 bg-gradient-to-b from-brand-primary/90 via-brand-primary/80 to-slate-900/90"></div>
 
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center">
-                    <div className="mb-6 flex justify-center">
-                        <Link
-                            href="/about"
-                            className="inline-flex items-center gap-2 text-white/80 hover:text-white text-xs sm:text-sm font-bold tracking-widest uppercase transition-colors bg-white/10 px-4 py-2 rounded-full border border-white/20"
-                        >
-                            <ArrowLeft size={16}/> Back to About Us
-                        </Link>
-                    </div>
+                <div className="absolute top-8 left-6 md:left-12 z-20">
+                    <Link
+                        href="/about"
+                        className="inline-flex items-center gap-2 text-white/70 hover:text-white text-xs md:text-sm font-bold tracking-widest uppercase transition-colors"
+                    >
+                        <ArrowLeft size={16}/> Back to About Us
+                    </Link>
+                </div>
 
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center">
                     <span
                         className="text-amber-400 font-bold tracking-[0.2em] sm:tracking-[0.3em] uppercase text-xs sm:text-sm mb-3 block">
                         Our Heritage
