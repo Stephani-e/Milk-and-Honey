@@ -121,7 +121,7 @@ export default function HistoryPage() {
             const {data, error} = await supabase
                 .from("timeline_events")
                 .select("*")
-                .order("display_order", {ascending: true});
+                .order("year", {ascending: true});
 
             if (data && data.length > 0 && !error) {
                 setEvents(data);

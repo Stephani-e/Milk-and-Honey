@@ -10,6 +10,7 @@ interface TimelineEvent {
     year: string;
     title: string;
     description: string;
+    icon_name: string;
 }
 
 const PAGE_SIZE = 10;
@@ -29,6 +30,7 @@ export default function TimelineManager() {
         year: "",
         title: "",
         description: "",
+        icon_name: "Sparkles",
     });
 
     const fetchEvents = useCallback(async (page: number) => {
@@ -64,17 +66,28 @@ export default function TimelineManager() {
                 year: event.year,
                 title: event.title,
                 description: event.description,
+                icon_name: event.icon_name || "Sparkles",
             });
         } else {
             setEditingId(null);
-            setFormData({year: "", title: "", description: ""});
+            setFormData({
+                year: "",
+                title: "",
+                description: "",
+                icon_name: "Sparkles",
+            });
         }
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setFormData({year: "", title: "", description: ""});
+        setFormData({
+            year: "",
+            title: "",
+            description: "",
+            icon_name: "Sparkles",
+        });
         setEditingId(null);
     };
 
@@ -276,6 +289,22 @@ export default function TimelineManager() {
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                                         className="w-full p-3 text-amber-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Timeline Icon</label>
+                                    <select
+                                        required
+                                        value={formData.icon_name}
+                                        onChange={(e) => setFormData({...formData, icon_name: e.target.value})}
+                                        className="w-full p-3 text-amber-900 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all cursor-pointer"
+                                    >
+                                        <option value="Sparkles">Sparkles (Default / General Event)</option>
+                                        <option value="Users">Users (People / Members)</option>
+                                        <option value="MapPin">Map Pin (Location / Move)</option>
+                                        <option value="Church">Church (Building / Property)</option>
+                                        <option value="Award">Award (Achievement / Elevation)</option>
+                                    </select>
                                 </div>
 
                                 <div>
