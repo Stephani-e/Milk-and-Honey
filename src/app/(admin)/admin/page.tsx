@@ -213,7 +213,7 @@ export default function AdminDashboard() {
                         </Link>
                     </div>
 
-                    {/* LEADERSHIP REGISTRY (Changed to standard teal) */}
+                    {/* LEADERSHIP REGISTRY */}
                     <div
                         className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
                         <div>
@@ -235,7 +235,29 @@ export default function AdminDashboard() {
                         </Link>
                     </div>
 
-                    {/* PARISH NETWORK (Changed to standard rose) */}
+                    {/* CHURCH HISTORY & TIMELINE */}
+                    <div
+                        className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div
+                                className="h-12 w-12 bg-amber-100 text-amber-900 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-amber-900/10">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"
+                                     viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-serif font-bold text-amber-900 mb-2">Church History</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">Manage timeline milestones,
+                                founding dates, and historical events.</p>
+                        </div>
+                        <Link href="/admin/timeline"
+                              className="w-full block text-center bg-amber-900 text-white font-bold py-3.5 rounded-xl text-sm hover:brightness-110 active:scale-95 transition-all">
+                            Edit Timeline
+                        </Link>
+                    </div>
+
+                    {/* PARISH NETWORK */}
                     <div
                         className="bg-white p-8 rounded-3xl border border-brand-accent hover:shadow-xl transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-3">
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 h-full">
