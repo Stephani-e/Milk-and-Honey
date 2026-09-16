@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import Link from "next/link";
 import {supabase} from "@/lib/supabase";
 import {ChevronLeft, ChevronRight, Pencil, Trash2} from "lucide-react";
+import AdminSkeletonLoader from "@/components/Admin/SkeletonLoader";
 
 interface TimelineEvent {
     id: string;
@@ -17,6 +18,7 @@ const PAGE_SIZE = 10;
 
 export default function TimelineManager() {
     const [events, setEvents] = useState<TimelineEvent[]>([]);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -51,6 +53,7 @@ export default function TimelineManager() {
             setTotalCount(count || 0);
         }
         setLoading(false);
+        setIsInitialLoad(false);
     }, []);
 
     useEffect(() => {
@@ -137,6 +140,18 @@ export default function TimelineManager() {
 
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
+    if (isInitialLoad) {
+        return (
+            <div className="min-h-screen bg-brand-surface p-6 md:p-12">
+                <div className="max-w-6xl mx-auto">
+                    <div className="h-10 w-64 bg-gray-200 animate-pulse rounded-lg mb-8"/>
+                    {/* Fixed to variant="table" */}
+                    <AdminSkeletonLoader variant="table" rows={5}/>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-[calc(100vh-80px)] bg-brand-surface p-6 md:p-12">
             <div className="max-w-6xl mx-auto">
@@ -169,8 +184,8 @@ export default function TimelineManager() {
                 {/* CONTENT TABLE */}
                 <div className="bg-white border border-brand-accent rounded-3xl overflow-hidden shadow-sm">
                     {loading ? (
-                        <div className="p-12 text-center text-gray-400 font-medium animate-pulse">
-                            Loading history...
+                        <div className="w-full p-4">
+                            <AdminSkeletonLoader variant="table-body-only" rows={PAGE_SIZE}/>
                         </div>
                     ) : events.length === 0 ? (
                         <div className="p-12 text-center text-gray-500">
@@ -229,7 +244,7 @@ export default function TimelineManager() {
 
                             <div className="flex items-center gap-3">
                                 <button
-                                    disabled={currentPage === 1 || loading}
+                                    disabled={currentPage === 1}
                                     onClick={() => setCurrentPage(prev => prev - 1)}
                                     className="flex items-center gap-1 bg-white border border-gray-200 text-amber-900 px-4 py-2 rounded-xl font-bold text-xs hover:bg-amber-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                                 >
@@ -244,7 +259,7 @@ export default function TimelineManager() {
                                 </div>
 
                                 <button
-                                    disabled={currentPage >= totalPages || loading}
+                                    disabled={currentPage >= totalPages}
                                     onClick={() => setCurrentPage(prev => prev + 1)}
                                     className="flex items-center gap-1 bg-white border border-gray-200 text-amber-900 px-4 py-2 rounded-xl font-bold text-xs hover:bg-amber-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                                 >

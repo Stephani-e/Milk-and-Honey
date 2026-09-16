@@ -20,6 +20,7 @@ type AdminSkeletonVariant =
     | "ads-form"
     | "newsletter-library"
     | "newsletter-form"
+    | "timeline"
     | "personnel-management"
     | "settings-form";
 
@@ -775,6 +776,61 @@ export default function AdminSkeletonLoader({variant, count = 1, rows = 5, class
                                 <SkeletonLoader variant="text-block" className="h-14 flex-1 rounded-2xl"/>
                                 <SkeletonLoader variant="text-block" className="h-14 flex-[2] rounded-2xl"/>
                             </div>
+                        </div>
+                    </div>
+                );
+
+
+            case "timeline":
+                return (
+                    <div className={`max-w-4xl mx-auto w-full animate-in fade-in duration-500 ${className}`}>
+                        {/* Header / Breadcrumb */}
+                        <div className="mb-10">
+                            <div className={`h-4 w-32 ${shimmer} rounded-md mb-6`}/>
+                            <div className={`h-8 w-64 ${shimmer} rounded-lg`}/>
+                        </div>
+
+                        {/* Timeline Container */}
+                        <div className="relative pl-8 md:pl-12 py-4">
+                            {/* Vertical Line */}
+                            <div className="absolute left-[11px] md:left-[19px] top-6 bottom-4 w-0.5 bg-slate-100"/>
+
+                            {/* Timeline Events */}
+                            {Array.from({length: rows}).map((_, i) => (
+                                <div key={i} className="relative mb-10 last:mb-0">
+                                    {/* Timeline Dot */}
+                                    <div
+                                        className="absolute -left-[29px] md:-left-[37px] top-5 h-4 w-4 bg-slate-200 animate-pulse rounded-full ring-4 ring-brand-surface shadow-sm"/>
+
+                                    {/* Content Card */}
+                                    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                                        {/* Date / Timestamp */}
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className={`h-4 w-4 ${shimmer} rounded-md`}/>
+                                            <div className={`h-3 w-32 ${shimmer} rounded-full`}/>
+                                        </div>
+
+                                        {/* Title */}
+                                        <div className={`h-5 w-3/4 ${shimmer} rounded-md mb-3`}/>
+
+                                        {/* Description Body */}
+                                        <div className="space-y-2 mb-6">
+                                            <div className={`h-3 w-full ${shimmer} rounded-md`}/>
+                                            <div className={`h-3 w-5/6 ${shimmer} rounded-md`}/>
+                                            <div className={`h-3 w-2/3 ${shimmer} rounded-md`}/>
+                                        </div>
+
+                                        {/* Card Footer / Action Buttons */}
+                                        <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                                            <div className="flex gap-2">
+                                                <div className={`h-8 w-24 ${shimmer} rounded-lg`}/>
+                                                <div className={`h-8 w-24 ${shimmer} rounded-lg hidden sm:block`}/>
+                                            </div>
+                                            <div className={`h-8 w-8 ${shimmer} rounded-lg`}/>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );
