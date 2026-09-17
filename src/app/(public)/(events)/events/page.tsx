@@ -399,14 +399,15 @@ export default function EventsPage() {
                                     className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 bg-slate-50 p-1.5 md:p-2 rounded-2xl border border-gray-200 w-full sm:w-auto">
                                     <button onClick={prevMonth}
                                             className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all">
-                                        <ChevronLeft size={20}/></button>
+                                        <ChevronLeft className="text-amber-900 hover:text-white" size={20}/>
+                                    </button>
                                     <span
                                         className="w-32 md:w-40 text-center font-black text-brand-primary uppercase tracking-widest text-xs md:text-sm">
                                         {currentDate.toLocaleString('default', {month: 'long', year: 'numeric'})}
                                     </span>
                                     <button onClick={nextMonth}
                                             className="p-2 md:p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:bg-brand-primary hover:text-white transition-all">
-                                        <ChevronRight size={20}/></button>
+                                        <ChevronRight className="text-amber-900 hover:text-white" size={20}/></button>
                                 </div>
                             </div>
 

@@ -65,21 +65,32 @@ export default function PublicNavbar({settings}: { settings: any }) {
         toast("Enable Notifications?", {
             description: "Want to get instantly alerted on your device when new updates drop?",
             duration: 8000, // Keep open a bit longer so they can read and decide
+            className: "!bg-white !border !border-gray-100 !shadow-2xl !rounded-2xl !p-4 !text-brand-primary",
+            classNames: {
+                title: "!font-serif !font-black !text-brand-primary !text-base",
+                description: "!text-gray-500 !text-xs !mt-1",
+                actionButton: "!bg-amber-500 !text-white !font-bold !text-xs !px-4 !py-2 !rounded-xl hover:!bg-amber-600 !transition-colors",
+                cancelButton: "!bg-slate-100 !text-gray-600 !font-bold !text-xs !px-4 !py-2 !rounded-xl hover:!bg-slate-200 !transition-colors",
+            },
             action: {
                 label: "Yes, enable",
                 onClick: async () => {
-                    const toastId = toast.loading("Setting up notifications...");
+                    const toastId = toast.loading("Setting up notifications...", {
+                        className: "!bg-white !border !border-gray-100 !shadow-2xl !rounded-2xl !text-brand-primary",
+                    });
                     const success = await subscribeToPushNotifications();
 
                     if (success) {
                         toast.success("Notifications Enabled!", {
                             id: toastId,
                             description: "You're all set to receive church updates.",
+                            className: "!bg-white !border !border-gray-100 !shadow-2xl !rounded-2xl !text-brand-primary",
                         });
                     } else {
                         toast.error("Action cancelled.", {
                             id: toastId,
                             description: "Notifications were denied or failed to load.",
+                            className: "!bg-white !border !border-gray-100 !shadow-2xl !rounded-2xl !text-brand-primary",
                         });
                     }
                     setTimeout(() => router.push("/newsletters"), 1500);
@@ -96,7 +107,8 @@ export default function PublicNavbar({settings}: { settings: any }) {
     };
 
     return (
-        <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <header
+            className="sticky top-[40px] md:top-[48px] z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                 <Link href="/"
                       className="font-serif text-2xl font-black text-brand-primary tracking-tight z-50 relative">

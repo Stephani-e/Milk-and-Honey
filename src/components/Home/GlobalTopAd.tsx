@@ -67,7 +67,7 @@ export default function GlobalTopAd() {
     const currentAd = ads[currentIndex];
 
     return (
-        <div className="relative z-[60] w-full bg-brand-primary text-white border-b border-white/10 shadow-md">
+        <div className="sticky top-0 z-[60] w-full bg-brand-primary text-white border-b border-white/10 shadow-md">
 
             {/* 1. TOP BAR: TICKER & TOGGLE */}
             <div className="flex items-center justify-between px-4 h-10 md:h-12 max-w-7xl mx-auto gap-4">

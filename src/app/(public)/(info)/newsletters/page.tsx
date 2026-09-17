@@ -266,7 +266,7 @@ function NewsletterContent() {
                         className="text-amber-400 font-bold tracking-[0.3em] uppercase text-xs md:text-sm mb-4 flex items-center gap-2">
                         <Newspaper size={16}/> Church Updates
                     </span>
-                    <h1 className="text-4xl md:text-6xl font-serif font-black text-white leading-tight whitespace-nowrap">
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif font-black text-white leading-tight">
                         News, Stories & Announcements.
                     </h1>
                 </div>
@@ -533,6 +533,7 @@ function NewsletterContent() {
                         <p className="text-gray-500 text-sm">Join our digital mailing list to receive the latest
                             sermons, announcements, and family news directly in your inbox.</p>
                     </div>
+                    
                     <div className="md:w-1/2 w-full">
                         {/* EMAIL SUBSCRIPTION BANNER (Full Width Bottom) */}
                         <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
