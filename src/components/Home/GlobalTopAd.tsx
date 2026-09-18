@@ -1,10 +1,12 @@
 "use client";
 import React, {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
+import SkeletonLoader from "@/components/UI/SkeletonLoader"; // Make sure this path is correct for your app!
 import {ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ExternalLink, Megaphone} from "lucide-react";
 
 export default function GlobalTopAd() {
     const [ads, setAds] = useState<any[]>([]);
+    const [loading, setIsLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -13,7 +15,7 @@ export default function GlobalTopAd() {
         id: "default-house-ad",
         title: "Advertise Your Business Here",
         description: "Reach our entire congregation and global audience. We offer premium digital ad placements for community businesses and partners. Click below to view our advertising guidelines and submit your ad for approval.",
-        target_link: "/contact?subject=advertising", // Routes them right to your contact form!
+        target_link: "/contact?subject=advertising",
         button_text: "Inquire About Advertising",
         media_url: null,
         isHouseAd: true
@@ -21,30 +23,36 @@ export default function GlobalTopAd() {
 
     useEffect(() => {
         async function fetchTopAds() {
-            const {data} = await supabase
-                .from('advertisements')
-                .select('*')
-                .eq('status', 'active')
-                .eq('placement', 'global_top')
-                .is('deleted_at', null)
-                .order('created_at', {ascending: false});
+            setIsLoading(true); // Start loading
+            try {
+                const {data} = await supabase
+                    .from('advertisements')
+                    .select('*')
+                    .eq('status', 'active')
+                    .eq('placement', 'global_top')
+                    .is('deleted_at', null)
+                    .order('created_at', {ascending: false});
 
-            if (data && data.length > 0) {
-                const validAds = data.filter(ad => !ad.expires_at || new Date(ad.expires_at) > new Date());
+                if (data && data.length > 0) {
+                    const validAds = data.filter(ad => !ad.expires_at || new Date(ad.expires_at) > new Date());
 
-                // If we found valid ads, use them. Otherwise, fall back to the house ad.
-                if (validAds.length > 0) {
-                    setAds(validAds);
+                    if (validAds.length > 0) {
+                        setAds(validAds);
+                    } else {
+                        setAds([defaultAd]);
+                    }
                 } else {
                     setAds([defaultAd]);
                 }
-            } else {
-                // If Supabase returns absolutely nothing, show the house ad.
-                setAds([defaultAd]);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                // ALWAYS turn off loading, whether it succeeded, failed, or used the default ad
+                setIsLoading(false);
             }
         }
 
-        fetchTopAds().catch(console.error);
+        fetchTopAds();
     }, []);
 
     // AUTO-ROTATE EVERY 55 SECONDS (Pauses if dropdown is open or only 1 ad!)
@@ -61,7 +69,10 @@ export default function GlobalTopAd() {
     const nextAd = () => setCurrentIndex((prev) => (prev + 1) % ads.length);
     const prevAd = () => setCurrentIndex((prev) => (prev === 0 ? ads.length - 1 : prev - 1));
 
-    // We no longer return null here, because we ALWAYS have at least the default ad!
+    if (loading) {
+        return <SkeletonLoader variant="global-ad"/>;
+    }
+
     if (ads.length === 0) return null;
 
     const currentAd = ads[currentIndex];
@@ -101,7 +112,8 @@ export default function GlobalTopAd() {
                     isExpanded ? 'max-h-[800px] opacity-100 py-6 md:py-10' : 'max-h-0 opacity-0 py-0'
                 }`}
             >
-                <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row gap-6 md:gap-10 items-center relative">
+                <div
+                    className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row gap-6 md:gap-10 items-center relative">
 
                     {/* Media Display (Falls back to an icon if no media_url exists) */}
                     {currentAd.media_url ? (

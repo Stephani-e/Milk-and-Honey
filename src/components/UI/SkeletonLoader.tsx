@@ -2,6 +2,7 @@
 import React from "react";
 
 type SkeletonVariant =
+    | "global-ad"
     | "sermon-card"
     | "next-event-card"
     | "sidebar-ad"
@@ -30,6 +31,25 @@ export default function SkeletonLoader({variant, count = 1, className = ""}: Ske
 
     const renderSkeleton = () => {
         switch (variant) {
+            case "global-ad":
+                return (
+                    <div
+                        className="sticky top-0 z-[60] w-full bg-brand-primary border-b border-white/10 shadow-md overflow-hidden">
+                        <div className="flex items-center justify-between px-4 h-10 md:h-12 max-w-7xl mx-auto gap-4">
+
+                            {/* Ticker Placeholder: A pulsing faded line to represent the text */}
+                            <div className="flex-1 flex items-center h-full">
+                                <div className="w-2/3 max-w-md h-2.5 md:h-3 bg-white/20 rounded-full animate-pulse"/>
+                            </div>
+
+                            {/* Button Placeholder: Matches the size and shape of the 'Click for More Info' button */}
+                            <div
+                                className="shrink-0 w-28 md:w-32 h-6 md:h-7 bg-white/20 rounded-full border border-white/20 animate-pulse"/>
+
+                        </div>
+                    </div>
+                );
+
             case "sermon-card":
                 return (
                     <div

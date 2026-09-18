@@ -208,8 +208,15 @@ export default function EventsDashboardPage() {
         setLoading(true);
         try {
             let query = supabase.from("church_events").select("*");
-            if (viewTrash) query = query.not("deleted_at", "is", null);
-            else query = query.is("deleted_at", null);
+
+            if (viewTrash) {
+                // Calculated timestamp for 30 days ago
+                const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+                query = query.not("deleted_at", "is", null).gte("deleted_at", thirtyDaysAgo);
+            } else {
+                query = query.is("deleted_at", null);
+            }
+
             query = query.order("created_at", {ascending: false});
 
             const {data, error} = await query;
@@ -274,6 +281,7 @@ export default function EventsDashboardPage() {
         try {
             const {data: existingRow} = await supabase.from('monthly_themes').select('id').eq('month_year', formattedThemeMonth).maybeSingle();
 
+            // @ts-ignore
             const payload = {
                 month_year: formattedThemeMonth,
                 theme_title: themeData.theme,
@@ -283,8 +291,8 @@ export default function EventsDashboardPage() {
                 is_congress_active: themeData.is_congress_active,
                 takeover_title: themeData.takeover_title,
                 takeover_theme: themeData.takeover_theme,
-                takeover_start_date: themeData.takeover_start_date,
-                takeover_end_date: themeData.takeover_end_date,
+                takeover_start_date: themeData.takeover_start_date || null,
+                takeover_end_date: themeData.takeover_end_date || null,
                 takeover_official_location: themeData.takeover_official_location,
                 takeover_location: themeData.takeover_location,
                 takeover_flyer_url: themeData.takeover_flyer_url,
@@ -311,21 +319,42 @@ export default function EventsDashboardPage() {
 
     const handleConfirmAction = async () => {
         if (!selectedEvent) return;
+
         if (modalType === "delete") {
             if (viewTrash) {
-                await supabase.from("church_events").delete().eq("id", selectedEvent.id);
-                toast.error("Event permanently deleted.");
+                // Hard delete
+                const {error} = await supabase.from("church_events").delete().eq("id", selectedEvent.id);
+                if (error) {
+                    toast.error("Error deleting event: " + error.message);
+                } else {
+                    toast.error("Event permanently deleted.");
+                }
             } else {
-                await supabase.from("church_events").update({
-                    deleted_at: new Date(),
+                // Soft delete to trash
+                const {error} = await supabase.from("church_events").update({
+                    deleted_at: new Date().toISOString(),
                     is_active: false
                 }).eq("id", selectedEvent.id);
-                toast.success("Event moved to Trash.");
+
+                if (error) {
+                    toast.error("Error trashing event: " + error.message);
+                } else {
+                    toast.success("Event moved to Trash.");
+                }
             }
         } else if (modalType === "restore") {
-            await supabase.from("church_events").update({deleted_at: null, is_active: true}).eq("id", selectedEvent.id);
-            toast.success("Event Restored.");
+            const {error} = await supabase.from("church_events").update({
+                deleted_at: null,
+                is_active: true
+            }).eq("id", selectedEvent.id);
+
+            if (error) {
+                toast.error("Error restoring event: " + error.message);
+            } else {
+                toast.success("Event Restored.");
+            }
         }
+
         await fetchEvents();
         setModalType(null);
     };
@@ -352,6 +381,14 @@ export default function EventsDashboardPage() {
             "last_friday": "Last Friday of the Month",
         };
         return translations[ruleString] || ruleString.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
+    const getDaysRemaining = (deletedAt: string) => {
+        if (!deletedAt) return 30;
+        const deletedDate = new Date(deletedAt).getTime();
+        const expiryDate = deletedDate + (30 * 24 * 60 * 60 * 1000);
+        const daysLeft = Math.ceil((expiryDate - Date.now()) / (1000 * 60 * 60 * 24));
+        return Math.max(0, daysLeft);
     };
 
     const renderExpandedDetails = (event: any) => {
@@ -427,13 +464,15 @@ export default function EventsDashboardPage() {
     // Converted from a Component to a render function to avoid the remounting bug
     const renderEventListItem = (event: any) => {
         const isExpanded = expandedId === event.id;
+        const daysLeft = viewTrash ? getDaysRemaining(event.deleted_at) : 0;
 
         return (
             <div key={event.id}
-                 className={`flex flex-col p-4 border rounded-2xl transition-all ${isExpanded ? 'border-brand-primary bg-white shadow-md' : 'border-brand-accent bg-slate-50/50 hover:bg-white hover:shadow-sm'}`}>
-                <div className="flex gap-4">
+                 className={`flex flex-col p-3 md:p-4 border rounded-2xl transition-all ${isExpanded ? 'border-brand-primary bg-white shadow-md' : 'border-brand-accent bg-slate-50/50 hover:bg-white hover:shadow-sm'}`}>
+                <div className="flex gap-3 md:gap-4">
+                    {/* Thumbnail */}
                     <div
-                        className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
+                        className="w-14 h-14 md:w-16 md:h-16 bg-slate-200 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
                         {event.flyer_url ? (
                             <img src={event.flyer_url} alt={event.title} className="w-full h-full object-cover"/>
                         ) : (
@@ -444,32 +483,51 @@ export default function EventsDashboardPage() {
                         )}
                     </div>
 
+                    {/* Middle Info Section */}
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex justify-between items-start mb-1">
+                        <div className="flex flex-wrap items-center justify-between gap-1 mb-1">
                             <span
-                                className="text-[9px] font-bold text-purple-600 uppercase tracking-widest truncate pr-2">
+                                className="text-[9px] font-bold text-purple-600 uppercase tracking-widest truncate pr-1">
                                 {event.category}
                             </span>
-                            {event.event_type === 'multi_day' && <span
-                                className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">Multi-Day</span>}
+
+                            {/* Responsive Badges Container */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                {viewTrash && (
+                                    <span
+                                        className={`text-[9px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${daysLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-amber-100 text-amber-700'}`}>
+                                        <Clock size={10}/> {daysLeft} {daysLeft === 1 ? 'day' : 'days'} left
+                                    </span>
+                                )}
+
+                                {!viewTrash && event.event_type === 'multi_day' && (
+                                    <span
+                                        className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold">Multi-Day</span>
+                                )}
+                            </div>
                         </div>
-                        <h4 className="font-bold text-brand-primary text-sm truncate mb-1">{event.title}</h4>
+
+                        <h4 className="font-bold text-brand-primary text-xs md:text-sm truncate mb-1">{event.title}</h4>
+
                         <div className="text-[10px] text-gray-500 font-bold flex items-center gap-1 truncate">
                             <Clock size={10}/>
-                            {event.event_type === 'recurring' ? "Infinite Schedule" :
-                                event.event_type === 'single_day' && event.start_datetime ? new Date(event.start_datetime).toLocaleDateString('en-GB') :
-                                    "Check Schedule"}
+                            {viewTrash ? `Deleted: ${new Date(event.deleted_at).toLocaleDateString('en-GB')}` :
+                                event.event_type === 'recurring' ? "Infinite Schedule" :
+                                    event.event_type === 'single_day' && event.start_datetime ? new Date(event.start_datetime).toLocaleDateString('en-GB') :
+                                        "Check Schedule"}
                         </div>
                     </div>
 
-                    <div className="flex flex-col justify-between items-end gap-2 border-l border-brand-accent pl-3">
+                    {/* Right Actions Column */}
+                    <div
+                        className="flex flex-col justify-between items-end gap-2 border-l border-brand-accent pl-2 md:pl-3">
                         <button onClick={() => setExpandedId(isExpanded ? null : event.id)}
                                 className="p-1 text-gray-400 hover:text-brand-primary bg-gray-50 rounded-md transition-colors">
                             {isExpanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
                         </button>
 
                         {role !== 'viewer' && (
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 md:gap-3">
                                 {viewTrash ? (
                                     <>
                                         <button onClick={() => {
@@ -563,46 +621,49 @@ export default function EventsDashboardPage() {
                     )}
                 </div>
 
-                {/* TAB 1: SCHEDULE NOTICES                   */}
+                {/* TAB 1: SCHEDULE NOTICES */}
                 {activeTab === "notices" && !viewTrash && (
                     <div className="animate-in fade-in slide-in-from-bottom-4">
 
                         {/* Editor Box */}
-                        <div className="bg-amber-50/50 p-6 md:p-8 rounded-3xl border border-amber-200 mb-8 shadow-sm">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div
+                            className="bg-amber-50/50 p-4 sm:p-6 md:p-8 rounded-3xl border border-amber-200 mb-8 shadow-sm">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-amber-100 text-amber-600 rounded-lg"><Info size={20}/></div>
+                                    <div className="p-2 bg-amber-100 text-amber-600 rounded-lg flex-shrink-0"><Info
+                                        size={20}/></div>
                                     <div>
-                                        <h3 className="text-lg font-serif font-bold text-amber-800">Schedule
+                                        <h3 className="text-base sm:text-lg font-serif font-bold text-amber-800">Schedule
                                             Notices</h3>
-                                        <p className="text-[10px] text-amber-700/70 uppercase tracking-widest">Add
+                                        <p className="text-[10px] sm:text-xs text-amber-700/70 uppercase tracking-widest">Add
                                             temporary schedule changes or cancellation notices.</p>
                                     </div>
                                 </div>
                                 <div
-                                    className="flex items-center gap-2 bg-white p-2 rounded-xl border border-amber-100 shadow-sm">
+                                    className="flex items-center justify-between sm:justify-start gap-2 bg-white p-2 rounded-xl border border-amber-100 shadow-sm w-full lg:w-auto">
                                     <label
                                         className="text-[10px] font-bold text-amber-600 uppercase tracking-widest pl-2">Select
                                         Month:</label>
                                     <input type="month" value={noticeMonthInput}
                                            onChange={(e) => setNoticeMonthInput(e.target.value)}
-                                           className="bg-amber-100 text-amber-900 px-4 py-2 rounded-lg font-bold text-sm text-center outline-none cursor-pointer"/>
+                                           className="bg-amber-100 text-amber-900 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-bold text-xs sm:text-sm text-center outline-none cursor-pointer flex-1 sm:flex-none"/>
                                 </div>
                             </div>
 
                             <textarea
                                 value={noticeText} onChange={(e) => setNoticeText(e.target.value)}
                                 disabled={role === 'viewer'} rows={4}
-                                className="w-full p-5 border border-amber-200 rounded-xl text-amber-900 font-medium focus:ring-2 focus:ring-amber-400 outline-none resize-none bg-white shadow-sm"
+                                className="w-full p-4 sm:p-5 border border-amber-200 rounded-xl text-amber-900 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-amber-400 outline-none resize-none bg-white shadow-sm"
                                 placeholder={`Type any schedule updates for ${formattedNoticeMonth} here... (e.g., "First Day Prayers moved to the 4th")`}
                             />
 
-                            <div className="mt-4 flex justify-between items-center">
+                            <div
+                                className="mt-4 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                                 {/* Clear Button */}
                                 <button
                                     onClick={() => setNoticeText("")}
                                     disabled={role === 'viewer' || !noticeText}
-                                    className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                    className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center sm:justify-start gap-1.5"
                                 >
                                     <Eraser size={14}/> Clear Input
                                 </button>
@@ -610,7 +671,7 @@ export default function EventsDashboardPage() {
                                 <button
                                     onClick={handleSaveNotice}
                                     disabled={savingNotice || role === 'viewer'}
-                                    className="bg-amber-500 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-amber-600 transition-colors disabled:opacity-50"
+                                    className="bg-amber-500 text-white px-6 sm:px-8 py-3 rounded-xl text-xs sm:text-sm font-bold shadow-md hover:bg-amber-600 transition-colors disabled:opacity-50 text-center"
                                 >
                                     {savingNotice ? "Saving..." : `Save Notice for ${formattedNoticeMonth}`}
                                 </button>
@@ -618,10 +679,12 @@ export default function EventsDashboardPage() {
                         </div>
 
                         {/* Active Notices List Below */}
-                        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-brand-accent mb-8">
+                        <div
+                            className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-brand-accent mb-8">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 bg-slate-100 text-brand-primary rounded-lg"><List size={18}/></div>
-                                <h3 className="text-xl font-serif font-bold text-brand-primary">Active Notices</h3>
+                                <h3 className="text-lg sm:text-xl font-serif font-bold text-brand-primary">Active
+                                    Notices</h3>
                             </div>
 
                             {loadingNotices ? (
@@ -635,14 +698,14 @@ export default function EventsDashboardPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {allNotices.map((notice) => (
                                         <div key={notice.id}
-                                             className="bg-slate-50 border border-gray-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                                             className="bg-slate-50 border border-gray-200 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-between">
                                             <div>
                                                 <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest mb-2">{notice.month_year}</h4>
-                                                <p className="text-sm text-gray-600 font-medium whitespace-pre-wrap mb-4">{notice.special_notice}</p>
+                                                <p className="text-xs sm:text-sm text-gray-600 font-medium whitespace-pre-wrap mb-4">{notice.special_notice}</p>
                                             </div>
                                             {role !== 'viewer' && (
                                                 <div
-                                                    className="flex items-center gap-2 justify-end border-t border-gray-200 pt-3">
+                                                    className="flex items-center gap-2 justify-end border-t border-gray-200 pt-3 flex-wrap">
                                                     <button
                                                         onClick={() => handleEditNotice(notice.month_year)}
                                                         className="text-[10px] font-bold bg-white text-brand-primary px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 flex items-center gap-1 transition-colors"
@@ -666,7 +729,7 @@ export default function EventsDashboardPage() {
                 )}
 
 
-                {/* TAB 2: CALENDAR & THEMES (Main Grid)      */}
+                {/* TAB 2: CALENDAR & THEMES (Main Grid) */}
                 {activeTab === "calendar" && (
                     <div className="animate-in fade-in slide-in-from-bottom-4">
 

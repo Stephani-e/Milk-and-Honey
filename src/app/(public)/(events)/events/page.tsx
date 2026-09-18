@@ -25,11 +25,11 @@ export default function EventsPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [currentNotice, setCurrentNotice] = useState<string | null>(null);
 
+// 1. Fetch Events Once on Mount
     useEffect(() => {
-        async function fetchData() {
+        async function fetchEvents() {
             setLoading(true);
 
-            // Fetch Events
             const {data: eventData} = await supabase
                 .from("church_events")
                 .select("*")
@@ -38,36 +38,32 @@ export default function EventsPage() {
 
             if (eventData) setEvents(eventData);
 
-            // Fetch Global Theme (Which now includes our takeover toggles!)
-            const {data: themeData} = await supabase
-                .from("monthly_themes")
-                .select("*")
-                .eq("id", 1)
-                .single();
-
-            if (themeData) setMonthlyTheme(themeData);
-
             setLoading(false);
         }
 
-        fetchData().catch(error => console.error("Error fetching data:", error));
+        fetchEvents().catch(error => console.error("Error fetching events:", error));
     }, []);
 
+    // 2. Fetch Theme AND Notice Dynamically Based on Calendar Month
     useEffect(() => {
-        async function fetchNoticeForMonth() {
+        async function fetchMonthData() {
             const monthYearString = currentDate.toLocaleString('default', {month: 'long', year: 'numeric'});
 
-            const {data} = await supabase
+            // Fetch the entire theme row for the currently viewed month
+            const {data: themeData} = await supabase
                 .from("monthly_themes")
-                .select("special_notice")
+                .select("*")
                 .eq("month_year", monthYearString)
-                .maybeSingle(); // maybeSingle is safe and won't throw errors if no notice exists
+                .maybeSingle(); // Safe: returns null if the admin hasn't created a theme for this month yet
 
-            setCurrentNotice(data?.special_notice || null);
+            setMonthlyTheme(themeData || null);
+
+            // Notice is part of the theme table, so we don't need a second DB call!
+            setCurrentNotice(themeData?.special_notice || null);
         }
 
-        fetchNoticeForMonth().catch(error => console.error("Error fetching notice:", error));
-    }, [currentDate]);
+        fetchMonthData().catch(error => console.error("Error fetching theme data:", error));
+    }, [currentDate]); // Re-runs whenever the user clicks Next/Prev month
 
     // --- THE DATE MATH ENGINE ---
     const getFirstFriday = (year: number, month: number) => {

@@ -408,7 +408,7 @@ export default function NewEventPage() {
                                                 className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Pattern</label>
                                             <select value={recurringPattern}
                                                     onChange={e => setRecurringPattern(e.target.value)}
-                                                    className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none">
+                                                    className="w-full p-4 border rounded-xl bg-white text-black focus:ring-2 focus:ring-brand-primary outline-none">
                                                 <option value="weekly">Weekly</option>
                                                 <option value="monthly">Monthly</option>
                                             </select>
@@ -419,7 +419,7 @@ export default function NewEventPage() {
                                             {recurringPattern === 'weekly' ? (
                                                 <select value={recurringDay}
                                                         onChange={e => setRecurringDay(e.target.value)}
-                                                        className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none">
+                                                        className="w-full p-4 border rounded-xl bg-white text-black focus:ring-2 focus:ring-brand-primary outline-none">
                                                     <option value="sunday">Sunday</option>
                                                     <option value="monday">Monday</option>
                                                     <option value="tuesday">Tuesday</option>
@@ -431,7 +431,7 @@ export default function NewEventPage() {
                                             ) : (
                                                 <select value={recurringDay}
                                                         onChange={e => setRecurringDay(e.target.value)}
-                                                        className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none">
+                                                        className="w-full p-4 border rounded-xl bg-white text-black focus:ring-2 focus:ring-brand-primary outline-none">
                                                     <option value="first_sunday">First Sunday</option>
                                                     <option value="first_thursday">First Thursday</option>
                                                     <option value="first_friday">First Friday</option>
@@ -444,7 +444,7 @@ export default function NewEventPage() {
                                         </div>
                                     </div>
 
-                                    {/* 🔴 DYNAMIC SUNDAY CONFIGURATOR 🔴 */}
+                                    {/* DYNAMIC SUNDAY CONFIGURATOR */}
                                     {recurringPattern === 'weekly' && recurringDay === 'sunday' && title.toLowerCase().includes('sunday') ? (
                                         <div
                                             className="mt-8 pt-8 border-t border-gray-200 animate-in fade-in slide-in-from-top-4">
@@ -527,7 +527,7 @@ export default function NewEventPage() {
                                                                    ...thanksgivingSession,
                                                                    start_time: e.target.value
                                                                })}
-                                                               className="w-full p-3 border border-amber-200 rounded-lg bg-white"/>
+                                                               className="w-full p-3 border border-amber-200  rounded-lg bg-white"/>
                                                     </div>
                                                     <div className="w-full sm:w-32">
                                                         <label
@@ -619,7 +619,7 @@ export default function NewEventPage() {
                                                     Time</label>
                                                 <input type="time" value={startTime}
                                                        onChange={e => setStartTime(e.target.value)}
-                                                       className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                       className="w-full p-4 border text-black rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
                                             </div>
                                             <div>
                                                 <label
@@ -627,7 +627,7 @@ export default function NewEventPage() {
                                                     Time</label>
                                                 <input type="time" value={endTime}
                                                        onChange={e => setEndTime(e.target.value)}
-                                                       className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                       className="w-full p-4 border text-black rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
                                             </div>
                                         </div>
                                     )}
@@ -642,21 +642,21 @@ export default function NewEventPage() {
                                             Date</label>
                                         <input type="date" required value={singleDate}
                                                onChange={e => setSingleDate(e.target.value)}
-                                               className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                               className="w-full p-4 border rounded-xl bg-white text-black focus:ring-2 focus:ring-brand-primary outline-none"/>
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">Start
                                             Time</label>
                                         <input type="time" required value={startTime}
                                                onChange={e => setStartTime(e.target.value)}
-                                               className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                               className="w-full p-4 border rounded-xl bg-white text-black focus:ring-2 focus:ring-brand-primary outline-none"/>
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-900 uppercase block mb-2">End
                                             Time</label>
                                         <input type="time" required value={endTime}
                                                onChange={e => setEndTime(e.target.value)}
-                                               className="w-full p-4 border rounded-xl bg-white focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                               className="w-full p-4 border rounded-xl bg-white text-black focus:ring-2 focus:ring-brand-primary outline-none"/>
                                     </div>
                                 </div>
                             )}
@@ -680,7 +680,7 @@ export default function NewEventPage() {
                                                                };
                                                                return updated;
                                                            })}
-                                                           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                           className="w-full p-3 border text-black rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
                                                 </div>
                                                 <div className="flex-1 w-full">
                                                     <label
@@ -694,7 +694,7 @@ export default function NewEventPage() {
                                                                };
                                                                return updated;
                                                            })}
-                                                           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                           className="w-full p-3 border text-black rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
                                                 </div>
                                                 <div className="flex-1 w-full">
                                                     <label
@@ -708,7 +708,7 @@ export default function NewEventPage() {
                                                                };
                                                                return updated;
                                                            })}
-                                                           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                           className="w-full p-3 border text-black rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
                                                 </div>
                                                 <div className="flex-1 w-full">
                                                     <label
@@ -722,7 +722,7 @@ export default function NewEventPage() {
                                                                };
                                                                return updated;
                                                            })}
-                                                           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                           className="w-full p-3 border text-black rounded-lg focus:ring-2 focus:ring-brand-primary outline-none"/>
                                                 </div>
                                             </div>
                                             <div className="w-full flex gap-4">
@@ -740,7 +740,7 @@ export default function NewEventPage() {
                                                                };
                                                                return updated;
                                                            })}
-                                                           className="w-full p-3 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                           className="w-full p-3 border text-black rounded-lg bg-slate-50 focus:ring-2 focus:ring-brand-primary outline-none"/>
                                                 </div>
                                                 {multiDays.length > 1 && (
                                                     <button type="button" onClick={() => handleRemoveMultiDay(index)}
@@ -772,7 +772,7 @@ export default function NewEventPage() {
                                             <input value={globalGuestSpeaker}
                                                    onChange={e => setGlobalGuestSpeaker(e.target.value)}
                                                    placeholder="e.g. Pastor E.A. Adeboye"
-                                                   className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                                   className="w-full p-4 border text-black rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"/>
                                         </div>
                                     )}
                                     <div className={eventType === 'multi_day' ? 'md:col-span-2' : ''}>
@@ -780,14 +780,14 @@ export default function NewEventPage() {
                                             Theme</label>
                                         <input value={theme} onChange={e => setTheme(e.target.value)}
                                                placeholder="e.g. Let There Be Light"
-                                               className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                               className="w-full p-4 border text-black rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"/>
                                     </div>
                                     <div className={eventType === 'multi_day' ? 'md:col-span-1' : ''}>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-2">Specific
                                             Topic</label>
                                         <input value={topic} onChange={e => setTopic(e.target.value)}
                                                placeholder="e.g. Faith to Move Mountains"
-                                               className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"/>
+                                               className="w-full p-4 border text-black rounded-xl focus:ring-2 focus:ring-brand-primary outline-none"/>
                                     </div>
                                 </div>
                             </div>
